@@ -1,0 +1,23 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Editor folders
+.vscode/
+.idea/
+
+# Dependencies and build output (if tooling is added later)
+node_modules/
+dist/
+build/
+coverage/
+
+# Logs and OS files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+desktop.ini
