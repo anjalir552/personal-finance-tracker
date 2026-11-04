@@ -18,21 +18,33 @@ SW.pages = SW.pages || {};
   const shortName = n => n.split(' · ')[0].replace(/\s*\(.*\)$/, '');
   const mark = st => `<i class="cal-mark is-${st}" aria-hidden="true"></i>`;
 
-  /* ---------- Summary: only what still needs money, what's late, what's done ---------- */
+  /* ---------- Summary: the month's bills as one figure and one bar ----------
+     The bar is the month's payments: paid fills from the left in blue, overdue follows in
+     orange, the empty track is what's still to pay. Its legend doubles as the calendar key. */
   function summaryHTML(sum) {
     const monthName = S.monthName(view, true);
     const n = c => `${c} payment${c === 1 ? '' : 's'}`;
-    return `<section class="cal-summary" aria-label="${monthName} payment summary">
-      <div class="cal-fig lead"><div class="k">Still to pay in ${monthName}</div><div class="v num">${F.inr(sum.upcoming.amount)}</div>
-        <div class="s">${n(sum.upcoming.count)}${sum.overdue.count ? ', not counting overdue' : ''}</div></div>
-      <div class="cal-fig${sum.overdue.count ? ' alert' : ''}"><div class="k">${mark('overdue')}Overdue</div><div class="v num">${F.inr(sum.overdue.amount)}</div>
-        <div class="s">${sum.overdue.count ? `${n(sum.overdue.count)}${sum.carried ? `, ${sum.carried} carried over` : ''}` : 'Nothing late'}</div></div>
-      <div class="cal-fig"><div class="k">${mark('paid')}Paid</div><div class="v num">${F.inr(sum.paid.amount)}</div>
-        <div class="s">${n(sum.paid.count)}</div></div>
-    </section>`;
+    const pct = v => sum.total ? Math.max(v ? 1.5 : 0, (v / sum.total) * 100).toFixed(2) : 0;
+    const bar = `${F.inr(sum.paid.amount)} paid, ${F.inr(sum.overdue.amount)} overdue and ${F.inr(sum.upcoming.amount)} still to pay, of ${F.inr(sum.total)} this month`;
+    return `<div class="cal-summary" aria-label="${monthName} payment summary">
+      <div class="k">Still to pay in ${monthName}</div>
+      <div class="cal-lead"><span class="v num">${F.inr(sum.upcoming.amount)}</span><span class="s">${n(sum.upcoming.count)}${sum.overdue.count ? ', not counting overdue' : ''}</span></div>
+      <div class="cal-track" role="img" aria-label="${bar}">
+        <i class="is-paid" style="width:${pct(sum.paid.amount)}%"></i><i class="is-overdue" style="width:${pct(sum.overdue.amount)}%"></i>
+      </div>
+      <div class="cal-legend">
+        <ul>
+          <li>${mark('paid')}<span>Paid</span><b class="num">${F.inr(sum.paid.amount)}</b>${sum.paid.count ? `<span class="s">${n(sum.paid.count)}</span>` : ''}</li>
+          <li class="${sum.overdue.count ? 'alert' : 'quiet'}">${mark('overdue')}<span>Overdue</span><b class="num">${F.inr(sum.overdue.amount)}</b><span class="s">${sum.overdue.count ? `${n(sum.overdue.count)}${sum.carried ? `, ${sum.carried} carried over` : ''}` : 'nothing late'}</span></li>
+          <li>${mark('upcoming')}<span>Still to pay</span></li>
+        </ul>
+        <span class="cal-legend-total"><b class="num">${F.inr(sum.total)}</b> across ${n(sum.count)}</span>
+      </div>
+    </div>`;
   }
 
-  /* ---------- The calendar ---------- */
+  /* ---------- The calendar: one amount and one name per day, nothing more ---------- */
+  const cellAmt = v => v >= 1e5 ? F.inrc(v, 1) : F.inr(v);
   function gridHTML(list) {
     const [y, m] = view.split('-').map(Number);
     const days = new Date(y, m, 0).getDate();
@@ -40,30 +52,35 @@ SW.pages = SW.pages || {};
     const byDay = {};
     list.forEach(x => (byDay[x.date] = byDay[x.date] || []).push(x));
     const cells = [];
-    for (let i = 0; i < lead; i++) cells.push('<div class="cal-cell cal-pad" role="gridcell" aria-hidden="true"></div>');
+    for (let i = 0; i < lead; i++) cells.push('<div class="cal-pad" role="gridcell" aria-hidden="true"></div>');
     for (let d = 1; d <= days; d++) {
       const iso = `${view}-${String(d).padStart(2, '0')}`;
       const items = byDay[iso] || [];
       const wd = (lead + d - 1) % 7;
       const total = items.reduce((a, x) => a + x.amount, 0);
-      const cls = ['cal-cell', 'cal-day'];
+      const state = !items.length ? '' : items.some(x => x.status === 'overdue') ? 'overdue' : items.every(x => x.status === 'paid') ? 'paid' : 'upcoming';
+      const cls = ['cal-day'];
       if (wd >= 5) cls.push('weekend');
       if (iso === S.TODAY) cls.push('today');
+      if (iso < S.TODAY) cls.push('past');
       if (iso === sel) cls.push('selected');
-      if (items.some(x => x.status === 'overdue')) cls.push('has-overdue');
-      else if (items.length && items.every(x => x.status === 'paid')) cls.push('all-paid');
+      if (state) cls.push(`is-${state}`);
+      if (state === 'overdue') cls.push('has-overdue');
+      else if (state === 'paid') cls.push('all-paid');
       const label = `${longDay(iso)}${iso === S.TODAY ? ', today' : ''}. ${items.length ? `${items.length} payment${items.length > 1 ? 's' : ''}, ${F.inr(total)}: ${items.map(x => `${x.name}, ${STATUS[x.status]}`).join('; ')}` : 'No payments'}`;
-      const shown = items.slice(0, 2);
-      cells.push(`<div class="cal-cell-wrap" role="gridcell">
+      const first = items.find(x => x.status !== 'paid') || items[0];
+      cells.push(`<div class="cal-cell" role="gridcell">
         <button type="button" class="${cls.join(' ')}" data-day="${iso}" tabindex="${iso === sel ? 0 : -1}" aria-pressed="${iso === sel}" aria-label="${F.esc(label)}">
-          <span class="cal-num">${d}</span>
-          ${total ? `<span class="cal-total num">${F.inrc(total, total < 1e4 ? 1 : 0)}</span>` : ''}
-          ${items.length ? `<span class="cal-items">${shown.map(x => `<span class="cal-item is-${x.status}">${mark(x.status)}<span class="t">${F.esc(shortName(x.name))}</span></span>`).join('')}${items.length > 2 ? `<span class="cal-more">+${items.length - 2} more</span>` : ''}</span>
+          <span class="cal-top"><span class="cal-num">${d}</span>${state && state !== 'upcoming' ? `<span class="cal-flag">${mark(state)}</span>` : ''}</span>
+          ${items.length ? `<span class="cal-info">
+            <span class="cal-total num">${cellAmt(total)}</span>
+            <span class="cal-name">${F.esc(shortName(first.name))}${items.length > 1 ? `<span class="cal-more">+${items.length - 1}</span>` : ''}</span>
+          </span>
           <span class="cal-dots" aria-hidden="true">${items.slice(0, 4).map(x => mark(x.status)).join('')}</span>` : ''}
         </button></div>`);
     }
     const tail = (7 - (cells.length % 7)) % 7;
-    for (let i = 0; i < tail; i++) cells.push('<div class="cal-cell cal-pad" role="gridcell" aria-hidden="true"></div>');
+    for (let i = 0; i < tail; i++) cells.push('<div class="cal-pad" role="gridcell" aria-hidden="true"></div>');
     const rows = [];
     for (let i = 0; i < cells.length; i += 7) {
       // Week total: the days of this month in the row
@@ -72,11 +89,11 @@ SW.pages = SW.pages || {};
       const due = inWeek.filter(x => x.status !== 'paid').reduce((a, x) => a + x.amount, 0);
       const paid = inWeek.filter(x => x.status === 'paid').reduce((a, x) => a + x.amount, 0);
       const late = inWeek.some(x => x.status === 'overdue');
-      const wk = `<div class="cal-wk${late ? ' late' : ''}${!due && paid ? ' done' : ''}" role="gridcell">${due || paid ? `<span class="v num">${F.inrc(due || paid, (due || paid) < 1e4 ? 1 : 0)}</span><span class="s">${due ? (late ? 'incl. overdue' : 'to pay') : 'paid'}</span>` : '<span class="s">—</span>'}</div>`;
-      rows.push(`<div class="cal-row" role="row">${cells.slice(i, i + 7).join('')}${wk}</div>`);
+      const wk = `<div class="cal-wk${late ? ' late' : ''}${!due && paid ? ' done' : ''}" role="gridcell">${due || paid ? `<span class="v num">${cellAmt(due || paid)}</span><span class="s">${due ? (late ? 'incl. overdue' : 'to pay') : 'paid'}</span>` : '<span class="s" aria-label="Nothing this week">–</span>'}</div>`;
+      rows.push(`<div class="cal-row${due || paid ? '' : ' quiet'}" role="row">${cells.slice(i, i + 7).join('')}${wk}</div>`);
     }
     return `<div class="cal-grid" role="grid" aria-label="${S.monthName(view, true)} ${y} payments">
-      <div class="cal-row cal-week" role="row">${WEEK.map(w => `<div class="cal-wd" role="columnheader"><span aria-hidden="true">${w}</span><span class="sr-only">${w}</span></div>`).join('')}<div class="cal-wd cal-wk-h" role="columnheader">Week</div></div>
+      <div class="cal-row cal-week" role="row">${WEEK.map((w, i) => `<div class="cal-wd${i >= 5 ? ' weekend' : ''}" role="columnheader">${w}</div>`).join('')}<div class="cal-wd cal-wk-h" role="columnheader">Week</div></div>
       ${rows.join('')}
     </div>`;
   }
@@ -88,33 +105,34 @@ SW.pages = SW.pages || {};
     if (x.status === 'paid') state = x.paidOn && x.paidOn !== x.date ? `Paid on ${F.short(x.paidOn)}` : 'Paid';
     else if (x.status === 'overdue') state = `${F.daysBetween(x.date, S.TODAY)} day${F.daysBetween(x.date, S.TODAY) === 1 ? '' : 's'} late`;
     else state = F.rel(x.date, S.TODAY).replace(/^./, c => c.toUpperCase());
-    const actions = x.status === 'paid' ? `<a class="btn btn-ghost btn-sm" href="#/transactions">View</a>`
-      : `${x.next ? `<button type="button" class="btn btn-secondary btn-sm" data-paid="${x.upId}">${I('check', 14)}Mark paid</button>` : `<span class="cal-later">Pay the ${F.short(S.state.upcoming.find(u => u.id === x.upId).due)} one first</span>`}
+    const primary = x.status === 'paid' ? `<a class="btn btn-ghost btn-sm" href="#/transactions">View in Transactions</a>`
+      : x.next ? `<button type="button" class="btn ${x.status === 'overdue' ? 'btn-primary' : 'btn-secondary'} btn-sm" data-paid="${x.upId}">${I('check', 14)}Mark paid</button>`
+      : `<span class="cal-later">Pay the ${F.short(S.state.upcoming.find(u => u.id === x.upId).due)} one first</span>`;
+    const tools = x.status === 'paid' ? '' : `<span class="cal-tools">
          <button type="button" class="icon-btn sm" data-edit="${x.upId}" aria-label="Edit ${F.esc(x.name)}">${I('edit', 16)}</button>
-         <button type="button" class="icon-btn sm" data-del="${x.upId}" aria-label="Delete ${F.esc(x.name)}">${I('trash', 16)}</button>`;
+         <button type="button" class="icon-btn sm" data-del="${x.upId}" aria-label="Delete ${F.esc(x.name)}">${I('trash', 16)}</button></span>`;
     return `<li class="cal-entry is-${x.status}">
       ${mark(x.status)}
-      <div class="grow"><div class="li-title">${F.esc(x.name)}</div>
-        <div class="li-sub"><span class="cal-state">${state}</span> · ${meta.map(F.esc).join(' · ')}</div></div>
+      <div class="li-title">${F.esc(x.name)}</div>
       <div class="li-amt">${x.estimate ? '~' : ''}${F.inr(x.amount)}</div>
-      <div class="cal-entry-actions">${actions}</div>
+      <div class="li-sub"><span class="cal-state">${state}</span> · ${meta.map(F.esc).join(' · ')}</div>
+      <div class="cal-entry-actions">${primary}${tools}</div>
     </li>`;
   }
 
   function dayHTML(list) {
     const items = list.filter(x => x.date === sel);
     const total = items.reduce((a, x) => a + x.amount, 0);
-    const d = F.d(sel);
     const due = items.filter(x => x.status !== 'paid').reduce((a, x) => a + x.amount, 0);
+    const when = sel === S.TODAY ? 'Today' : F.rel(sel, S.TODAY).replace(/^./, c => c.toUpperCase());
     return `<div class="cal-dayhead">
-        <div class="cal-daynum num" aria-hidden="true">${d.getDate()}</div>
-        <div class="cal-dayttl"><h2 class="cal-side-title" id="day-h">${longDay(sel)}</h2>
-          <div class="cal-side-desc">${sel === S.TODAY ? 'Today' : F.rel(sel, S.TODAY).replace(/^./, c => c.toUpperCase())}${items.length ? ` · ${items.length} payment${items.length > 1 ? 's' : ''}` : ''}</div></div>
+        <div class="grow"><h2 class="cal-side-title" id="day-h">${longDay(sel)}</h2>
+          <div class="cal-side-desc">${when}${items.length ? ` · ${items.length} payment${items.length > 1 ? 's' : ''}` : ''}</div></div>
         ${items.length ? `<div class="cal-daytotal"><span class="v num">${F.inr(total)}</span><span class="s">${due ? (due === total ? 'to pay' : `${F.inr(due)} to pay`) : 'all paid'}</span></div>` : ''}
       </div>
       ${items.length ? `<ul class="list cal-entries">${items.map(entryHTML).join('')}</ul>`
         : `<p class="cal-none">Nothing is due on this day.</p>`}
-      <div class="cal-dayfoot"><button type="button" class="link" data-action="new-day">${I('plus', 14)}Add an expense on ${F.short(sel)}</button></div>`;
+      <button type="button" class="link cal-add" data-action="new-day">${I('plus', 14)}Add an expense on ${F.short(sel)}</button>`;
   }
 
   /* ---------- What's next, whatever month is on screen ---------- */
@@ -124,16 +142,16 @@ SW.pages = SW.pages || {};
     const m = S.moneyMap();
     if (!list.length) return '';
     return `<div class="cal-side-head"><h2 class="cal-side-title" id="next-h">Next payments</h2>
-        <p class="cal-side-desc">${F.inr(m.bills)} due before payday on ${F.short(m.payday)}</p></div>
+        <p class="cal-side-desc"><b class="num">${F.inr(m.bills)}</b> due before payday on ${F.short(m.payday)}</p></div>
       <ul class="list cal-next">${shown.map(u => {
         const st = S.isOverdue(u) ? 'overdue' : 'upcoming';
         const d = F.d(u.due);
-        return `<li><button type="button" class="cal-next-row" data-jump="${u.due}">
-          <span class="cal-next-date${st === 'overdue' ? ' late' : ''}"><b>${d.getDate()}</b>${F.MONTHS[d.getMonth()]}</span>
+        return `<li><button type="button" class="cal-next-row${st === 'overdue' ? ' late' : ''}" data-jump="${u.due}">
+          <span class="cal-next-date"><b>${d.getDate()}</b>${F.MONTHS[d.getMonth()]}</span>
           <span class="grow"><span class="li-title">${F.esc(u.name)}</span><span class="li-sub">${st === 'overdue' ? `Overdue since ${F.short(u.due)}` : F.rel(u.due, S.TODAY).replace(/^./, c => c.toUpperCase())}</span></span>
           <span class="li-amt">${u.estimate ? '~' : ''}${F.inr(u.amount)}</span></button></li>`;
       }).join('')}</ul>
-      ${list.length > shown.length ? `<div class="cal-next-more">${list.length - shown.length} more scheduled after ${F.short(shown[shown.length - 1].due)}</div>` : ''}`;
+      ${list.length > shown.length ? `<p class="cal-next-more">${list.length - shown.length} more scheduled after ${F.short(shown[shown.length - 1].due)}, listed below</p>` : ''}`;
   }
 
   /* ---------- Everything that repeats ---------- */
@@ -157,7 +175,7 @@ SW.pages = SW.pages || {};
     return `<div class="cal-sec-head"><div><h2 class="cal-sec-title" id="rec-h">Scheduled and recurring</h2>
         <p class="cal-sec-desc">${list.length} recurring, averaging <b>${F.inr(S.recurringMonthly())} a month</b>${once.length ? ` · ${once.length} one-time` : ''}</p></div></div>
       <div class="table-wrap cal-rec"><table class="table">
-        <thead><tr><th scope="col">Expense</th><th scope="col" class="hide-sm">Repeats</th><th scope="col" class="r">Next due</th><th scope="col" class="r">Amount</th><th scope="col" class="r hide-sm">A month</th><th scope="col" class="hide-sm"><span class="sr-only">Actions</span></th></tr></thead>
+        <thead><tr><th scope="col">Expense</th><th scope="col" class="hide-sm">Repeats</th><th scope="col" class="r">Next due</th><th scope="col" class="r">Amount</th><th scope="col" class="r hide-sm">Per month</th><th scope="col" class="hide-sm"><span class="sr-only">Actions</span></th></tr></thead>
         <tbody>${list.map(row).join('')}${once.length ? `<tr class="group-row"><td colspan="6">One-time</td></tr>${once.map(row).join('')}` : ''}</tbody>
       </table></div>`;
   }
@@ -178,22 +196,18 @@ SW.pages = SW.pages || {};
     const [y] = view.split('-');
     return `
       ${ui.pageHeader({ title: 'Upcoming Expenses', sub: headline(), actions: `<button class="btn btn-primary" data-action="new">${I('plus', 16)}Add expense</button>` })}
-      <div data-summary>${summaryHTML(sum)}</div>
       <div class="cal-layout">
         <section class="cal-panel" aria-labelledby="cal-h">
           <div class="cal-bar">
             <h2 class="cal-month" id="cal-h" aria-live="polite">${S.monthName(view, true)} <span>${y}</span></h2>
-            <span class="cal-month-total num">${F.inr(sum.total)} across ${sum.count} payment${sum.count === 1 ? '' : 's'}</span>
             <div class="cal-nav">
               <button type="button" class="btn btn-ghost btn-sm" data-nav="today" ${view === S.CUR_MONTH && sel === S.TODAY ? 'disabled' : ''}>Today</button>
               <button type="button" class="icon-btn" data-nav="-1" aria-label="Previous month">${I('chevronLeft', 18)}</button>
               <button type="button" class="icon-btn" data-nav="1" aria-label="Next month">${I('chevronRight', 18)}</button>
             </div>
           </div>
+          <div data-summary>${summaryHTML(sum)}</div>
           <div data-grid>${gridHTML(list)}</div>
-          <div class="cal-key" aria-hidden="true">
-            <span>${mark('paid')}Paid</span><span>${mark('upcoming')}Upcoming</span><span>${mark('overdue')}Overdue</span><span><i class="cal-mark is-today"></i>Today</span>
-          </div>
         </section>
         <aside class="cal-side">
           <section class="cal-daypanel" aria-labelledby="day-h" data-daypanel aria-live="polite">${dayHTML(list)}</section>
