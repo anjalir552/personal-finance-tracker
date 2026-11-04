@@ -43,8 +43,13 @@ SW.pages = SW.pages || {};
     </div>`;
   }
 
-  /* ---------- The calendar: one amount and one name per day, nothing more ---------- */
+  /* ---------- The calendar ----------
+     Full width, no cell walls. A day shows its date, and when money leaves that day, the amount
+     and the first name. The selected day opens like a tab into a panel directly under its week,
+     so the details sit next to the date they belong to. */
   const cellAmt = v => v >= 1e5 ? F.inrc(v, 1) : F.inr(v);
+  let openWeek = null;      // the week whose panel was last drawn, so only a new week animates
+
   function gridHTML(list) {
     const [y, m] = view.split('-').map(Number);
     const days = new Date(y, m, 0).getDate();
@@ -52,7 +57,7 @@ SW.pages = SW.pages || {};
     const byDay = {};
     list.forEach(x => (byDay[x.date] = byDay[x.date] || []).push(x));
     const cells = [];
-    for (let i = 0; i < lead; i++) cells.push('<div class="cal-pad" role="gridcell" aria-hidden="true"></div>');
+    for (let i = 0; i < lead; i++) cells.push('<div class="cal-pad" aria-hidden="true"></div>');
     for (let d = 1; d <= days; d++) {
       const iso = `${view}-${String(d).padStart(2, '0')}`;
       const items = byDay[iso] || [];
@@ -64,24 +69,23 @@ SW.pages = SW.pages || {};
       if (iso === S.TODAY) cls.push('today');
       if (iso < S.TODAY) cls.push('past');
       if (iso === sel) cls.push('selected');
-      if (state) cls.push(`is-${state}`);
-      if (state === 'overdue') cls.push('has-overdue');
-      else if (state === 'paid') cls.push('all-paid');
+      if (state) cls.push(`has-items is-${state}`);
       const label = `${longDay(iso)}${iso === S.TODAY ? ', today' : ''}. ${items.length ? `${items.length} payment${items.length > 1 ? 's' : ''}, ${F.inr(total)}: ${items.map(x => `${x.name}, ${STATUS[x.status]}`).join('; ')}` : 'No payments'}`;
       const first = items.find(x => x.status !== 'paid') || items[0];
-      cells.push(`<div class="cal-cell" role="gridcell">
-        <button type="button" class="${cls.join(' ')}" data-day="${iso}" tabindex="${iso === sel ? 0 : -1}" aria-pressed="${iso === sel}" aria-label="${F.esc(label)}">
-          <span class="cal-top"><span class="cal-num">${d}</span>${state && state !== 'upcoming' ? `<span class="cal-flag">${mark(state)}</span>` : ''}</span>
+      cells.push(`<button type="button" class="${cls.join(' ')}" data-day="${iso}" tabindex="${iso === sel ? 0 : -1}" aria-pressed="${iso === sel}" aria-label="${F.esc(label)}">
+          <span class="cal-num">${d}</span>
           ${items.length ? `<span class="cal-info">
-            <span class="cal-total num">${cellAmt(total)}</span>
-            <span class="cal-name">${F.esc(shortName(first.name))}${items.length > 1 ? `<span class="cal-more">+${items.length - 1}</span>` : ''}</span>
+            <span class="cal-total num">${state !== 'upcoming' ? mark(state) : ''}${cellAmt(total)}</span>
+            <span class="cal-name">${F.esc(shortName(first.name))}${items.length > 1 ? ` <span class="cal-more">+${items.length - 1}</span>` : ''}</span>
           </span>
           <span class="cal-dots" aria-hidden="true">${items.slice(0, 4).map(x => mark(x.status)).join('')}</span>` : ''}
-        </button></div>`);
+        </button>`);
     }
     const tail = (7 - (cells.length % 7)) % 7;
-    for (let i = 0; i < tail; i++) cells.push('<div class="cal-pad" role="gridcell" aria-hidden="true"></div>');
-    const rows = [];
+    for (let i = 0; i < tail; i++) cells.push('<div class="cal-pad" aria-hidden="true"></div>');
+
+    const selDay = +sel.slice(8), selCol = (lead + selDay - 1) % 7;
+    const weeks = [];
     for (let i = 0; i < cells.length; i += 7) {
       // Week total: the days of this month in the row
       const first = i - lead + 1, last = Math.min(days, first + 6);
@@ -89,16 +93,23 @@ SW.pages = SW.pages || {};
       const due = inWeek.filter(x => x.status !== 'paid').reduce((a, x) => a + x.amount, 0);
       const paid = inWeek.filter(x => x.status === 'paid').reduce((a, x) => a + x.amount, 0);
       const late = inWeek.some(x => x.status === 'overdue');
-      const wk = `<div class="cal-wk${late ? ' late' : ''}${!due && paid ? ' done' : ''}" role="gridcell">${due || paid ? `<span class="v num">${cellAmt(due || paid)}</span><span class="s">${due ? (late ? 'incl. overdue' : 'to pay') : 'paid'}</span>` : '<span class="s" aria-label="Nothing this week">–</span>'}</div>`;
-      rows.push(`<div class="cal-row${due || paid ? '' : ' quiet'}" role="row">${cells.slice(i, i + 7).join('')}${wk}</div>`);
+      const open = monthOf(sel) === view && selDay >= first && selDay <= last;
+      const wkLabel = due ? `${F.inr(due)} ${late ? 'to pay, including overdue' : 'to pay'} this week` : paid ? `${F.inr(paid)} paid this week` : 'Nothing this week';
+      const wk = `<div class="cal-wk${late ? ' late' : ''}${!due && paid ? ' done' : ''}"><span class="sr-only">${wkLabel}</span>${due || paid ? `<span class="v num" aria-hidden="true">${cellAmt(due || paid)}</span><span class="s" aria-hidden="true">${due ? 'to pay' : 'paid'}</span>` : ''}</div>`;
+      weeks.push(`<div class="cal-week${due || paid ? '' : ' quiet'}${open ? ' open' : ''}" style="--col:${selCol}">${cells.slice(i, i + 7).join('')}${wk}</div>`);
+      if (open) {
+        const key = `${view}:${i}`;
+        weeks.push(`<section class="cal-detail${openWeek !== key ? ' enter' : ''}${selCol === 0 ? ' first-col' : selCol === 6 ? ' last-col' : ''}" aria-labelledby="day-h" style="--col:${selCol}">${dayHTML(list)}</section>`);
+        openWeek = key;
+      }
     }
-    return `<div class="cal-grid" role="grid" aria-label="${S.monthName(view, true)} ${y} payments">
-      <div class="cal-row cal-week" role="row">${WEEK.map((w, i) => `<div class="cal-wd${i >= 5 ? ' weekend' : ''}" role="columnheader">${w}</div>`).join('')}<div class="cal-wd cal-wk-h" role="columnheader">Week</div></div>
-      ${rows.join('')}
+    return `<div class="cal-grid" role="group" aria-label="${S.monthName(view, true)} ${y} payments">
+      <div class="cal-head" aria-hidden="true">${WEEK.map((w, i) => `<span class="${i >= 5 ? 'weekend' : ''}">${w}</span>`).join('')}<span class="cal-wk-h">Week</span></div>
+      ${weeks.join('')}
     </div>`;
   }
 
-  /* ---------- The selected day ---------- */
+  /* ---------- The selected day, opened under its week ---------- */
   function entryHTML(x) {
     const meta = [x.category, REPEAT[x.repeat] || 'One-time'];
     let state = '';
@@ -113,9 +124,9 @@ SW.pages = SW.pages || {};
          <button type="button" class="icon-btn sm" data-del="${x.upId}" aria-label="Delete ${F.esc(x.name)}">${I('trash', 16)}</button></span>`;
     return `<li class="cal-entry is-${x.status}">
       ${mark(x.status)}
-      <div class="li-title">${F.esc(x.name)}</div>
+      <div class="cal-entry-main"><div class="li-title">${F.esc(x.name)}</div>
+        <div class="li-sub"><span class="cal-state">${state}</span> · ${meta.map(F.esc).join(' · ')}</div></div>
       <div class="li-amt">${x.estimate ? '~' : ''}${F.inr(x.amount)}</div>
-      <div class="li-sub"><span class="cal-state">${state}</span> · ${meta.map(F.esc).join(' · ')}</div>
       <div class="cal-entry-actions">${primary}${tools}</div>
     </li>`;
   }
@@ -125,14 +136,13 @@ SW.pages = SW.pages || {};
     const total = items.reduce((a, x) => a + x.amount, 0);
     const due = items.filter(x => x.status !== 'paid').reduce((a, x) => a + x.amount, 0);
     const when = sel === S.TODAY ? 'Today' : F.rel(sel, S.TODAY).replace(/^./, c => c.toUpperCase());
+    const add = `<button type="button" class="link cal-add" data-action="new-day">${I('plus', 14)}Add an expense on ${F.short(sel)}</button>`;
     return `<div class="cal-dayhead">
-        <div class="grow"><h2 class="cal-side-title" id="day-h">${longDay(sel)}</h2>
-          <div class="cal-side-desc">${when}${items.length ? ` · ${items.length} payment${items.length > 1 ? 's' : ''}` : ''}</div></div>
-        ${items.length ? `<div class="cal-daytotal"><span class="v num">${F.inr(total)}</span><span class="s">${due ? (due === total ? 'to pay' : `${F.inr(due)} to pay`) : 'all paid'}</span></div>` : ''}
+        <div class="grow"><h3 class="cal-day-title" id="day-h">${longDay(sel)}</h3>
+          <p class="cal-day-desc">${when}${items.length ? ` · ${items.length} payment${items.length > 1 ? 's' : ''}` : ' · Nothing is due'}</p></div>
+        ${items.length ? `<div class="cal-daytotal"><span class="v num">${F.inr(total)}</span><span class="s">${due ? (due === total ? 'to pay' : `${F.inr(due)} to pay`) : 'all paid'}</span></div>` : add}
       </div>
-      ${items.length ? `<ul class="list cal-entries">${items.map(entryHTML).join('')}</ul>`
-        : `<p class="cal-none">Nothing is due on this day.</p>`}
-      <button type="button" class="link cal-add" data-action="new-day">${I('plus', 14)}Add an expense on ${F.short(sel)}</button>`;
+      ${items.length ? `<ul class="list cal-entries">${items.map(entryHTML).join('')}</ul>${add}` : ''}`;
   }
 
   /* ---------- What's next, whatever month is on screen ---------- */
@@ -141,17 +151,19 @@ SW.pages = SW.pages || {};
     const shown = list.slice(0, 5);
     const m = S.moneyMap();
     if (!list.length) return '';
-    return `<div class="cal-side-head"><h2 class="cal-side-title" id="next-h">Next payments</h2>
-        <p class="cal-side-desc"><b class="num">${F.inr(m.bills)}</b> due before payday on ${F.short(m.payday)}</p></div>
+    return `<div class="cal-sec-head"><div><h2 class="cal-sec-title" id="next-h">Next payments</h2>
+        <p class="cal-sec-desc"><b>${F.inr(m.bills)}</b> is due before payday on ${F.short(m.payday)}</p></div></div>
       <ul class="list cal-next">${shown.map(u => {
         const st = S.isOverdue(u) ? 'overdue' : 'upcoming';
         const d = F.d(u.due);
         return `<li><button type="button" class="cal-next-row${st === 'overdue' ? ' late' : ''}" data-jump="${u.due}">
           <span class="cal-next-date"><b>${d.getDate()}</b>${F.MONTHS[d.getMonth()]}</span>
-          <span class="grow"><span class="li-title">${F.esc(u.name)}</span><span class="li-sub">${st === 'overdue' ? `Overdue since ${F.short(u.due)}` : F.rel(u.due, S.TODAY).replace(/^./, c => c.toUpperCase())}</span></span>
+          <span class="cal-next-name"><span class="li-title">${F.esc(u.name)}</span><span class="li-sub">${st === 'overdue' ? `Overdue since ${F.short(u.due)}` : F.rel(u.due, S.TODAY).replace(/^./, c => c.toUpperCase())}</span></span>
+          <span class="cal-next-cat">${F.esc(u.category)}</span>
+          <span class="cal-next-rep">${REPEAT[u.repeat] || 'One-time'}</span>
           <span class="li-amt">${u.estimate ? '~' : ''}${F.inr(u.amount)}</span></button></li>`;
       }).join('')}</ul>
-      ${list.length > shown.length ? `<p class="cal-next-more">${list.length - shown.length} more scheduled after ${F.short(shown[shown.length - 1].due)}, listed below</p>` : ''}`;
+      ${list.length > shown.length ? `<p class="cal-next-more">${list.length - shown.length} more scheduled after ${F.short(shown[shown.length - 1].due)}, all listed below.</p>` : ''}`;
   }
 
   /* ---------- Everything that repeats ---------- */
@@ -196,24 +208,20 @@ SW.pages = SW.pages || {};
     const [y] = view.split('-');
     return `
       ${ui.pageHeader({ title: 'Upcoming Expenses', sub: headline(), actions: `<button class="btn btn-primary" data-action="new">${I('plus', 16)}Add expense</button>` })}
-      <div class="cal-layout">
-        <section class="cal-panel" aria-labelledby="cal-h">
-          <div class="cal-bar">
-            <h2 class="cal-month" id="cal-h" aria-live="polite">${S.monthName(view, true)} <span>${y}</span></h2>
-            <div class="cal-nav">
-              <button type="button" class="btn btn-ghost btn-sm" data-nav="today" ${view === S.CUR_MONTH && sel === S.TODAY ? 'disabled' : ''}>Today</button>
-              <button type="button" class="icon-btn" data-nav="-1" aria-label="Previous month">${I('chevronLeft', 18)}</button>
-              <button type="button" class="icon-btn" data-nav="1" aria-label="Next month">${I('chevronRight', 18)}</button>
-            </div>
+      <section class="cal-panel" aria-labelledby="cal-h">
+        <div class="cal-bar">
+          <h2 class="cal-month" id="cal-h" aria-live="polite">${S.monthName(view, true)} <span>${y}</span></h2>
+          <div class="cal-nav">
+            <button type="button" class="btn btn-ghost btn-sm" data-nav="today" ${view === S.CUR_MONTH && sel === S.TODAY ? 'disabled' : ''}>Today</button>
+            <button type="button" class="icon-btn" data-nav="-1" aria-label="Previous month">${I('chevronLeft', 18)}</button>
+            <button type="button" class="icon-btn" data-nav="1" aria-label="Next month">${I('chevronRight', 18)}</button>
           </div>
-          <div data-summary>${summaryHTML(sum)}</div>
-          <div data-grid>${gridHTML(list)}</div>
-        </section>
-        <aside class="cal-side">
-          <section class="cal-daypanel" aria-labelledby="day-h" data-daypanel aria-live="polite">${dayHTML(list)}</section>
-          <section class="cal-upnext" aria-labelledby="next-h">${nextHTML()}</section>
-        </aside>
-      </div>
+        </div>
+        <div data-summary>${summaryHTML(sum)}</div>
+        <div data-grid>${gridHTML(list)}</div>
+        <p class="sr-only" aria-live="polite" data-announce></p>
+      </section>
+      <section class="cal-upnext" aria-labelledby="next-h">${nextHTML()}</section>
       <section class="cal-recurring" aria-labelledby="rec-h">${recurringHTML()}</section>
       <p class="hero-note">${I('info', 15)}<span>Recurring expenses are projected into future months from their next due date. Marking one paid records it in Transactions and rolls it to the next month or year.</span></p>`;
   }
@@ -270,7 +278,9 @@ SW.pages = SW.pages || {};
     if (m !== view) { view = m; SW.refresh(); if (focus) root.querySelector(`[data-day="${iso}"]`)?.focus(); return; }
     const list = S.schedule(view);
     root.querySelector('[data-grid]').innerHTML = gridHTML(list);
-    root.querySelector('[data-daypanel]').innerHTML = dayHTML(list);
+    const items = list.filter(x => x.date === iso);
+    const say = root.querySelector('[data-announce]');
+    if (say) say.textContent = `${longDay(iso)}: ${items.length ? `${items.length} payment${items.length > 1 ? 's' : ''}, ${F.inr(items.reduce((a, x) => a + x.amount, 0))}` : 'nothing due'}`;
     const t = root.querySelector('[data-nav="today"]');
     if (t) t.disabled = view === S.CUR_MONTH && sel === S.TODAY;
     if (focus) root.querySelector(`[data-day="${iso}"]`)?.focus();
@@ -283,10 +293,9 @@ SW.pages = SW.pages || {};
     ui.on(root, 'click', '[data-day]', (e, b) => select(b.dataset.day));
     ui.on(root, 'click', '[data-jump]', (e, b) => {
       select(b.dataset.jump, true);
-      if (b.classList.contains('cal-rec-name')) {
-        const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-        root.querySelector('.cal-panel')?.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
-      }
+      // The calendar sits above both lists: bring the opened day into view
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      root.querySelector('.cal-detail')?.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
     });
     ui.on(root, 'click', '[data-nav]', (e, b) => {
       const n = b.dataset.nav;
