@@ -16,14 +16,14 @@ This is the heart of Scopewise. On screen the page title is **Can I afford it?**
 
 ## 2. Page layout
 
-The page is a workbench: you describe the purchase on the left, and everything on the right answers from your own numbers, redrawing as you type.
+The page is a decision workspace: you describe the purchase on the left, and the right answers from your own numbers in four parts, redrawing as you type.
 
 1. **Header:** "Purchase Decisions" and a short explanation
 2. **The purchase** (left, stays in view as you scroll): *What are you buying?*, *Category*, *Price*, *When would you like it?* and **Try a what-if**
-3. **The answer** (top right, in a powder-blue field, or pale orange when it's tight or worse): verdict tag, a short headline, one sentence of reasons including how the price compares with what you usually spend in that category, and the big figure **Left until payday if you buy it today**
-4. **Your money today:** Current balance, Committed before payday, Available to spend and the purchase, with the money bar underneath
-5. **How it changes your money:** a waterfall chart (Balance − Bills − Essentials − Savings = Available − Purchase = Left, with your safety cushion as a dashed line) beside the impact table and **Why this answer**
-6. **Buy now, delay, or save first:** three plans side by side, a chart of your projected balance for each plan, and the buttons that save your decision
+3. **The answer** (top right): verdict tag, a short headline, one sentence of reasons including how the price compares with what you usually spend in that category, and the big figure **Left until payday if you buy it today** (orange when it falls below your cushion)
+4. **Available to spend:** Current balance − Committed before payday = Available to spend, then the purchase, with the money bar underneath
+5. **Financial impact:** a waterfall chart (Balance − Bills − Essentials − Savings = Available − Purchase = Left, with your safety cushion as a dashed line) beside the impact table and **Why this answer**
+6. **Alternative plans:** buy now, delay or save first as three columns (the chosen one has an orange rule), a chart of your projected balance for each plan, and the buttons that save your decision
 7. **Past decisions:** a table of what you checked and chose
 8. **Note:** the order money is used in, and that this isn't financial advice
 

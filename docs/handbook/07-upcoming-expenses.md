@@ -17,10 +17,10 @@
 The calendar is the page.
 
 1. **Header:** what's overdue or due in the next 7 days, and **Add expense**
-2. **Month summary:** total (large), paid, still to pay and overdue for the month on screen, with a progress bar
-3. **Calendar** (left, most of the width): the month name, **Today** and previous/next buttons, the day grid with up to three payments per day, a **Week** column with each week's total still to pay (or paid), and a key
-4. **Selected day** (right): the date in a powder-blue header with the day's total, then every payment on that day with **Mark paid**, edit and delete
-5. **Next payments** (right): the next six payments, whichever month is on screen
+2. **Month summary:** three figures for the month on screen: **Still to pay** (large), **Overdue** and **Paid**
+3. **Calendar** (left, most of the width): the month name with its total, **Today** and previous/next buttons, the day grid with up to two payments per day, a **Week** column with each week's total still to pay (or paid), and a key
+4. **Selected day** (right): the date and the day's total, then every payment on that day with **Mark paid**, edit and delete
+5. **Next payments** (right, under the selected day): the next five payments, whichever month is on screen
 6. **Scheduled and recurring:** a table of every planned expense (recurring first, then one-time) with how it repeats, next due date, amount and monthly cost, plus edit and delete. Clicking a name jumps the calendar to its next due date
 7. **Explanation note** about recurring expenses
 
@@ -34,28 +34,26 @@ The calendar is the page.
 ### 3.2 Month summary
 | Figure | Shows |
 |---|---|
-| **\<Month\> total** | Everything in the month on screen, paid or not, and how many payments |
-| **Paid** (filled blue circle) | Payments already made for this month |
-| **Still to pay** (hollow ring) | Payments due later this month |
-| **Overdue** (orange diamond) | Payments whose date has passed without being paid. In the current month this includes items **carried over** from earlier months. Shown in orange, or "Nothing late" |
+| **Still to pay in \<Month\>** | Payments due later this month, and how many (overdue ones are counted separately) |
+| **Overdue** (orange dot) | Payments whose date has passed without being paid. In the current month this includes items **carried over** from earlier months. Orange when there are any, or "Nothing late" |
+| **Paid** (filled blue dot) | Payments already made for this month |
 
-- **Progress bar:** the blue part is what's paid. An orange part at the right end shows what's overdue.
-- **Under the bar:** "X% paid" and "Recurring costs average ₹X a month".
+- The month's full total ("₹X across N payments") sits next to the month name above the calendar. The average monthly cost of recurring expenses is under **Scheduled and recurring**.
 
 ### 3.3 The calendar
 - **What it does:** shows one month as a grid, Monday to Sunday. Weekends are lightly shaded.
 - **Each day shows:**
-  - The date number. **Today** has an orange-filled date number.
+  - The date number. **Today** has a dark filled date number; the selected day is shaded powder blue.
   - The day's total (for example ₹4k), top right. Grey when everything that day is paid, orange when something is overdue.
   - Up to two payments by name, each with its status mark, and "+N more" if there are others.
 
 | Mark | Status | How the label looks |
 |---|---|---|
-| Filled blue circle | **Paid** | Pale blue, name struck through |
-| Hollow ring | **Upcoming** | White with an outline |
-| Orange diamond | **Overdue** | Pale orange with an orange edge, orange text |
+| Filled blue dot | **Paid** | Name in grey |
+| Hollow ring | **Upcoming** | Name in dark grey |
+| Orange dot | **Overdue** | Orange dot, and the day total in orange |
 
-- **The selected day** is pale blue with a dark outline.
+- **The selected day** is pale blue with a blue outline.
 - **The key** under the grid explains the three marks and today.
 - **Good to know:** shape and colour both differ, so the marks still read if you can't tell the colours apart.
 
@@ -90,7 +88,7 @@ The calendar is the page.
 - If the day is empty: "Nothing is due on this day."
 
 ### 3.6 Next payments
-- **What it does:** lists your next six unpaid payments in date order, including anything overdue. The heading note says how much is due before payday.
+- **What it does:** lists your next five unpaid payments in date order, including anything overdue. The heading note says how much is due before payday.
 - **Each row shows:** the date (orange if overdue), name, "Overdue since \<date\>" or how far away it is, and the amount.
 - **How to use it:** click a row to jump the calendar to that day.
 - **Good to know:** if there are more, it says "N more scheduled after \<date\>".
@@ -137,7 +135,7 @@ The calendar is the page.
 2. Click **Mark paid** and confirm. If the real amount differed, edit the new transaction in Transactions.
 
 **How to clear an overdue payment**
-1. Look for the orange diamond, or the orange **Overdue** figure in the summary.
+1. Look for the orange dot, or the orange **Overdue** figure in the summary.
 2. Click the item in **Next payments** to jump to its day.
 3. Click the orange **Mark paid**.
 
@@ -166,7 +164,7 @@ The calendar is the page.
 | No expenses at all | An empty calendar, ₹0 figures and no **Next payments** panel. Use **Add expense** to start |
 | A day with nothing due | "Nothing is due on this day." |
 | Nothing overdue | **Overdue** shows ₹0 and "Nothing late" |
-| Something overdue | Orange header line, orange **Overdue** figure, orange diamond on the day and an orange **Mark paid** |
+| Something overdue | Orange header line, orange **Overdue** figure, an orange dot on the day and the late payment first in **Next payments** |
 | A month with no payments | ₹0 total and an empty grid |
 | On a phone | Days show coloured dots (up to four) instead of names and totals. An overdue day's date number turns orange. Tap the day to see the details |
 

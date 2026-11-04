@@ -15,12 +15,13 @@
 ## 2. Page layout
 
 1. **Header:** whether every goal is on track (or which are behind), your monthly plan vs what's needed, and **New goal**
-2. **Summary band** (powder blue): total saved and its share of all targets, a bar split by goal (an orange underline marks goals that are behind), then **Planned a month**, **Needed for every deadline**, **Still to add this month** and **All goals done** (the month the last goal lands at your plan)
-3. **Your goals:** one row per goal. On the left: name, status, saved of target, Remaining, Deadline, Plan, **Est. completion**, the four milestones (25%, 50%, 75%, Target) with a tick or the month each lands, and **Add money**, edit and delete. On the right: the goal's **trajectory chart** and one sentence on whether the plan lands before the deadline
-4. **Reached goals:** a collapsed section (only if any goal is complete)
-5. **Monthly savings planner:** a table of every goal (needed a month, your plan, when it finishes) beside the totals for a typical month, with **Reset** and **Save plan**
-6. **Milestones:** what you've reached, then a timeline of the coming months and the milestones that land in each
-7. **Explanation note** about "Needed" and transfers
+2. **Summary:** total saved and its share of all targets, then **Planned each month** (with what every deadline needs, in orange when your plan is short), **Still to add this month** and **All goals done** (the month the last goal lands at your plan)
+3. **Your goals:** one band per goal. On the left: name, status, saved of target, a progress bar with the % saved and what's left to go, and (when the goal is behind) how much more a month would finish it on time. In the middle: **Monthly plan**, **Deadline** with months left, and **Finishes**. On the right: **Add money**, edit and delete
+4. **Trajectory and milestones:** a disclosure under each goal. It opens the goal's trajectory chart, one sentence on whether the plan lands before the deadline, and the four milestones (25%, 50%, 75%, Target) with "Reached" or the month each lands
+5. **Reached goals:** a collapsed section (only if any goal is complete)
+6. **Monthly plan:** a table of every goal (needed a month, your plan, when it finishes) with the totals for a typical month underneath, and **Reset** and **Save plan**
+7. **Coming up:** what you've reached, then the next six milestones across all goals, soonest first
+8. **Explanation note** about "Needed" and transfers
 
 ## 3. Features
 
@@ -28,30 +29,27 @@
 - When a goal is behind: "**Emergency fund is behind.** You plan ₹X a month; every deadline needs about ₹Y." The goal names are in orange.
 - When all are fine: "**Every goal is on track.** You plan ₹X a month, enough for each deadline."
 
-### 3.2 All goals strip
+### 3.2 Summary
 | Part | Shows |
 |---|---|
 | **Saved across N goals** | Total saved, and what share of all targets that is |
-| **Bar** | One segment per goal, sized by its target and filled in blue by what's saved. Each is labelled with its name and % |
-| **Added since payday** | Transfers to goals since your last payday |
-| **Still to add this month** | What goals still need this cycle, or "Done" in blue |
+| **Planned each month** | The total of every goal's monthly plan. Underneath: what every deadline needs, in orange when the plan is short |
+| **Still to add this month** | What goals still need this cycle, or "Done" |
+| **All goals done** | The month the last goal lands at your current plan |
 
-### 3.3 Goal row
+### 3.3 Goal band
 | Part | Shows |
 |---|---|
-| **Name + status badge** | **On track**, **Behind plan**, **Past deadline** or **Reached** |
-| **Amount** | "₹X of ₹target" |
+| **Name + status** | **On track**, **Behind plan**, **Past deadline** or **Reached** (the last three that need attention are orange) |
 | **Note** | Optional text you added |
-| **Track** | Blue fill = saved. Thin ticks at 25%, 50% and 75%. A tall marker shows where a steady plan would be today: charcoal when you're ahead of it, orange when behind |
-| **Milestones** | Under the track: 25%, 50%, 75% and Goal. Reached ones show ✓ and the amount in blue. The rest show the month you'll reach them at your planned rate |
-| **Remaining** | Target − saved |
-| **Deadline** | The date, and "N mo left" (or "passed") |
-| **Plan** | Your monthly amount ("—" if none) |
-| **Needed** | Monthly amount required to hit the date, in orange if your plan is short |
-| **Pace line** | One line that sums it up, for example "12% ahead of schedule", "₹4,000 behind schedule" or "₹2k behind so far; the plan catches up" |
+| **Amount** | "₹X of ₹target" |
+| **Progress bar** | Blue fill = saved, with "% saved" and "₹X to go" underneath |
+| **Fix line** | Only when behind: "Add about ₹X a month to finish by \<deadline\>" |
+| **Monthly plan** | Your monthly amount ("—" if none) |
+| **Deadline** | The date, and "N months left" (or "Passed") |
+| **Finishes** | The month the goal lands at your plan, in orange if after the deadline |
 | **Actions** | **Add money**, ✎ edit, 🗑 delete |
-
-- **Good to know:** the track compares what you've saved so far with a steady line. The badge judges your monthly plan. When they disagree, the pace line says both, for example "Ahead so far, but ₹2,000/mo lands Aug 2027".
+| **Trajectory and milestones** | Opens the chart and the milestone list below |
 
 ### 3.3a Trajectory chart
 - **Solid blue line:** what was saved at the end of each month since the goal was created (this month: up to today).
@@ -59,7 +57,7 @@
 - **Dashed horizontal line:** the target. **Dotted vertical line:** the deadline (orange when you'd miss it).
 - Hover over a month to see the figures.
 
-### 3.4 Monthly planner
+### 3.4 Monthly plan
 - **What it does:** lists every active goal with a monthly amount box, so you can rebalance them together.
 - **How to use it:** type a new amount next to a goal. Under the box you'll see the month it would land and "on time" (blue) or "after the deadline" (orange). "Never" means ₹0 a month.
 - **Totals:**
@@ -73,8 +71,8 @@
   A note under the totals says whether that covers your usual eating out, shopping and plans, or how much less of it you'd need.
 - **Buttons:** **Save plan** writes the new amounts to your goals. **Reset** puts back the saved ones. Both stay greyed out until you change something.
 
-### 3.5 Milestones ahead
-- **What it does:** lists up to five upcoming milestones across all goals (the next two per goal), soonest first: the month, "\<Goal\> reaches 50%" (or "its target") and the amount.
+### 3.5 Coming up
+- **What it does:** lists the next six milestones across all goals, soonest first: the month, the goal, and the milestone with its amount.
 - **Good to know:** months are worked out from the amounts you plan to add, so they move when you save a new plan.
 
 ### 3.6 New / edit goal form
@@ -119,7 +117,7 @@
 3. Click **Add money**. Your available balance goes down by the same amount.
 
 **How to catch up on a goal that's behind**
-1. In the **Monthly planner**, raise the goal's amount until it says "on time".
+1. In the **Monthly plan** table, raise the goal's amount until it says "on time".
 2. Check **Left for everything else** still covers your usual spending. If not, lower another goal's amount.
 3. Click **Save plan**.
 4. Or click ✎ on the goal and move the **Target date** later.
@@ -147,11 +145,11 @@
 
 | Situation | What you see |
 |---|---|
-| No active goals | "No active goals" with **Create your first goal**. The strip, planner and milestones are hidden |
+| No active goals | "No active goals" with **Create your first goal**. The summary, plan and milestones are hidden |
 | Goal past its deadline and not reached | **Past deadline** badge, and Deadline shows "passed" |
 | Monthly plan is ₹0 | "Plan" shows "—", milestones show amounts instead of months, and the planner says "Never". The goal still counts toward Needed |
 | Nothing left this cycle | **Still to add this month** shows "Done" |
-| On a phone | Milestone months are hidden except for the goal itself, and the facts sit in two columns |
+| On a phone | Everything stacks in one column; the plan table becomes one block per goal |
 
 ## 7. Links to other pages
 

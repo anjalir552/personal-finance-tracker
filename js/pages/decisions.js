@@ -89,7 +89,9 @@ SW.pages = SW.pages || {};
     const fig = (k, v, s, cls = '') => `<div class="pd-snap-fig ${cls}"><span class="k">${k}</span><span class="v num">${F.inr(v)}</span><span class="s">${s}</span></div>`;
     return `<div class="pd-snap-figs">
         ${fig('Current balance', r.balance, ov.balance ? 'Your what-if figure' : 'In your account today')}
+        <span class="pd-op" aria-hidden="true">−</span>
         ${fig('Committed before payday', committed, `${F.inrc(r.bills)} bills · ${F.inrc(r.everyday)} essentials · ${F.inrc(r.goals)} savings`)}
+        <span class="pd-op" aria-hidden="true">=</span>
         ${fig('Available to spend', r.free, `Until payday on ${F.short(S.nextPayday())}`, 'free')}
         ${fig(F.esc(inp.name.trim() || 'This purchase'), r.price, r.price && r.free > 0 ? `${r.share >= 10 ? '10×+' : F.pct(r.share)} of what’s available` : r.price ? 'Nothing is free until payday' : 'Enter a price', 'buy')}
       </div>
@@ -299,13 +301,16 @@ SW.pages = SW.pages || {};
         <aside class="pd-side">${formHTML()}</aside>
         <div class="pd-main">
           <section class="pd-answer ${r.tone || ''}" data-answer aria-live="polite" aria-labelledby="ans-h">${answerHTML(r)}</section>
-          <section class="pd-snap" aria-label="Your money today" data-snap>${snapHTML(r)}</section>
+          <section class="pd-snap" aria-labelledby="snap-h">
+            <div class="pd-sec-head"><h2 class="pd-sec-title" id="snap-h">Available to spend</h2><p class="pd-sec-desc">Your balance, minus what’s already promised before payday</p></div>
+            <div data-snap>${snapHTML(r)}</div>
+          </section>
           <section class="pd-break" aria-labelledby="br-h" data-break ${r.price ? '' : 'hidden'}>
-            <div class="pd-sec-head"><h2 class="pd-sec-title" id="br-h">How it changes your money</h2><p class="pd-sec-desc">Today’s balance, step by step, to what’s left after the purchase</p></div>
+            <div class="pd-sec-head"><h2 class="pd-sec-title" id="br-h">Financial impact</h2><p class="pd-sec-desc">What changes between today and payday if you buy it now</p></div>
             <div class="pd-break-grid"><div><div class="pd-wf" data-waterfall></div><p class="pd-wf-note"><i aria-hidden="true"></i><span data-wf-note>Your safety cushion</span></p></div><div data-impact>${impactHTML(r)}</div></div>
           </section>
           <section class="pd-compare" aria-labelledby="cmp-h" data-compare-wrap ${r.price ? '' : 'hidden'}>
-            <div class="pd-sec-head"><h2 class="pd-sec-title" id="cmp-h">Buy now, delay, or save first</h2><p class="pd-sec-desc">Pick the plan you’ll follow; the chart shows where it takes your balance</p></div>
+            <div class="pd-sec-head"><h2 class="pd-sec-title" id="cmp-h">Alternative plans</h2><p class="pd-sec-desc">Buy now, delay, or save first. Pick one to see where it takes your balance.</p></div>
             <div data-compare>${compareHTML(r, P)}</div>
           </section>
         </div>

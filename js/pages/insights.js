@@ -30,7 +30,7 @@ SW.pages = SW.pages || {};
       cur.left >= 0 ? ['left', 'Left over', cur.left] : ['over', 'Taken from balance', -cur.left]
     ].filter(p => p[2] > 0);
     return `<section class="fi-statement" aria-labelledby="st-h">
-      <h2 class="sr-only" id="st-h">${mLong(cur.key)} in figures</h2>
+      <h2 class="sr-only" id="st-h">${mLong(cur.key)} ${cur.key.slice(0, 4)} summary</h2>
       <dl class="fi-figs">
         ${fig('Income', cur.income, change(cur.income, prev && prev.income, prevKey, true), '')}
         ${fig('Spent', cur.spent, change(cur.spent, prev && prev.spent, prevKey, false), `${F.pct(cur.income ? cur.spent / cur.income : 0)} of income`)}
@@ -80,7 +80,7 @@ SW.pages = SW.pages || {};
           <div class="fi-split-sub">${a != null ? `Usual ${F.inr(a)} · <span class="${bad ? 'warn' : diff < -500 ? 'pos' : ''}">${Math.abs(diff) < 1 ? 'same' : `${diff > 0 ? '+' : '−'}${F.inr(Math.abs(diff))}`}</span>` : 'No earlier months to compare'}</div>
         </div>`;
       }).join('')}
-      <p class="fi-split-note">Non-essentials were <b>${F.pct(share)}</b> of spending${base.length ? `, against ${F.pct(avg(m => m.spent ? m.nonEssential / m.spent : 0))} usually` : ''}. The tick marks the ${base.length}-month average.</p>
+      <p class="fi-split-note">Non-essentials were <b>${F.pct(share)}</b> of spending${base.length ? `, against ${F.pct(avg(m => m.spent ? m.nonEssential / m.spent : 0))} usually` : ''}. Trimming them is the quickest way to save more. The tick marks your ${base.length}-month average.</p>
     </div>`;
   }
 
@@ -89,9 +89,10 @@ SW.pages = SW.pages || {};
     if (!rows.length) return '';
     const max = Math.max(...rows.map(r => Math.max(r.now, r.prev)), 1);
     const total = rows.reduce((a, r) => a + r.now, 0);
-    return `<section class="panel fi-cats" aria-labelledby="cat-h">
-      <div class="panel-head"><div><h2 class="panel-title" id="cat-h">Categories against ${mLong(prevKey)}</h2>
-        <div class="panel-desc">Bar is ${mLong(key)}${isCur(key) ? ' so far' : ''}; the thin line underneath is ${mLong(prevKey)}</div></div></div>
+    return `<section class="fi-section fi-cats" aria-labelledby="cat-h">
+      <div class="fi-sec-head"><div><h2 class="fi-sec-title" id="cat-h">Categories against ${mLong(prevKey)}</h2>
+        <p class="fi-sec-desc">The bar is ${mLong(key)}${isCur(key) ? ' so far' : ''}; the thin line under it is ${mLong(prevKey)}.</p></div>
+        <a class="link" href="#/spending">Full spending analysis${I('arrowRight', 14)}</a></div>
       <div class="table-wrap"><table class="table fi-table">
         <thead><tr><th scope="col">Category</th><th scope="col" class="fi-bar-col"><span class="sr-only">Comparison</span></th><th scope="col" class="r">${S.monthName(key)}</th><th scope="col" class="r">Change</th><th scope="col" class="r hide-sm">3-month avg</th><th scope="col" class="r hide-sm">Share</th></tr></thead>
         <tbody>${rows.map(r => {
@@ -106,7 +107,7 @@ SW.pages = SW.pages || {};
             <td class="r num hide-sm subtle">${total ? F.pct(r.now / total) : '—'}</td></tr>`;
         }).join('')}</tbody>
       </table></div>
-      <div class="panel-foot"><span><i class="ess"></i> Essential category</span><a class="link" href="#/spending">Full spending analysis${I('arrowRight', 14)}</a></div>
+      <p class="fi-cats-key"><i class="ess"></i> Essential category</p>
     </section>`;
   }
 
@@ -152,28 +153,38 @@ SW.pages = SW.pages || {};
       ${ui.pageHeader({ title: 'Financial Insights', sub })}
       ${monthsHTML(list)}
       ${statementHTML(cur, prev, prevKey)}
-      <div class="fi-charts">
-        <section class="fi-chart" aria-labelledby="tr-h">
-          <div class="fi-chart-head"><div><h2 class="fi-chart-title" id="tr-h">Spending, month by month</h2><p class="fi-chart-desc" data-trend-desc></p></div>
-            <div class="legend"><span><i class="f-ess"></i>Essentials</span><span><i class="f-non"></i>Non-essentials</span><span><i class="lg-income"></i>Income</span></div></div>
-          <div data-trend></div>
-        </section>
-        <section class="fi-chart" aria-labelledby="pace-h">
-          <div class="fi-chart-head"><div><h2 class="fi-chart-title" id="pace-h">Spending pace</h2><p class="fi-chart-desc" data-pace-desc></p></div>
-            <div class="legend"><span><i style="background:var(--or)"></i>${S.monthName(month)}</span>${hasPrev ? `<span><i class="dash"></i>${S.monthName(prevKey)}</span>` : ''}</div></div>
-          <div data-pace></div>
-        </section>
-        <section class="fi-chart" aria-labelledby="sr-h">
-          <div class="fi-chart-head"><div><h2 class="fi-chart-title" id="sr-h">Savings performance</h2><p class="fi-chart-desc" data-rate-desc></p></div></div>
-          <div data-rate></div>
-        </section>
-        <section class="fi-chart" aria-labelledby="sp-h">
-          <div class="fi-chart-head"><div><h2 class="fi-chart-title" id="sp-h">Essential vs non-essential</h2><p class="fi-chart-desc">${mLong(month)}${isCur(month) ? ' so far' : ''}, against the months before</p></div></div>
-          ${splitHTML(month)}
-        </section>
-      </div>
+      <section class="fi-section" aria-labelledby="sp-sec">
+        <div class="fi-sec-head"><div><h2 class="fi-sec-title" id="sp-sec">Spending</h2><p class="fi-sec-desc" data-trend-desc></p></div></div>
+        <div class="fi-pair">
+          <div class="fi-chart">
+            <div class="fi-chart-head"><h3 class="fi-chart-title" id="tr-h">Month by month</h3>
+              <div class="legend"><span><i class="f-ess"></i>Essentials</span><span><i class="f-non"></i>Non-essentials</span><span><i class="lg-income"></i>Income</span></div></div>
+            <div data-trend></div>
+            <p class="fi-chart-hint">Select a month’s bar to read its report.</p>
+          </div>
+          <div class="fi-chart">
+            <div class="fi-chart-head"><h3 class="fi-chart-title" id="pace-h">Pace through the month</h3>
+              <div class="legend"><span><i style="background:var(--or)"></i>${S.monthName(month)}</span>${hasPrev ? `<span><i class="dash"></i>${S.monthName(prevKey)}</span>` : ''}</div></div>
+            <div data-pace></div>
+            <p class="fi-chart-hint" data-pace-desc></p>
+          </div>
+        </div>
+      </section>
+      <section class="fi-section" aria-labelledby="sv-sec">
+        <div class="fi-sec-head"><div><h2 class="fi-sec-title" id="sv-sec">Savings</h2><p class="fi-sec-desc" data-rate-desc></p></div></div>
+        <div class="fi-pair">
+          <div class="fi-chart">
+            <div class="fi-chart-head"><h3 class="fi-chart-title" id="sr-h">Share of income saved</h3></div>
+            <div data-rate></div>
+          </div>
+          <div class="fi-chart">
+            <div class="fi-chart-head"><h3 class="fi-chart-title" id="sp-h">Essentials and the rest</h3><span class="fi-chart-note">${mLong(month)}${isCur(month) ? ' so far' : ''} against your usual</span></div>
+            ${splitHTML(month)}
+          </div>
+        </div>
+      </section>
       ${hasPrev ? categoriesHTML(month, prevKey) : ''}
-      <section class="fi-obs-wrap" aria-labelledby="obs-h">${obsHTML(obsFor())}</section>
+      <section class="fi-section fi-obs-wrap" aria-labelledby="obs-h">${obsHTML(obsFor())}</section>
       <p class="hero-note">${I('shield', 15)}<span>Every figure comes from your own transactions, goals and upcoming expenses. It describes your numbers and isn’t financial advice.</span></p>`;
   }
 
@@ -194,7 +205,7 @@ SW.pages = SW.pages || {};
         { name: 'Non-essentials', colors: dim(v('--pb-500'), v('--data-dim')), values: sums.map(x => x.nonEssential) }
       ],
       overlay: { values: sums.map(x => x.income), colors: dim(v('--ink'), v('--stone-400')) },
-      highlight: sel, height: 220, maxBar: 30, onSelect: pick,
+      highlight: sel, height: 240, maxBar: 28, onSelect: pick,
       ariaLabel: 'Essential and non-essential spending by month, with income',
       tooltip: i => `<div class="tt-title">${mLong(list[i])}${isCur(list[i]) ? ' (so far)' : ''}</div>
         ${C.row(v('--c-spent'), 'Essentials', F.inr(sums[i].essential))}${C.row(v('--pb-300'), 'Non-essentials', F.inr(sums[i].nonEssential))}
@@ -213,7 +224,7 @@ SW.pages = SW.pages || {};
       labels: list.map(k => S.monthName(k)),
       series: [{ name: 'Savings rate', colors: dim(v('--pb-500'), v('--data-dim')), values: sums.map(x => Math.round(x.rate * 1000) / 10) }],
       reference: { value: TARGET * 100, label: '20% guide' },
-      yFormat: x => x + '%', highlight: sel, height: 200, maxBar: 30, onSelect: pick,
+      yFormat: x => x + '%', highlight: sel, height: 220, maxBar: 28, onSelect: pick,
       ariaLabel: 'Share of income saved to goals by month',
       tooltip: i => `<div class="tt-title">${mLong(list[i])}${isCur(list[i]) ? ' (so far)' : ''}</div>
         ${C.row(v('--pb-500'), 'Saved', F.inr(sums[i].saved))}${C.row(v('--stone-400'), 'Of income', F.pct(sums[i].rate))}`
@@ -233,7 +244,7 @@ SW.pages = SW.pages || {};
     series.push({ name: S.monthName(month), color: v('--or'), values: pad(cur), width: 2.25, endDot: true });
     C.line(root.querySelector('[data-pace]'), {
       labels: Array.from({ length: n }, (_, i) => String(i + 1)),
-      series, height: 220, zero: true, xEvery: 5,
+      series, height: 240, zero: true, xEvery: 5,
       ariaLabel: 'Running total of spending by day of month',
       tooltip: i => `<div class="tt-title">Day ${i + 1}</div>
         ${cur[i] != null ? C.row(v('--or'), S.monthName(month), F.inr(cur[i])) : ''}

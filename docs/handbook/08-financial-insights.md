@@ -14,24 +14,27 @@
 
 ## 2. Page layout
 
+The page reads like a monthly report: a summary first, then chapters.
+
 1. **Header:** a one-line summary of the month
-2. **Month strip:** every month with transactions, each showing its savings rate ("19% saved", or "So far" for this month). The selected month is in powder blue with an orange underline
-3. **Statement:** Income, Spent, Saved to goals and Left over (or Overspent), each compared with the month before, beside **Where ₹X went**
-4. **Four charts, two by two:** **Spending, month by month**; **Spending pace**; **Savings performance**; **Essential vs non-essential**
-5. **Categories against \<previous month\>:** a table of every category
-6. **What stands out:** observations for the selected month, with the type switch (All / Spending / Savings / Upcoming, with counts)
-7. **Disclaimer note**
+2. **Month strip:** every month with transactions, each showing its savings rate ("19% saved", or "So far" for this month). The selected month is underlined
+3. **Summary:** Income, Spent, Saved to goals and Left over (or Overspent), each compared with the month before, then **Where ₹X went** as one bar across the width
+4. **Spending:** a sentence on how the month compares with your average, then **Month by month** (stacked bars) beside **Pace through the month** (running total against the month before)
+5. **Savings:** a sentence on your savings rate against the 20% guide, then **Share of income saved** beside **Essentials and the rest**
+6. **Categories against \<previous month\>:** a table of every category
+7. **What stands out:** observations for the selected month, with the type switch (All / Spending / Savings / Upcoming, with counts)
+8. **Disclaimer note**
 
 ## 3. Features
 
 ### 3.1 Month strip
 - **What it does:** chooses the month the page reports on. It opens on your last complete month.
-- **How to use it:** click a month, use **‹** / **›**, or focus the strip and press ← / →, Home or End. You can also click a month's bar in **Spending, month by month** or **Savings performance**. Only months with transactions are included; the current month is labelled "so far".
+- **How to use it:** click a month, use **‹** / **›**, or focus the strip and press ← / →, Home or End. You can also click a month's bar in **Month by month** or **Share of income saved**. Only months with transactions are included; the current month is labelled "so far".
 
 ### 3.2 Header summary
 - "October 2026: you saved **18% of income**." If you spent more than came in, it adds "and spent **₹X more than came in**" in orange. For a past month it also repeats the top observation that needs attention.
 
-### 3.3 Statement
+### 3.3 Summary
 | Figure | Shows | Underneath |
 |---|---|---|
 | **Income** | Income received in the month | Change vs the month before |
@@ -108,7 +111,7 @@
 
 **How to review last month**
 1. Open Financial Insights. It opens on your last complete month.
-2. Read the header line and the four statement figures.
+2. Read the header line and the four summary figures.
 3. Check **Where ₹X went** and the **Categories** table to see what moved.
 4. Read **What stands out** and follow the link on anything that needs attention.
 
@@ -140,7 +143,7 @@
 | Situation | What you see |
 |---|---|
 | No complete month yet | "Insights need a little history" with **Add transactions** |
-| Only 1 complete month | The statement, charts and table appear, but **What stands out** is hidden |
+| Only 1 complete month | The summary, charts and table appear, but **What stands out** is hidden |
 | First month you have | Changes say "No earlier month", the pace chart has one line, and the Categories table is hidden |
 | A type with no observations | "Nothing to flag here. No observations of this kind right now. That's usually a good sign." |
 | More spent than came in | **Overspent** in orange, and **Taken from balance** in the bar |
@@ -156,7 +159,7 @@
 
 ## 8. Tips and FAQ
 
-- **Why didn't the observations change when I picked another month?** They always read your last complete month and what's due now. The statement, charts and table follow the picker.
+- **Why didn't the observations change when I picked another month?** They always read your last complete month and what's due now. The summary, charts and table follow the picker.
 - **Why does Overview show fewer observations?** It shows the top 3 and leaves out the "due in 7 days" one, which its header already covers.
 - **Why is the current month "so far"?** It isn't over yet, so its figures only run to today.
 - **Do insights update on their own?** Yes. They're recalculated every time you open the page.
