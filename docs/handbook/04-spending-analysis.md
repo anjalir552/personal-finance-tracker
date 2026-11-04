@@ -33,10 +33,10 @@
 
 ### 3.3 Where it went
 - **What it does:** lists every category with spending this month or last month, largest first.
-  - **Dark bar:** the selected month. **Light bar underneath:** the month before.
+  - **Periwinkle bar:** the selected month. **Thin lavender bar underneath:** the month before.
   - **Figure:** the amount, with the change below it (`+₹1,200`, `−₹300`, "about the same", or "new").
-  - **Dot:** filled dark grey for essential, hollow for non-essential.
-- **Good to know:** a change is shown in **plum** only when a **non-essential** category rose by **more than 25%**. Falls of more than ₹100 are shown as positive.
+  - **Dot:** filled navy-grey for essential, hollow for non-essential.
+- **Good to know:** a change is shown in **lilac** only when a **non-essential** category rose by **more than 25%**. Falls of more than ₹100 are shown as positive.
 
 ### 3.4 Essentials vs non-essentials
 - **What it does:** a two-part bar and two figures: **Essentials** (rent, bills, groceries, transport…) and **Non-essentials** (eating out, shopping, fun…), each with its share of the total.
@@ -62,12 +62,12 @@ Up to four findings for the selected month:
 **How to see why last month cost more**
 1. Open Spending Analysis. It opens on last month.
 2. Read the header for the biggest change.
-3. In **Where it went**, look for plum changes.
+3. In **Where it went**, look for lilac changes.
 4. Check **Patterns** for frequent places and small purchases.
 
 **How to compare two months**
 1. Choose the later month in the month switch.
-2. Each category shows that month (dark) against the month before (light).
+2. Each category shows that month (periwinkle) against the month before (lavender).
 
 **How to check this month so far**
 1. Click the month marked **(so far)**.

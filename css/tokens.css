@@ -1,101 +1,146 @@
-/* Scopewise design tokens
-   Personal finance decision companion.
-   Brand: Sage Olive #B5B895 · Deep Plum #60434F · Charcoal #383735 · Pure White #FFFFFF ·
-   Warm Off-White #F7F6F1.
+/* ==========================================================================
+   Scopewise design tokens: one colour identity for the whole application.
+   Brand: Periwinkle #C4D6FF · Lavender #B8C0FF · Lilac #E7C6FF · Navy #282E42,
+   on white and cool, navy-tinted neutrals.
 
-   Style: achromatic ledger, brand palette kept.
-   - The chrome holds no colour: the sidebar sits on the warm off-white ground, cards are white,
-     lines and greys are warm neutrals, and money is set in charcoal ink.
-   - Deep Plum is the one primary action, the active state (icon, label, indicator) and
-     alerts that need a decision.
-   - Sage Olive is the data hue: it goes on each screen's main data element (free to spend,
-     the selected month, goal progress) and on insights; the brand value is its soft partner.
-   Every tier that carries words reaches 4.5:1 on its surface. */
+   How the four colours divide the work
+   - Navy is the anchor: all text, money, important icons, the one primary button,
+     today's date, toggles that are on. It carries the product's weight.
+   - Periwinkle is the interactive and data hue: selected states (nav, calendar day,
+     segmented controls), focus rings, the main data element on every screen. The brand
+     value is used as a fill; its deep steps (500/700) are used for marks and text.
+   - Lavender is the secondary accent: comparison series, avatars, text selection,
+     soft fills that sit beside periwinkle without competing with it.
+   - Lilac is rare: the purchase being weighed, and anything that needs attention
+     (overdue, short, over plan) in its deep step, always with words, never colour alone.
+   Every tier that carries words reaches 4.5:1 on the surface it sits on.
+   ========================================================================== */
 :root {
-  /* Sage Olive scale (300 is the brand value) */
-  --sage-50: #f4f4ec;
-  --sage-100: #eaebdd;
-  --sage-200: #d9dbc3;
-  --sage-300: #b5b895;     /* brand */
-  --sage-400: #9ca07a;
-  --sage-500: #858a61;
-  --sage-600: #6b704c;     /* data marks: 5.2:1 on white */
-  --sage-700: #545a3a;     /* text on white: 7.2:1 */
-  --sage-800: #3e432b;
-  --sage-900: #2a2e1d;
+  /* Navy (brand at 800) */
+  --navy-950: #161a27;
+  --navy-900: #1e2334;
+  --navy: #282e42;          /* brand */
+  --navy-700: #3b4259;
+  --navy-600: #4f5670;      /* 7.3:1 on white */
+  --navy-500: #636a82;      /* 5.4:1 on white, 5.0:1 on the ground */
+  --navy-400: #8e94a8;
+  --navy-300: #b7bccb;
+  --navy-200: #d9dce5;
+  --navy-100: #eceef3;
+  --navy-50: #f5f6f9;
 
-  /* Deep Plum (base is the brand value) */
-  --plum: #60434f;         /* primary buttons, active states, alert marks */
-  --plum-hover: #4e3540;
-  --plum-ink: #60434f;     /* plum as text: 8.7:1 on white */
-  --plum-50: #f6f0f2;
-  --plum-100: #ecdfe4;
-  --plum-200: #dcc8d0;
+  /* Periwinkle (brand at 200) */
+  --peri-50: #f4f7ff;
+  --peri-100: #e7eeff;
+  --peri-200: #c4d6ff;      /* brand */
+  --peri-300: #9ebbf7;
+  --peri-400: #7598e6;
+  --peri-500: #4d73cf;      /* data marks: 4.5:1 on white */
+  --peri-600: #3a5bb0;
+  --peri-700: #2d4789;      /* periwinkle as text: 8.9:1 on white */
+  --peri-800: #22366a;
 
-  /* Charcoal ink and warm neutrals */
-  --ink: #383735;
-  --ink-2: #2b2a28;
-  --stone-50: #fbfaf7;
-  --stone-100: #f3f1ec;
-  --stone-200: #ebe9e2;
-  --stone-300: #d9d6cc;
-  --stone-400: #b9b5aa;
-  --stone-500: #8f8b81;
-  --stone-600: #6f6c65;
+  /* Lavender (brand at 200) */
+  --lav-50: #f5f6ff;
+  --lav-100: #e9ecff;
+  --lav-200: #b8c0ff;       /* brand */
+  --lav-300: #9aa3f2;
+  --lav-400: #7c85dd;
+  --lav-600: #5059ae;
+  --lav-700: #3d4488;
 
-  /* Grounds and surfaces: warm off-white page and sidebar, white cards */
-  --ground: #f7f6f1;
+  /* Lilac (brand at 200) */
+  --lilac-50: #fbf5ff;
+  --lilac-100: #f5e8ff;
+  --lilac-200: #e7c6ff;     /* brand */
+  --lilac-300: #d4a3f5;
+  --lilac-400: #b97fe0;
+  --lilac-600: #9c45aa;     /* attention marks: 5.5:1 on white */
+  --lilac-700: #7b2c88;     /* attention text: 8.2:1 on white */
+
+  /* Cool neutrals: the chrome */
+  --gray-50: #f8f9fb;
+  --gray-100: #f1f3f7;
+  --gray-200: #e6e9f0;
+  --gray-300: #d3d7e1;
+  --gray-400: #aeb3c2;
+  --gray-500: #8a90a3;
+  --gray-600: #636a82;
+
+  /* Grounds and surfaces */
+  --ground: #f6f7fa;
   --surface: #ffffff;
   --sidebar: var(--ground);
-  --raised: var(--stone-50);
-  --sunken: var(--stone-100);
-  --active: #ebe9e2;       /* the neutral pill under the current page and on hover */
-  --well: #f5f4ef;         /* quiet tinted wells inside white cards */
+  --raised: var(--gray-50);
+  --sunken: var(--gray-100);
+  --active: var(--peri-100);  /* nav pill under the current page */
+  --hover: #eef0f5;           /* neutral hover on rows and nav */
+  --well: #f5f7fb;
 
   /* Lines in three steps */
-  --border: #e6e3db;       /* card edges */
-  --rule: #efede7;         /* row rules, one step lighter */
-  --control: #d6d3c9;      /* control borders, one step darker */
-  --line-strong: #b9b5aa;
+  --border: #e4e7ee;
+  --rule: #eef0f4;
+  --control: #d3d7e1;
+  --line-strong: var(--gray-400);
 
-  /* Text in three tiers */
-  --text: var(--ink);
-  --text-2: #5c5a55;       /* 6.9:1 on white */
-  --text-3: #6e6b65;       /* 4.9:1 on the ground: the lightest grey that carries words */
+  /* Text in three tiers, all navy */
+  --ink: var(--navy);
+  --ink-2: var(--navy-950);
+  --text: var(--navy);
+  --text-2: var(--navy-600);
+  --text-3: var(--navy-500);
+  --text-faint: var(--navy-300);   /* decorative only: adjacent-month dates (aria-hidden) */
 
   /* Roles */
-  --primary: var(--plum);
-  --primary-hover: var(--plum-hover);
-  --on-primary: #ffffff;   /* white on plum: 8.7:1 */
-  --selected: var(--active);
-  --selected-ink: var(--plum);
-  --accent: var(--sage-600);
+  --primary: var(--navy);
+  --primary-hover: var(--navy-900);
+  --on-primary: #ffffff;           /* 13.5:1 */
+  --selected: var(--peri-100);
+  --selected-ink: var(--navy);
+  --accent: var(--peri-500);       /* interactive marks, focus border, the chosen option */
+  --accent-ink: var(--peri-700);   /* accent as text */
+  --accent-soft: var(--peri-200);  /* the brand periwinkle as a fill */
+  --accent-wash: var(--peri-50);
 
-  /* Data: one hue (sage) on the main element, warm neutrals for everything it is compared with */
-  --data: #7c8157;         /* 4.3:1 on white: the main data element */
-  --data-soft: var(--sage-300);
-  --data-prev: var(--stone-300);
-  --ess: var(--stone-600); /* the essential-category dot: identity, not data */
+  /* Data: periwinkle on the main element; lavender and neutrals for what it is compared with */
+  --data: var(--peri-500);
+  --data-soft: var(--peri-200);
+  --data-dim: var(--peri-100);
+  --data-prev: var(--lav-200);
+  --ess: var(--navy-400);          /* essential-category dot: identity, not data */
 
-  /* Status: positive is deep sage, attention is plum. No red, no green. */
-  --pos: var(--sage-700);   --pos-bg: var(--sage-100);
-  --warn: var(--plum-ink);  --warn-bg: var(--plum-50);
-  --neg: var(--plum-ink);   --neg-bg: var(--plum-50);
+  /* Status. Positive speaks in deep periwinkle with a sign or a word; attention in deep lilac.
+     No red, no green: meaning is always carried by words and shapes as well. */
+  --pos: var(--peri-700);    --pos-bg: var(--peri-100);
+  --alert: var(--lilac-600);
+  --alert-ink: var(--lilac-700);
+  --alert-soft: var(--lilac-200);
+  --alert-wash: var(--lilac-50);
+  --warn: var(--alert-ink);  --warn-bg: var(--alert-wash);
+  --neg: var(--alert-ink);   --neg-bg: var(--alert-wash);
 
-  /* Money map: committed layers in warm greys, the free money in the data hue */
-  --seg-bills: #77736b;
-  --seg-everyday: #a8a499;
-  --seg-goals: #d3cfc4;
+  /* The purchase being weighed: the one lilac mark on the Decisions page */
+  --buy: var(--lilac-400);
+  --buy-ink: var(--lilac-700);
+
+  /* Money map: committed money in navy steps, free money in the data hue */
+  --seg-bills: var(--navy-700);
+  --seg-everyday: var(--navy-400);
+  --seg-goals: var(--lav-200);
   --seg-free: var(--data);
 
-  /* Chart */
-  --chart-1: var(--stone-300);   /* essentials: the steady comparison */
-  --chart-2: var(--data);        /* non-essentials: the part that moves */
-  --chart-grid: #ece9e2;
+  /* Charts */
+  --chart-1: var(--navy-200);      /* essentials: the steady comparison, in neutral */
+  --chart-2: var(--data);          /* non-essentials: the part that moves */
+  --chart-grid: #e9ecf2;
   --chart-axis: var(--text-3);
+  --c-income: var(--navy-300);
+  --c-income-dim: var(--navy-100);
+  --c-spent: var(--navy-700);
+  --c-spent-dim: var(--navy-300);
 
-  /* Type: one grotesk */
-  --font: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Type: one grotesk whose figures carry the money */
+  --font: "Manrope", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --fs-xs: 12px;
   --fs-sm: 13px;
   --fs-base: 15px;
@@ -103,7 +148,7 @@
   --fs-section: 16px;
   --fs-title: 26px;
   --fs-kpi: 24px;
-  --fs-lead: 36px;
+  --fs-lead: 34px;
 
   /* Space (4px base) */
   --s-1: 4px;
@@ -118,16 +163,18 @@
   --gap: 20px;
   --card-pad: 24px;
 
-  /* Shape: the tight pair, stepping down inside */
-  --r-card: 10px;
-  --r-inner: 8px;
-  --r-small: 6px;
-  --r-control: 8px;
+  /* Shape: one soft card radius, stepping down inside */
+  --r-card: 16px;
+  --r-inner: 10px;
+  --r-small: 8px;
+  --r-control: 10px;
   --r-chip: 6px;
   --r-pill: 999px;
-  --r-float: 14px;
-  --shadow-float: 0 18px 44px -14px rgba(56, 55, 53, 0.24), 0 2px 6px rgba(56, 55, 53, 0.06);
-  --ring: 0 0 0 3px rgba(96, 67, 79, 0.24);
+  --r-float: 18px;
+  --shadow-float: 0 24px 48px -16px rgba(30, 35, 52, 0.28), 0 2px 6px rgba(30, 35, 52, 0.06);
+  --shadow-lift: 0 1px 2px rgba(30, 35, 52, 0.08), 0 0 0 1px rgba(30, 35, 52, 0.04);
+  --ring: 0 0 0 3px rgba(77, 115, 207, 0.32);
+  --scrim: rgba(22, 26, 39, 0.4);
 
   /* Layout */
   --sidebar-w: 240px;

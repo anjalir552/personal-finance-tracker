@@ -1,6 +1,6 @@
 /* Savings Goals: "Am I saving enough, soon enough?"
    Each goal is drawn as its trajectory: what's been saved month by month (solid), where the
-   monthly plan takes it (dashed, orange when it lands after the deadline), the target and the
+   monthly plan takes it (dashed, lilac when it lands after the deadline), the target and the
    deadline. Below, the planner edits every goal's monthly amount against a typical month, and
    the milestone timeline lists what lands when. */
 SW.pages = SW.pages || {};
@@ -95,14 +95,14 @@ SW.pages = SW.pages || {};
         height: 180, zero: true, ticks: 3, xEvery: Math.max(1, Math.ceil(keys.length / 6)),
         ariaLabel: `${g.name}: ${F.inr(s.saved)} saved of ${F.inr(g.target)}; at the current plan it finishes ${finishWords(g, s, g.monthly)}; deadline ${F.date(g.deadline)}`,
         reference: { value: g.target, label: `Target ${F.inrc(g.target)}`, align: 'start' },
-        markers: dl >= 0 ? [{ index: dl, label: 'Deadline', color: late ? v('--or') : v('--line-strong') }] : [],
+        markers: dl >= 0 ? [{ index: dl, label: 'Deadline', color: late ? v('--alert') : v('--line-strong') }] : [],
         series: [
-          { name: 'Saved', color: v('--pb-500'), values: saved, width: 2.25, endDot: true },
-          { name: 'At your plan', color: late ? v('--or') : v('--pb-500'), values: ahead, width: 1.75, dashed: true }
+          { name: 'Saved', color: v('--data'), values: saved, width: 2.25, endDot: true },
+          { name: 'At your plan', color: late ? v('--alert') : v('--data'), values: ahead, width: 1.75, dashed: true }
         ],
         tooltip: i => `<div class="tt-title">${S.monthName(keys[i], true)} ${keys[i].slice(0, 4)}</div>
-          ${saved[i] != null ? C.row(v('--pb-500'), i === cur ? 'Saved so far' : 'Saved', F.inr(saved[i])) : ''}
-          ${ahead[i] != null && i > cur ? C.row(late ? v('--or') : v('--pb-500'), 'At your plan', F.inr(ahead[i]), true) : ''}`
+          ${saved[i] != null ? C.row(v('--data'), i === cur ? 'Saved so far' : 'Saved', F.inr(saved[i])) : ''}
+          ${ahead[i] != null && i > cur ? C.row(late ? v('--alert') : v('--data'), 'At your plan', F.inr(ahead[i]), true) : ''}`
       });
     });
   }

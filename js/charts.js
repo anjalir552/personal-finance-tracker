@@ -163,7 +163,7 @@
         const up = opts.band.upper.map((v, i) => [x(i), y(v)]);
         const low = opts.band.lower.map((v, i) => [x(i), y(v)]).reverse();
         const d = 'M' + up.map(p => p.join(',')).join('L') + 'L' + low.map(p => p.join(',')).join('L') + 'Z';
-        el('path', { d, fill: opts.band.color || 'var(--stone-100)', opacity: 0.75 }, svg);
+        el('path', { d, fill: opts.band.color || 'var(--gray-100)', opacity: 0.75 }, svg);
       }
 
       // Series

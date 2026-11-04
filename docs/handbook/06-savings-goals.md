@@ -15,7 +15,7 @@
 ## 2. Page layout
 
 1. **Header:** whether every goal is on track (or which are behind), your monthly plan vs what's needed, and **New goal**
-2. **Summary:** total saved and its share of all targets, then **Planned each month** (with what every deadline needs, in orange when your plan is short), **Still to add this month** and **All goals done** (the month the last goal lands at your plan)
+2. **Summary:** total saved and its share of all targets, then **Planned each month** (with what every deadline needs, in lilac when your plan is short), **Still to add this month** and **All goals done** (the month the last goal lands at your plan)
 3. **Your goals:** one band per goal. On the left: name, status, saved of target, a progress bar with the % saved and what's left to go, and (when the goal is behind) how much more a month would finish it on time. In the middle: **Monthly plan**, **Deadline** with months left, and **Finishes**. On the right: **Add money**, edit and delete
 4. **Trajectory and milestones:** a disclosure under each goal. It opens the goal's trajectory chart, one sentence on whether the plan lands before the deadline, and the four milestones (25%, 50%, 75%, Target) with "Reached" or the month each lands
 5. **Reached goals:** a collapsed section (only if any goal is complete)
@@ -26,47 +26,47 @@
 ## 3. Features
 
 ### 3.1 Header summary
-- When a goal is behind: "**Emergency fund is behind.** You plan ₹X a month; every deadline needs about ₹Y." The goal names are in orange.
+- When a goal is behind: "**Emergency fund is behind.** You plan ₹X a month; every deadline needs about ₹Y." The goal names are in lilac.
 - When all are fine: "**Every goal is on track.** You plan ₹X a month, enough for each deadline."
 
 ### 3.2 Summary
 | Part | Shows |
 |---|---|
 | **Saved across N goals** | Total saved, and what share of all targets that is |
-| **Planned each month** | The total of every goal's monthly plan. Underneath: what every deadline needs, in orange when the plan is short |
+| **Planned each month** | The total of every goal's monthly plan. Underneath: what every deadline needs, in lilac when the plan is short |
 | **Still to add this month** | What goals still need this cycle, or "Done" |
 | **All goals done** | The month the last goal lands at your current plan |
 
 ### 3.3 Goal band
 | Part | Shows |
 |---|---|
-| **Name + status** | **On track**, **Behind plan**, **Past deadline** or **Reached** (the last three that need attention are orange) |
+| **Name + status** | **On track**, **Behind plan**, **Past deadline** or **Reached** (**On track** is deep periwinkle; **Behind plan** and **Past deadline**, which need attention, are lilac) |
 | **Note** | Optional text you added |
 | **Amount** | "₹X of ₹target" |
-| **Progress bar** | Blue fill = saved, with "% saved" and "₹X to go" underneath |
+| **Progress bar** | Periwinkle fill = saved, with "% saved" and "₹X to go" underneath |
 | **Fix line** | Only when behind: "Add about ₹X a month to finish by \<deadline\>" |
 | **Monthly plan** | Your monthly amount ("—" if none) |
 | **Deadline** | The date, and "N months left" (or "Passed") |
-| **Finishes** | The month the goal lands at your plan, in orange if after the deadline |
+| **Finishes** | The month the goal lands at your plan, in lilac if after the deadline |
 | **Actions** | **Add money**, ✎ edit, 🗑 delete |
 | **Trajectory and milestones** | Opens the chart and the milestone list below |
 
 ### 3.3a Trajectory chart
-- **Solid blue line:** what was saved at the end of each month since the goal was created (this month: up to today).
-- **Dashed line:** where your monthly plan takes it, month by month, until the target. It is blue when it lands by the deadline and orange when it lands after.
-- **Dashed horizontal line:** the target. **Dotted vertical line:** the deadline (orange when you'd miss it).
+- **Solid periwinkle line:** what was saved at the end of each month since the goal was created (this month: up to today).
+- **Dashed line:** where your monthly plan takes it, month by month, until the target. It is periwinkle when it lands by the deadline and lilac when it lands after.
+- **Dashed horizontal line:** the target. **Dotted vertical line:** the deadline (lilac when you'd miss it).
 - Hover over a month to see the figures.
 
 ### 3.4 Monthly plan
 - **What it does:** lists every active goal with a monthly amount box, so you can rebalance them together.
-- **How to use it:** type a new amount next to a goal. Under the box you'll see the month it would land and "on time" (blue) or "after the deadline" (orange). "Never" means ₹0 a month.
+- **How to use it:** type a new amount next to a goal. Under the box you'll see the month it would land and "on time" (deep periwinkle) or "after the deadline" (lilac). "Never" means ₹0 a month.
 - **Totals:**
 
 | Line | Shows |
 |---|---|
 | **A typical month after bills and essentials** | Income − recurring bills − everyday essentials |
 | **Into goals with this plan** | The total of the amounts in the planner |
-| **Left for everything else** | The difference. Orange if it's less than your usual flexible spending |
+| **Left for everything else** | The difference. Lilac if it's less than your usual flexible spending |
 
   A note under the totals says whether that covers your usual eating out, shopping and plans, or how much less of it you'd need.
 - **Buttons:** **Save plan** writes the new amounts to your goals. **Reset** puts back the saved ones. Both stay greyed out until you change something.
@@ -86,7 +86,7 @@
 | **Note** *(optional)* | Why it matters |
 
 - **Live suggestion box:** as you type, it says "To reach ₹X by \<date\>, save about **₹Y a month** for N months."
-  - If your plan is lower, the box turns orange and says when you'd actually get there.
+  - If your plan is lower, the box turns lilac and says when you'd actually get there.
   - If the suggestion is more than a typical month has spare, it warns that you may need to spend less elsewhere.
   - Click **Use ₹Y** to fill in the suggested amount.
   - If already saved ≥ target: "You've already saved enough for this."

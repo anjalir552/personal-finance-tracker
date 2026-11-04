@@ -85,7 +85,7 @@ SW.pages = SW.pages || {};
           <div class="name"><i class="ess${S.cat(c).essential ? '' : ' no'}" aria-hidden="true"></i><span>${F.esc(c)}</span></div>
           <div class="cat-track"><b style="width:${(v / max) * 100}%"></b></div>
           <div class="fig"><div class="v">${F.inr(v)}</div></div></div>`).join('')}</div>
-        <div class="legend" style="margin-top:16px"><span><i style="background:var(--ess);border-radius:99px;width:7px;height:7px"></i>Essential</span><span><i style="box-shadow:inset 0 0 0 1.5px var(--stone-400);border-radius:99px;width:7px;height:7px"></i>Non-essential</span></div>
+        <div class="legend" style="margin-top:16px"><span><i style="background:var(--ess);border-radius:99px;width:7px;height:7px"></i>Essential</span><span><i style="box-shadow:inset 0 0 0 1.5px var(--gray-400);border-radius:99px;width:7px;height:7px"></i>Non-essential</span></div>
       </div>`;
     }
     const curSpent = S.spent(S.CUR_MONTH);

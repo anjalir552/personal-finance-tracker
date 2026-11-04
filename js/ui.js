@@ -137,7 +137,7 @@
       ui.toast(`Exported ${filename}`, 'download');
     },
 
-    /** Category chip: essential categories carry the powder dot */
+    /** Category chip: essential categories carry the navy-grey dot */
     catChip(id) {
       const c = SW.store.cat(id);
       return `<span class="chip${c.essential ? ' essential' : ''}">${F.esc(id)}</span>`;

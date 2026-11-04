@@ -35,7 +35,7 @@ On a brand-new, empty account the page shows the **set-up checklist** instead (s
 - **How to use it:** click **Add transaction**, fill in the form, then click **Add transaction** again. See [Transactions §3.6](03-transactions.md).
 
 ### 3.3 Can I afford this? button
-- **What it does:** takes you to [Purchase Decisions](05-purchase-decisions.md). It's plum because it's the main action in the app.
+- **What it does:** takes you to [Purchase Decisions](05-purchase-decisions.md). It's the navy primary button because it's the main action in the app.
 
 ### 3.4 Money map card
 - **Free to spend until \<payday\>:** the big number. Below it: "About ₹X a day for the next N days".
@@ -53,8 +53,8 @@ On a brand-new, empty account the page shows the **set-up checklist** instead (s
 ### 3.5 Coming up
 - **What it does:** lists the **next 5 upcoming expenses**, soonest first, each with a date chip, name, "In 3 days" style timing and amount.
 - **Good to know:**
-  - The date chip turns plum if the expense is due within 3 days.
-  - "Overdue" shows in plum for missed items.
+  - The date chip gets a pale lilac tint if the expense is due within 3 days.
+  - "Overdue" shows in lilac for missed items.
   - Estimates show `~` before the amount and "· estimate".
   - The panel figure (top right) is the total due before payday.
   - Footer link: **All upcoming expenses →**

@@ -23,7 +23,7 @@
 ## 3. Features
 
 ### 3.1 Summary strip
-- **What it does:** totals **Money in** (+, sage), **Money out** and **Moved to savings** for everything that matches the current filters.
+- **What it does:** totals **Money in** (+, deep periwinkle), **Money out** and **Moved to savings** for everything that matches the current filters.
 - **Good to know:** the label shows the month in view, for example "November 2026" or "All time".
 
 ### 3.2 Search
@@ -48,7 +48,7 @@
 - **Amount style:**
   | Type | Looks like |
   |---|---|
-  | Income | `+₹60,000` in sage |
+  | Income | `+₹60,000` in deep periwinkle |
   | Expense | `−₹386` |
   | Transfer to savings | `₹6,000`, with the subtitle "To savings goal" |
 - **Show more:** loads **40 rows at a time**.

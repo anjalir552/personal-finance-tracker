@@ -36,7 +36,7 @@ Scopewise shows what you can spend once the money already promised elsewhere is 
 | **Spending Analysis** | Where the money went each month by category, essentials vs non-essentials, spending patterns and a month-by-month chart |
 | **Purchase Decisions** | A "Can I afford it?" checker with a clear verdict, a step-by-step waterfall of how the purchase changes your money, an impact table, buy-now / wait / save-first options, what-if adjustments, saved past decisions, and one-click conversion into a savings goal |
 | **Savings Goals** | Goals with targets and dates, on-track or behind status, trajectory charts, a monthly planner, milestones and "add money" contributions |
-| **Upcoming Expenses** | An interactive monthly calendar of bills and planned costs with weekly totals, a selected-day panel, the next payments list, overdue tracking and mark-as-paid |
+| **Upcoming Expenses** | A month summary (still to pay, paid, overdue and total) over an interactive monthly calendar that marks each payment as paid, still to pay or overdue, a selected-day sheet with mark-as-paid, the next payments list and a table of everything scheduled and recurring |
 | **Financial Insights** | A monthly statement, spending pace, category comparisons with the previous month, savings performance and plain-language observations from your own numbers |
 | **Settings** | Balance, income, payday and safety cushion, profile and life stage, full JSON export, clear all data, and restore the example data |
 
@@ -67,7 +67,7 @@ Scopewise is intentionally dependency-free: no framework, no bundler and no pack
 - **Vanilla JavaScript**: modular scripts under one shared `SW` namespace, with hash-based client-side routing
 - **SVG**: hand-built responsive charts with tooltips (`js/charts.js`) and an inline line-icon set (`js/icons.js`)
 - **Web APIs**: `localStorage` for persistence, `Intl.NumberFormat` for INR formatting, and `Blob` downloads for CSV and JSON export
-- **Font**: [Geist](https://fonts.google.com/specimen/Geist), loaded from Google Fonts
+- **Font**: [Manrope](https://fonts.google.com/specimen/Manrope), loaded from Google Fonts
 
 ## Project structure
 

@@ -67,7 +67,7 @@ SW.pages = SW.pages || {};
             <div class="cat-list">${cats.map(x => {
               const d = x.v - x.p;
               const dTxt = !prev ? '' : !x.p ? 'new' : Math.abs(d) < 100 ? 'about the same' : `${d > 0 ? '+' : '−'}${F.inr(Math.abs(d))}`;
-              // More spending is shown in plum only for non-essentials that rose by more than 25%
+              // More spending is shown in lilac only for non-essentials that rose by more than 25%
               const cls = prev && x.p && d > 0 && d / x.p > 0.25 && !S.cat(x.c).essential ? 'up' : prev && d < -100 ? 'down' : '';
               return `<div class="cat-row">
                 <div class="name"><i class="ess${S.cat(x.c).essential ? '' : ' no'}" aria-label="${S.cat(x.c).essential ? 'Essential' : 'Non-essential'}"></i><span>${F.esc(x.c)}</span></div>
@@ -123,7 +123,7 @@ SW.pages = SW.pages || {};
       highlight: keys.indexOf(month),
       ariaLabel: 'Essential and non-essential spending by month',
       series: [
-        { name: 'Essentials', color: 'var(--chart-1)', colors: keys.map(k => k === month ? 'var(--stone-400)' : 'var(--chart-1)'), values: sp.map(s => s.essential) },
+        { name: 'Essentials', color: 'var(--chart-1)', colors: keys.map(k => k === month ? 'var(--navy-300)' : 'var(--chart-1)'), values: sp.map(s => s.essential) },
         { name: 'Non-essentials', color: 'var(--chart-2)', colors: keys.map(k => k === month ? 'var(--chart-2)' : 'var(--data-soft)'), values: sp.map(s => s.nonEssential) }
       ],
       tooltip: i => `<div class="tt-title">${S.monthName(keys[i], true)} ${keys[i].slice(0, 4)}</div>` +

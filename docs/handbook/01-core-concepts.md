@@ -21,7 +21,7 @@ Read this chapter first. It explains the parts that every page shares.
 | **Plan & decide** | Purchase Decisions, Savings Goals, Upcoming Expenses, Financial Insights |
 | *(bottom)* | Settings, plus your account card (name, stage, city), which also opens Settings |
 
-**Badge on Upcoming Expenses:** an plum number appears next to it when expenses are due **in the next 3 days**. It counts only things that need action.
+**Badge on Upcoming Expenses:** a navy badge with a white number appears next to it when expenses are due **in the next 3 days**. It counts only things that need action.
 
 ### Web addresses
 
@@ -97,24 +97,20 @@ The **money bar**, a horizontal coloured bar, shows these layers. It appears on 
 
 ## 6. Colours and what they mean
 
+One palette is used on every page.
+
 | Colour | Meaning |
 |---|---|
-| **Deep plum** `#60434F` | Primary buttons, active states (the current page's icon in the sidebar, the selected tab or month, switches, focused fields) and real alerts: due soon, behind plan, overdue |
-| **Sage olive** `#B5B895` | The main data on each screen (free to spend, the selected month, goal progress), insights and positive figures. Committed money and comparisons are shown in warm greys |
-| **Charcoal** `#383735` | Text and money figures |
+| **Navy** `#282E42` | All text and money figures, important icons, the one primary button on a screen (navy with white text), today's date, switches that are on, and the count badge on Upcoming Expenses in the sidebar |
+| **Periwinkle** `#C4D6FF` | Selected states (the current page in the sidebar is a pale periwinkle pill with a navy label; the selected tab, month, plan or calendar day), focus rings, and the main data on each screen (free to spend, the current month's bars, goal progress, still to pay). Marks use the deeper `#4D73CF` and periwinkle text uses `#2D4789`. Positive figures, such as income `+₹60,000`, "on time" and **On track**, are deep periwinkle |
+| **Lavender** `#B8C0FF` | Secondary accents: comparisons (such as last month's bars in Spending Analysis), the savings layer of the money bar, avatars and selected text |
+| **Lilac** `#E7C6FF` | Used sparingly: the purchase you're weighing on Purchase Decisions, and anything that needs attention (overdue, due within 3 days, behind plan, past the deadline, a plan that's short, a big rise in a non-essential category). Marks use `#9C45AA` and lilac text uses `#7B2C88` |
 | **White** `#FFFFFF` | Cards, panels and pop-up windows |
-| **Warm off-white** `#F7F6F1` | The page background and the sidebar |
+| **Cool off-white** `#F6F7FA` | The page background and the sidebar |
 
-There's no red and green. Positive news is deep sage, and anything that needs attention is plum.
+In the money bar, committed money is shown in navy steps: bills in dark navy and everyday essentials in a mid navy-grey. Savings are lavender and free to spend is periwinkle.
 
-The four planning pages (Purchase Decisions, Savings Goals, Upcoming Expenses and Financial Insights) use their own palette. The sidebar stays sage and plum on those pages too.
-
-| Colour | Meaning on the planning pages |
-|---|---|
-| **Racing orange** `#F45B0B` | Primary buttons (with charcoal text), overdue payments, the purchase you're weighing and the month you're reading. Orange text uses `#B84305` |
-| **Powder blue** `#ABC9C8` | Saved money, paid bills and free to spend. Marks use `#5B8C8A` and blue text uses `#3D6866` |
-| **Charcoal** `#1E2427` | Text and money figures |
-| **White** `#FFFFFF` | Cards, panels and pop-up windows |
+There's no red and green. Positive news is deep periwinkle, and anything that needs attention is lilac. Meaning is always carried by words and shapes too, never by colour alone.
 
 ## 7. Money inputs
 

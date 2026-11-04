@@ -164,7 +164,7 @@ SW.pages = SW.pages || {};
           </div>
           <div class="fi-chart">
             <div class="fi-chart-head"><h3 class="fi-chart-title" id="pace-h">Pace through the month</h3>
-              <div class="legend"><span><i style="background:var(--or)"></i>${S.monthName(month)}</span>${hasPrev ? `<span><i class="dash"></i>${S.monthName(prevKey)}</span>` : ''}</div></div>
+              <div class="legend"><span><i style="background:var(--accent)"></i>${S.monthName(month)}</span>${hasPrev ? `<span><i class="dash"></i>${S.monthName(prevKey)}</span>` : ''}</div></div>
             <div data-pace></div>
             <p class="fi-chart-hint" data-pace-desc></p>
           </div>
@@ -202,13 +202,13 @@ SW.pages = SW.pages || {};
       labels: list.map(k => S.monthName(k)), stack: true,
       series: [
         { name: 'Essentials', colors: dim(v('--c-spent'), v('--c-spent-dim')), values: sums.map(x => x.essential) },
-        { name: 'Non-essentials', colors: dim(v('--pb-500'), v('--data-dim')), values: sums.map(x => x.nonEssential) }
+        { name: 'Non-essentials', colors: dim(v('--data'), v('--data-dim')), values: sums.map(x => x.nonEssential) }
       ],
-      overlay: { values: sums.map(x => x.income), colors: dim(v('--ink'), v('--stone-400')) },
+      overlay: { values: sums.map(x => x.income), colors: dim(v('--ink'), v('--gray-400')) },
       highlight: sel, height: 240, maxBar: 28, onSelect: pick,
       ariaLabel: 'Essential and non-essential spending by month, with income',
       tooltip: i => `<div class="tt-title">${mLong(list[i])}${isCur(list[i]) ? ' (so far)' : ''}</div>
-        ${C.row(v('--c-spent'), 'Essentials', F.inr(sums[i].essential))}${C.row(v('--pb-300'), 'Non-essentials', F.inr(sums[i].nonEssential))}
+        ${C.row(v('--c-spent'), 'Essentials', F.inr(sums[i].essential))}${C.row(v('--data-soft'), 'Non-essentials', F.inr(sums[i].nonEssential))}
         ${C.row('#fff', 'Income', F.inr(sums[i].income))}
         <div class="tt-note">Spent ${F.pct(sums[i].income ? sums[i].spent / sums[i].income : 0)} of income</div>`
     });
@@ -222,12 +222,12 @@ SW.pages = SW.pages || {};
     const TARGET = 0.2;
     C.bars(root.querySelector('[data-rate]'), {
       labels: list.map(k => S.monthName(k)),
-      series: [{ name: 'Savings rate', colors: dim(v('--pb-500'), v('--data-dim')), values: sums.map(x => Math.round(x.rate * 1000) / 10) }],
+      series: [{ name: 'Savings rate', colors: dim(v('--data'), v('--data-dim')), values: sums.map(x => Math.round(x.rate * 1000) / 10) }],
       reference: { value: TARGET * 100, label: '20% guide' },
       yFormat: x => x + '%', highlight: sel, height: 220, maxBar: 28, onSelect: pick,
       ariaLabel: 'Share of income saved to goals by month',
       tooltip: i => `<div class="tt-title">${mLong(list[i])}${isCur(list[i]) ? ' (so far)' : ''}</div>
-        ${C.row(v('--pb-500'), 'Saved', F.inr(sums[i].saved))}${C.row(v('--stone-400'), 'Of income', F.pct(sums[i].rate))}`
+        ${C.row(v('--data'), 'Saved', F.inr(sums[i].saved))}${C.row(v('--gray-400'), 'Of income', F.pct(sums[i].rate))}`
     });
     const avgRate = done.length ? done.reduce((a, x) => a + x.rate, 0) / done.length : 0;
     root.querySelector('[data-rate-desc]').innerHTML = `${F.pct(c.rate)} of income saved in ${S.monthName(month)}${isCur(month) ? ' so far' : ''}; ${F.pct(avgRate)} on average. <b class="${c.rate >= TARGET ? 'pos' : 'warn'}">${c.rate >= TARGET ? 'At or above' : `${F.pct(TARGET - c.rate)} below`} the 20% guide.</b>`;
@@ -241,13 +241,13 @@ SW.pages = SW.pages || {};
     const lastIdx = cur.reduce((a, x, i) => (x != null ? i : a), 0);
     const series = [];
     if (prev) series.push({ name: S.monthName(prevKey), color: v('--c-spent-dim'), values: pad(prev), dashed: true, width: 1.5 });
-    series.push({ name: S.monthName(month), color: v('--or'), values: pad(cur), width: 2.25, endDot: true });
+    series.push({ name: S.monthName(month), color: v('--accent'), values: pad(cur), width: 2.25, endDot: true });
     C.line(root.querySelector('[data-pace]'), {
       labels: Array.from({ length: n }, (_, i) => String(i + 1)),
       series, height: 240, zero: true, xEvery: 5,
       ariaLabel: 'Running total of spending by day of month',
       tooltip: i => `<div class="tt-title">Day ${i + 1}</div>
-        ${cur[i] != null ? C.row(v('--or'), S.monthName(month), F.inr(cur[i])) : ''}
+        ${cur[i] != null ? C.row(v('--accent'), S.monthName(month), F.inr(cur[i])) : ''}
         ${prev && prev[i] != null ? C.row(v('--c-spent-dim'), S.monthName(prevKey), F.inr(prev[i]), true) : ''}`
     });
     const desc = root.querySelector('[data-pace-desc]');

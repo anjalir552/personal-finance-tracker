@@ -32,24 +32,24 @@ The page reads like a monthly report: a summary first, then chapters.
 - **How to use it:** click a month, use **‹** / **›**, or focus the strip and press ← / →, Home or End. You can also click a month's bar in **Month by month** or **Share of income saved**. Only months with transactions are included; the current month is labelled "so far".
 
 ### 3.2 Header summary
-- "October 2026: you saved **18% of income**." If you spent more than came in, it adds "and spent **₹X more than came in**" in orange. For a past month it also repeats the top observation that needs attention.
+- "October 2026: you saved **18% of income**." If you spent more than came in, it adds "and spent **₹X more than came in**" in lilac. For a past month it also repeats the top observation that needs attention.
 
 ### 3.3 Summary
 | Figure | Shows | Underneath |
 |---|---|---|
 | **Income** | Income received in the month | Change vs the month before |
 | **Spent** | All expenses | Change, and what share of income it was |
-| **Saved to goals** | Transfers to goals, in blue | Change, and your savings rate |
-| **Left over** / **Overspent** | Income − spent − saved. "Stayed in your account", or "Came out of your balance" in orange | Change |
+| **Saved to goals** | Transfers to goals, in deep periwinkle | Change, and your savings rate |
+| **Left over** / **Overspent** | Income − spent − saved. "Stayed in your account", or "Came out of your balance" in lilac | Change |
 
-- **Change** reads like "↑ ₹2,300 vs Sep". It's blue when the change is good for you (more income, less spending, more saved) and orange when it isn't. It says "Same as Sep" if nothing changed, or "No earlier month" for your first month.
+- **Change** reads like "↑ ₹2,300 vs Sep". It's deep periwinkle when the change is good for you (more income, less spending, more saved) and lilac when it isn't. It says "Same as Sep" if nothing changed, or "No earlier month" for your first month.
 
 ### 3.4 Where ₹X went
-- **What it does:** one bar showing how the month's income was used: **Essentials**, **Non-essentials**, **Saved to goals** (blue), and **Left over** (pale blue) or **Taken from balance** (orange).
+- **What it does:** one bar showing how the month's income was used: **Essentials** (navy), **Non-essentials** (periwinkle), **Saved to goals** (pale periwinkle), and **Left over** (grey) or **Taken from balance** (lilac).
 - **Below the bar:** each part with its amount and share. For the current month it says "So far, to \<today\>".
 
 ### 3.5 Spending, month by month
-- **What it does:** one stacked bar per month: essentials (charcoal) under non-essentials (blue), with income as a short line above. The selected month is in full colour; the others are faded.
+- **What it does:** one stacked bar per month: essentials (navy) under non-essentials (periwinkle), with income as a short line above. The selected month is in full colour; the others are faded.
 - **The note above it** compares the month's spending with your average for the complete months.
 - **How to use it:** hover over a month for its figures; click it to read that month.
 
@@ -58,20 +58,20 @@ The page reads like a monthly report: a summary first, then chapters.
 - **The note above it** gives the month's rate, your average, and how far it is from the guide.
 
 ### 3.5b Essential vs non-essential
-- **What it does:** the month's essentials and non-essentials as two bars, each with a tick at its average for up to three months before. Underneath: the usual amount and the difference (orange when non-essentials ran more than ₹500 over), and what share of spending was non-essential.
+- **What it does:** the month's essentials and non-essentials as two bars, each with a tick at its average for up to three months before. Underneath: the usual amount and the difference (lilac when non-essentials ran more than ₹500 over), and what share of spending was non-essential.
 
 ### 3.6 Spending pace
-- **What it does:** a running total of spending through the month, day by day. The selected month is an orange line; the month before is a dashed grey line.
-- **The note above it** says how far ahead or behind you are, for example "By day 31: ₹38,400, **₹2,100 more** than Sep at the same point". "More" is orange, "less" is blue.
+- **What it does:** a running total of spending through the month, day by day. The selected month is a periwinkle line; the month before is a dashed grey line.
+- **The note above it** says how far ahead or behind you are, for example "By day 31: ₹38,400, **₹2,100 more** than Sep at the same point". "More" is lilac, "less" is deep periwinkle.
 - **How to use it:** hover over a day to see both running totals.
 
 ### 3.7 Categories against \<previous month\>
 | Column | Shows |
 |---|---|
 | **Category** | A filled dot for essentials, a hollow one for non-essentials |
-| **Bar** | Thick blue bar = this month. Thin grey line underneath = the month before |
+| **Bar** | Thick periwinkle bar = this month. Thin grey line underneath = the month before |
 | **\<Month\>** | This month's amount |
-| **Change** | The difference in rupees. Orange if it rose by ₹500 or more **and** 20% or more. Blue if it fell |
+| **Change** | The difference in rupees. Lilac if it rose by ₹500 or more **and** 20% or more. Deep periwinkle if it fell |
 | **3-month avg** | Average of the 3 months before (where you have them) |
 | **Share** | Share of this month's spending |
 
@@ -86,7 +86,7 @@ The page reads like a monthly report: a summary first, then chapters.
 
 | Part | Shows |
 |---|---|
-| **Figure** | A big number with a short note, for example "+45%, food & dining vs usual". The edge beside it is orange for attention, blue for good news and pale blue for information. Attention figures are orange too |
+| **Figure** | A big number with a short note, for example "+45%, food & dining vs usual". Attention figures are lilac, good news is deep periwinkle and information stays navy |
 | **Title** | The finding in one line |
 | **Text** | The explanation in rupees |
 | **Detail** | A smaller line with the numbers behind it (when available) |
@@ -146,7 +146,7 @@ The page reads like a monthly report: a summary first, then chapters.
 | Only 1 complete month | The summary, charts and table appear, but **What stands out** is hidden |
 | First month you have | Changes say "No earlier month", the pace chart has one line, and the Categories table is hidden |
 | A type with no observations | "Nothing to flag here. No observations of this kind right now. That's usually a good sign." |
-| More spent than came in | **Overspent** in orange, and **Taken from balance** in the bar |
+| More spent than came in | **Overspent** in lilac, and **Taken from balance** in the bar |
 | On a phone | The category bars and the 3-month avg and Share columns are hidden, and each observation's figure sits above its text |
 
 ## 7. Links to other pages

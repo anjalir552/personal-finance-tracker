@@ -63,10 +63,11 @@ window.SW = window.SW || {};
   };
 
   SW.logo = function (size = 18) {
-    // Mark: a ring of money with one segment set apart, the part already spoken for
+    // Mark: a ring of money on a navy tile, one quarter set apart in lilac: the part already spoken for
     return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true">
-      <circle cx="16" cy="16" r="10.5" fill="none" stroke="#B5B895" stroke-width="5"/>
-      <path d="M16 5.5a10.5 10.5 0 0 1 10.5 10.5" fill="none" stroke="#60434F" stroke-width="5" stroke-linecap="butt"/>
+      <rect width="32" height="32" rx="9" fill="#282E42"/>
+      <circle cx="16" cy="16" r="9" fill="none" stroke="#C4D6FF" stroke-width="4.5"/>
+      <path d="M16 7a9 9 0 0 1 9 9" fill="none" stroke="#E7C6FF" stroke-width="4.5" stroke-linecap="butt"/>
     </svg>`;
   };
 })();

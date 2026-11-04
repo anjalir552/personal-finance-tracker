@@ -8,7 +8,7 @@ This is the heart of Scopewise. On screen the page title is **Can I afford it?**
 
 | | |
 |---|---|
-| **Where to find it** | Sidebar → Plan & decide → Purchase Decisions, or the plum **Can I afford this?** button on Overview |
+| **Where to find it** | Sidebar → Plan & decide → Purchase Decisions, or the navy **Can I afford this?** button on Overview |
 | **Web address** | `#/decisions` |
 | **Use it when** | Before you buy something that isn't already planned |
 | **Main actions** | Enter an item and price, try a what-if, pick a plan (buy now, wait, save first), save your decision, **Make it a savings goal** |
@@ -20,10 +20,10 @@ The page is a decision workspace: you describe the purchase on the left, and the
 
 1. **Header:** "Purchase Decisions" and a short explanation
 2. **The purchase** (left, stays in view as you scroll): *What are you buying?*, *Category*, *Price*, *When would you like it?* and **Try a what-if**
-3. **The answer** (top right): verdict tag, a short headline, one sentence of reasons including how the price compares with what you usually spend in that category, and the big figure **Left until payday if you buy it today** (orange when it falls below your cushion)
+3. **The answer** (top right): verdict tag, a short headline, one sentence of reasons including how the price compares with what you usually spend in that category, and the big figure **Left until payday if you buy it today** (lilac when it falls below your cushion)
 4. **Available to spend:** Current balance − Committed before payday = Available to spend, then the purchase, with the money bar underneath
 5. **Financial impact:** a waterfall chart (Balance − Bills − Essentials − Savings = Available − Purchase = Left, with your safety cushion as a dashed line) beside the impact table and **Why this answer**
-6. **Alternative plans:** buy now, delay or save first as three columns (the chosen one has an orange rule), a chart of your projected balance for each plan, and the buttons that save your decision
+6. **Alternative plans:** buy now, delay or save first as three columns (the chosen one has a periwinkle rule), a chart of your projected balance for each plan, and the buttons that save your decision
 7. **Past decisions:** a table of what you checked and chose
 8. **Note:** the order money is used in, and that this isn't financial advice
 
@@ -41,11 +41,11 @@ The whole check reads as one sum, left to right:
 |---|---|
 | **In your account** | Your balance today ("Your what-if figure" if you changed it) |
 | **− Already committed** | Bills before payday + essentials until payday + this month's savings, with each part listed underneath |
-| **= Free to spend** | What's left until payday, and how many days that is. Shown in blue |
-| **− \<your item\>** | The price, and what share of your free money it is ("10×+" if huge). Marked in orange |
-| **= Left after** | Free to spend − price, and how much a day that leaves. Turns orange if it falls below your cushion. If it's below zero it says "Taken from money already committed" |
+| **= Free to spend** | What's left until payday, and how many days that is. Shown in periwinkle |
+| **− \<your item\>** | The price, and what share of your free money it is ("10×+" if huge). Marked in lilac |
+| **= Left after** | Free to spend − price, and how much a day that leaves. Turns lilac if it falls below your cushion. If it's below zero it says "Taken from money already committed" |
 
-Under the sum, the **money bar** shows your four layers (Bills, Essentials, Savings, Free to spend) with the purchase laid over them in orange, eating free money first. A legend names each colour.
+Under the sum, the **money bar** shows your four layers (Bills, Essentials, Savings, Free to spend) with the purchase laid over them in lilac, eating free money first. A legend names each colour.
 
 ### 3.3 Try a what-if
 - **What it does:** lets you change the numbers behind the check. Every keystroke updates the result. You don't need to press a button.
@@ -68,21 +68,21 @@ The result names the first layer of your money the purchase would reach. Money i
 
 | Verdict tag | Looks like | Meaning |
 |---|---|---|
-| **Fits comfortably** | Pale blue | After buying, you still have your usual flexible spending until payday **and** your cushion |
-| **Fits, but it's tight** | Pale orange | You keep your cushion but would need to spend less than usual until payday |
-| **Only by pausing your savings** | Solid orange | It uses money meant for goals this month |
-| **Cuts into money for essentials** | Solid orange | It takes money you'll need for groceries, transport and health |
-| **Leaves you short for bills** | Solid orange | It uses money already needed for rent and bills |
-| **More than you have right now** | Solid orange | The price is more than your whole balance |
+| **Fits comfortably** | Pale periwinkle | After buying, you still have your usual flexible spending until payday **and** your cushion |
+| **Fits, but it's tight** | Pale lilac | You keep your cushion but would need to spend less than usual until payday |
+| **Only by pausing your savings** | Solid lilac | It uses money meant for goals this month |
+| **Cuts into money for essentials** | Solid lilac | It takes money you'll need for groceries, transport and health |
+| **Leaves you short for bills** | Solid lilac | It uses money already needed for rent and bills |
+| **More than you have right now** | Solid lilac | The price is more than your whole balance |
 
 Each verdict also has a plain-language headline, for example "Only by taking ₹4,200 from this month's savings."
 
 ### 3.5 Impact table
-Compares **Now** with **If you buy it**, until payday. Any row that gets worse in a way that matters is shown in orange.
+Compares **Now** with **If you buy it**, until payday. Any row that gets worse in a way that matters is shown in lilac.
 
 | Row | Now | If you buy it |
 |---|---|---|
-| **Daily spending money** | Free to spend ÷ days to payday | Left after ÷ days to payday (orange if it halves) |
+| **Daily spending money** | Free to spend ÷ days to payday | Left after ÷ days to payday (lilac if it halves) |
 | **Safety cushion** | Your cushion | "Kept, ₹X above" or "₹X below" |
 | **Savings this month** | What goals need this cycle | "Untouched", or what's left and how much is taken |
 | **Usual eating out & plans** | What you usually spend on these until payday | "Still covered" or "₹X left for it" |
@@ -91,7 +91,7 @@ Compares **Now** with **If you buy it**, until payday. Any row that gets worse i
 A collapsible list explaining the verdict in rupees: how much is free, what share this uses, how much would come from savings, essentials or bills, and how much less you'd need to spend to keep your cushion.
 
 ### 3.7 Buy now, wait, or save first
-- **What it does:** shows three ways to pay for the item side by side, so you can compare them. One is marked **Best fit**. The plan you pick is highlighted with an orange top edge.
+- **What it does:** shows three ways to pay for the item side by side, so you can compare them. One is marked **Best fit**. The plan you pick is highlighted with a periwinkle top edge.
 - **How to use it:** click a plan's title to pick it. The save button underneath changes to match.
 
 | Plan | Headline | What it lists |
@@ -104,7 +104,7 @@ A collapsible list explaining the verdict in rupees: how much is free, what shar
 - **Good to know:** **Best fit** is **Buy it now** when it fits comfortably. When it's tight, it's **Wait until payday** if a typical month covers it and keeps your cushion, otherwise **Buy it now**. In every other case it's **Wait until payday** if that works, otherwise **Save first**. Changing the price resets the slider to the suggested amount.
 
 ### 3.8 Save your decision
-- **Buttons:** the orange main button follows the plan you picked: **I'll buy it now**, **I'll wait until \<payday\>** or **I'll save ₹X a month**. **Skip it** is always there.
+- **Buttons:** the navy main button follows the plan you picked: **I'll buy it now**, **I'll wait until \<payday\>** or **I'll save ₹X a month**. **Skip it** is always there.
 - **What it does:** saves the item, price, verdict and your choice to **Past decisions**.
 - **Good to know:** saving a decision doesn't record a transaction. Add it in Transactions when you actually pay. Clicking the same choice twice for the same item and price shows "Already saved".
 
@@ -122,7 +122,7 @@ A collapsible list explaining the verdict in rupees: how much is free, what shar
 - **When would you like it?:** a date from today onwards, or one of the quick buttons (**Today**, **Payday**, **In 2 months**). A later date becomes the **Delay** plan ("Buy on 1 Jan"); if it's today, the Delay plan is **Wait until payday**.
 
 ### 3.12 Your balance chart
-- **What it shows:** your account balance day by day from today, if your usual everyday and flexible spending carries on, scheduled bills land on their due dates, pay arrives on payday and goal money moves out. The chosen plan is the orange line, the other two plans are thin grey lines, and the dashed grey line is your balance without the purchase. The dashed horizontal line is your safety cushion; the dotted vertical lines are paydays.
+- **What it shows:** your account balance day by day from today, if your usual everyday and flexible spending carries on, scheduled bills land on their due dates, pay arrives on payday and goal money moves out. The chosen plan is the periwinkle line, the other two plans are thin grey lines, and the dashed grey line is your balance without the purchase. The dashed horizontal line is your safety cushion; the dotted vertical lines are paydays.
 - **The sentence above it** says whether the chosen plan takes your balance below your cushion, and when.
 - **Lowest before payday** in each plan column comes from the same projection.
 - **Best fit** goes to Buy now when the purchase fits comfortably; when it's tight, to Delay if waiting keeps you above your cushion before payday; otherwise to Delay or Save first.
@@ -133,7 +133,7 @@ A collapsible list explaining the verdict in rupees: how much is free, what shar
 1. Type the item name and full price.
 2. Read the running sum: what's free, and what's left after.
 3. Read the verdict tag, headline and impact table. Open **Why this answer** for the details.
-4. Compare the three plans, pick one, and click the orange button (or **Skip it**).
+4. Compare the three plans, pick one, and click the navy button (or **Skip it**).
 
 **How to try a what-if**
 1. Open **Try a what-if** and change **Balance** (or bills, savings, essentials, cushion or days).
@@ -167,7 +167,7 @@ A collapsible list explaining the verdict in rupees: how much is free, what shar
 |---|---|
 | No balance or transactions yet | A note: "You haven't added your balance yet…" with **Add your balance** → Settings |
 | Price empty or ₹0 | "Enter a price to see how it fits", plus how much is free. The plans are hidden |
-| Nothing free | **Why this answer** says you're already ₹X short, and **Left after** is orange |
+| Nothing free | **Why this answer** says you're already ₹X short, and **Left after** is lilac |
 | No saved decisions | "No decisions saved yet" |
 
 ## 7. Links to other pages
@@ -184,5 +184,5 @@ A collapsible list explaining the verdict in rupees: how much is free, what shar
 - **I'm expecting money soon. Can I count it?** Raise **Balance** under **Try a what-if**. Scopewise itself never counts income before it arrives.
 - **Why is "Best fit" not the plan I'd expect?** It picks the soonest plan that keeps your cushion and savings safe. You can still pick any plan.
 - **Do credit-card purchases count?** Only if you add the card bill as an upcoming expense.
-- **Why does this page look different from Overview?** The planning pages use a blue and orange palette. See the colour note in the [blueprint](00-blueprint.md).
+- **Why is the purchase lilac?** Lilac is used sparingly across the app. Here it marks the purchase you're weighing, so it stands out from the periwinkle free money it eats into. See [Colours and what they mean](01-core-concepts.md).
 - **Is this financial advice?** No. It's an estimate based on the numbers shown.

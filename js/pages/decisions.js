@@ -213,14 +213,14 @@ SW.pages = SW.pages || {};
       reference: r.cushion ? { value: r.cushion, label: `Cushion ${F.inrc(r.cushion)}`, align: 'start' } : null,
       markers: pays.slice(0, 4).map(pd => ({ index: dates.indexOf(pd), label: '' })).filter(m => m.index > 0),
       series: [
-        { name: 'Without it', color: v('--stone-300'), values: base.values, dashed: true, width: 1.5 },
-        ...others.map(k => ({ name: PLAN_NAMES[k], color: v('--stone-500'), values: path[k].values, width: 1.25 })),
-        { name: PLAN_NAMES[cur], color: v('--or'), values: path[cur].values, width: 2.5 }
+        { name: 'Without it', color: v('--gray-300'), values: base.values, dashed: true, width: 1.5 },
+        ...others.map(k => ({ name: PLAN_NAMES[k], color: v('--gray-500'), values: path[k].values, width: 1.25 })),
+        { name: PLAN_NAMES[cur], color: v('--accent'), values: path[cur].values, width: 2.5 }
       ],
       tooltip: i => `<div class="tt-title">${F.date(dates[i])}${pays.includes(dates[i]) ? ' · payday' : ''}</div>
-        ${C.row(v('--or'), PLAN_NAMES[cur], F.inr(path[cur].values[i]))}
-        ${others.map(k => C.row(v('--stone-400'), PLAN_NAMES[k], F.inr(path[k].values[i]))).join('')}
-        ${C.row(v('--stone-300'), 'Without it', F.inr(base.values[i]), true)}`
+        ${C.row(v('--accent'), PLAN_NAMES[cur], F.inr(path[cur].values[i]))}
+        ${others.map(k => C.row(v('--gray-400'), PLAN_NAMES[k], F.inr(path[k].values[i]))).join('')}
+        ${C.row(v('--gray-300'), 'Without it', F.inr(base.values[i]), true)}`
     });
   }
 
