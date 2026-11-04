@@ -1,0 +1,141 @@
+/* Scopewise design tokens
+   Personal finance decision companion.
+   Brand: Sage Olive #B5B895 · Deep Plum #60434F · Charcoal #383735 · Pure White #FFFFFF ·
+   Warm Off-White #F7F6F1.
+
+   Style: achromatic ledger, brand palette kept.
+   - The chrome holds no colour: the sidebar sits on the warm off-white ground, cards are white,
+     lines and greys are warm neutrals, and money is set in charcoal ink.
+   - Deep Plum is the one primary action, the active state (icon, label, indicator) and
+     alerts that need a decision.
+   - Sage Olive is the data hue: it goes on each screen's main data element (free to spend,
+     the selected month, goal progress) and on insights; the brand value is its soft partner.
+   Every tier that carries words reaches 4.5:1 on its surface. */
+:root {
+  /* Sage Olive scale (300 is the brand value) */
+  --sage-50: #f4f4ec;
+  --sage-100: #eaebdd;
+  --sage-200: #d9dbc3;
+  --sage-300: #b5b895;     /* brand */
+  --sage-400: #9ca07a;
+  --sage-500: #858a61;
+  --sage-600: #6b704c;     /* data marks: 5.2:1 on white */
+  --sage-700: #545a3a;     /* text on white: 7.2:1 */
+  --sage-800: #3e432b;
+  --sage-900: #2a2e1d;
+
+  /* Deep Plum (base is the brand value) */
+  --plum: #60434f;         /* primary buttons, active states, alert marks */
+  --plum-hover: #4e3540;
+  --plum-ink: #60434f;     /* plum as text: 8.7:1 on white */
+  --plum-50: #f6f0f2;
+  --plum-100: #ecdfe4;
+  --plum-200: #dcc8d0;
+
+  /* Charcoal ink and warm neutrals */
+  --ink: #383735;
+  --ink-2: #2b2a28;
+  --stone-50: #fbfaf7;
+  --stone-100: #f3f1ec;
+  --stone-200: #ebe9e2;
+  --stone-300: #d9d6cc;
+  --stone-400: #b9b5aa;
+  --stone-500: #8f8b81;
+  --stone-600: #6f6c65;
+
+  /* Grounds and surfaces: warm off-white page and sidebar, white cards */
+  --ground: #f7f6f1;
+  --surface: #ffffff;
+  --sidebar: var(--ground);
+  --raised: var(--stone-50);
+  --sunken: var(--stone-100);
+  --active: #ebe9e2;       /* the neutral pill under the current page and on hover */
+  --well: #f5f4ef;         /* quiet tinted wells inside white cards */
+
+  /* Lines in three steps */
+  --border: #e6e3db;       /* card edges */
+  --rule: #efede7;         /* row rules, one step lighter */
+  --control: #d6d3c9;      /* control borders, one step darker */
+  --line-strong: #b9b5aa;
+
+  /* Text in three tiers */
+  --text: var(--ink);
+  --text-2: #5c5a55;       /* 6.9:1 on white */
+  --text-3: #6e6b65;       /* 4.9:1 on the ground: the lightest grey that carries words */
+
+  /* Roles */
+  --primary: var(--plum);
+  --primary-hover: var(--plum-hover);
+  --on-primary: #ffffff;   /* white on plum: 8.7:1 */
+  --selected: var(--active);
+  --selected-ink: var(--plum);
+  --accent: var(--sage-600);
+
+  /* Data: one hue (sage) on the main element, warm neutrals for everything it is compared with */
+  --data: #7c8157;         /* 4.3:1 on white: the main data element */
+  --data-soft: var(--sage-300);
+  --data-prev: var(--stone-300);
+  --ess: var(--stone-600); /* the essential-category dot: identity, not data */
+
+  /* Status: positive is deep sage, attention is plum. No red, no green. */
+  --pos: var(--sage-700);   --pos-bg: var(--sage-100);
+  --warn: var(--plum-ink);  --warn-bg: var(--plum-50);
+  --neg: var(--plum-ink);   --neg-bg: var(--plum-50);
+
+  /* Money map: committed layers in warm greys, the free money in the data hue */
+  --seg-bills: #77736b;
+  --seg-everyday: #a8a499;
+  --seg-goals: #d3cfc4;
+  --seg-free: var(--data);
+
+  /* Chart */
+  --chart-1: var(--stone-300);   /* essentials: the steady comparison */
+  --chart-2: var(--data);        /* non-essentials: the part that moves */
+  --chart-grid: #ece9e2;
+  --chart-axis: var(--text-3);
+
+  /* Type: one grotesk */
+  --font: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 15px;
+  --fs-md: 16px;
+  --fs-section: 16px;
+  --fs-title: 26px;
+  --fs-kpi: 24px;
+  --fs-lead: 36px;
+
+  /* Space (4px base) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --gap: 20px;
+  --card-pad: 24px;
+
+  /* Shape: the tight pair, stepping down inside */
+  --r-card: 10px;
+  --r-inner: 8px;
+  --r-small: 6px;
+  --r-control: 8px;
+  --r-chip: 6px;
+  --r-pill: 999px;
+  --r-float: 14px;
+  --shadow-float: 0 18px 44px -14px rgba(56, 55, 53, 0.24), 0 2px 6px rgba(56, 55, 53, 0.06);
+  --ring: 0 0 0 3px rgba(96, 67, 79, 0.24);
+
+  /* Layout */
+  --sidebar-w: 240px;
+  --sidebar-rail: 72px;
+  --content-max: 1200px;
+  --control-h: 38px;
+
+  /* Motion: feedback only */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 160ms;
+}
