@@ -27,11 +27,10 @@
     const soon = S.upcomingSorted().filter(u => u.due <= F.addDays(S.TODAY, 3)).length;
     const count = n => (n.id === 'upcoming' && soon ? `<span class="nav-count" aria-label="${soon} due in the next 3 days">${soon}</span>` : '');
     const item = n => `<a href="#/${n.id}" class="nav-item${active === n.id ? ' active' : ''}" data-label="${n.label}" ${active === n.id ? 'aria-current="page"' : ''}>
-        ${I(n.icon, 18)}<span class="nav-text">${n.label}</span>${count(n)}</a>`;
+        ${I(n.icon, 20)}<span class="nav-text">${n.label}</span>${count(n)}</a>`;
     const name = s.name || 'Your name';
     sidebar.innerHTML = `
       <div class="sidebar-head">
-        <a href="#/overview" class="brand" aria-label="Scopewise home"><span class="brand-mark">${SW.logo(22)}</span><span class="brand-name">Scopewise</span></a>
         <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-controls="sidebar"><span class="ico-panel">${I('panelLeft', 18)}</span><span class="ico-close">${I('close', 22)}</span></button>
       </div>
       <nav class="nav" aria-label="Main">

@@ -86,8 +86,8 @@
   --sidebar: var(--frame);
   --raised: var(--peri-50);
   --sunken: var(--peri-100);
-  --active: var(--navy);            /* the current page: a small navy pill on periwinkle */
-  --active-ink: #ffffff;
+  --active: rgba(255, 255, 255, 0.78);  /* the current page: a white tile on periwinkle, marked by a short navy bar */
+  --active-ink: var(--navy);
   --hover: var(--peri-100);
   --well: var(--peri-100);
   --on-frame: var(--navy);          /* text on the periwinkle frame: 9.6:1 */
@@ -209,7 +209,7 @@
   --sidebar-w: 252px;
   --rim: 12px;                     /* the periwinkle rim around the sheet */
   --r-sheet: 28px;
-  --sidebar-rail: 76px;
+  --sidebar-rail: 72px;
   --dur-nav: 240ms;
   --content-max: 1360px;
   --control-h: 40px;

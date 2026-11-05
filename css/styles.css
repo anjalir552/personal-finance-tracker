@@ -61,58 +61,57 @@ svg { display: block; flex-shrink: 0; }
   background: var(--sidebar);
   color: var(--on-frame);
   display: flex; flex-direction: column;
-  padding: 26px 14px 16px;
+  padding: 20px 14px 16px;
   z-index: 40;
   overflow-y: auto; overflow-x: hidden;
   scrollbar-width: none;
   transition: width var(--dur-nav) var(--ease), padding var(--dur-nav) var(--ease);
 }
 .sidebar::-webkit-scrollbar { display: none; }
-.sidebar-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding-bottom: 22px; }
-.brand { display: flex; align-items: center; gap: 11px; padding: 0 0 0 10px; min-width: 0; white-space: nowrap; }
+.sidebar-head { display: flex; align-items: center; padding-bottom: 14px; }
+/* The toggle sits on the same 44px column as the icons below it, in both states, so it never jumps */
 .sidebar-toggle {
-  flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; margin-top: -1px;
-  background: transparent; border: 0; padding: 0; cursor: pointer;
-  display: grid; place-items: center; color: var(--navy-600);
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  flex-shrink: 0; width: 44px; height: 40px; border-radius: 12px;
+  background: var(--frame-hover); border: 1px solid var(--frame-line); padding: 0;
+  display: grid; place-items: center; color: var(--navy);
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
-.sidebar-toggle:hover { background: var(--frame-hover); color: var(--navy); }
-.sidebar-toggle svg { width: 18px; height: 18px; }
+.sidebar-toggle:hover { background: rgba(255, 255, 255, 0.85); border-color: rgba(40, 46, 66, 0.24); }
+.sidebar-toggle svg { width: 20px; height: 20px; }
 .sidebar-toggle .ico-close { display: none; }
-.nav-item .nav-text, .brand-name, .account-meta { transition: max-width var(--dur-nav) var(--ease), opacity var(--dur-nav) var(--ease); max-width: 200px; }
+.nav-item .nav-text, .account-meta { transition: max-width var(--dur-nav) var(--ease), opacity var(--dur-nav) var(--ease); max-width: 200px; }
 .nav-label { max-height: 60px; overflow: hidden; white-space: nowrap; transition: max-height var(--dur-nav) var(--ease), padding var(--dur-nav) var(--ease), opacity var(--dur-nav) var(--ease); }
 .sidebar-tip {
   position: fixed; z-index: 60; transform: translateY(-50%); pointer-events: none;
-  background: var(--peri-200); color: var(--navy); font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 8px;
+  background: var(--navy); color: #fff; font-size: 12px; font-weight: 650; padding: 7px 11px; border-radius: 8px;
   white-space: nowrap; opacity: 0; transition: opacity 120ms var(--ease);
 }
 .sidebar-tip.show { opacity: 1; }
 .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; }
-.brand-name { font-family: var(--font-display); font-weight: 600; font-size: 23px; letter-spacing: -0.025em; color: var(--navy); }
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-label { font-size: 12.5px; color: var(--on-frame-3); padding: 22px 12px 8px; font-weight: 650; letter-spacing: 0.01em; }
 .nav-item {
   position: relative;
   display: flex; align-items: center; gap: 11px;
-  min-height: 42px; padding: 0 12px;
-  border-radius: 14px;
+  min-height: 44px; padding: 0 12px;
+  border-radius: 12px;
   font-size: 14.5px; color: var(--navy-700); font-weight: 550;
   white-space: nowrap;
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease), padding var(--dur-nav) var(--ease), gap var(--dur-nav) var(--ease);
 }
 .nav-item .nav-text { overflow: hidden; text-overflow: ellipsis; }
-.nav-item svg { width: 18px; height: 18px; color: var(--navy-600); transition: color var(--dur) var(--ease); }
+.nav-item svg { width: 20px; height: 20px; color: var(--navy-600); transition: color var(--dur) var(--ease); }
 .nav-item:hover { background: var(--frame-hover); color: var(--navy); }
 .nav-item:hover svg { color: var(--navy); }
 .nav-item.active { background: var(--active); color: var(--active-ink); font-weight: 650; }
-.nav-item.active svg { color: var(--peri-200); }
+.nav-item.active svg { color: var(--navy); }
+.nav-item.active::before { content: ""; position: absolute; left: -9px; top: 14px; bottom: 14px; width: 3px; border-radius: 3px; background: var(--navy); }
 .nav-count {
   margin-left: auto; min-width: 22px; height: 22px; padding: 0 7px; border-radius: var(--r-pill);
   display: inline-grid; place-items: center;
   font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums;
   background: var(--lilac-200); color: var(--navy);
 }
-.nav-item.active .nav-count { background: var(--lilac-200); color: var(--navy); }
 .sidebar-foot { margin-top: auto; padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
 .account {
   display: flex; align-items: center; gap: 11px; padding: 14px 12px 4px; margin-top: 10px;
@@ -718,19 +717,16 @@ tr:hover .row-actions, .row-actions:focus-within, .list-item:hover .row-actions 
 /* Collapsed rail: chosen on desktop (remembered), automatic on tablet. Never on phone, which uses the drawer.
    One 44px column: logo, toggle, nav items and avatar share the same centre line. */
 @media (min-width: 761px) {
-  .app.collapsed .sidebar { width: var(--sidebar-rail); padding-left: 16px; padding-right: 16px; }
-  .app.collapsed .sidebar-head { flex-direction: column; align-items: center; gap: 10px; padding-bottom: 14px; }
-  .app.collapsed .brand { padding-left: 0; gap: 0; }
-  .app.collapsed .sidebar-toggle { width: 44px; height: 36px; margin-top: 0; }
-  .app.collapsed .brand-name, .app.collapsed .nav-item .nav-text, .app.collapsed .account-meta { max-width: 0; opacity: 0; overflow: hidden; }
-  /* Group headings become a hairline so the Track / Plan & decide grouping still reads */
-  .app.collapsed .nav-label { max-height: 1px; padding: 0; margin: 10px 8px; background: var(--frame-line); color: transparent; font-size: 0; opacity: 1; }
+  .app.collapsed .sidebar { width: var(--sidebar-rail); }
+  .app.collapsed .nav-item .nav-text, .app.collapsed .account-meta { max-width: 0; opacity: 0; overflow: hidden; }
+  /* Group headings become a short hairline so the Track / Plan & decide grouping still reads */
+  .app.collapsed .nav-label { max-height: 1px; padding: 0; margin: 8px 12px; background: rgba(40, 46, 66, 0.22); color: transparent; font-size: 0; opacity: 1; }
   .app.collapsed .nav { gap: 4px; }
-  .app.collapsed .nav-item { min-height: 44px; padding: 0 12px; gap: 0; border-radius: 14px; }
-  .app.collapsed .nav-item svg { width: 20px; height: 20px; }
-  .app.collapsed .nav-count { position: absolute; top: 4px; right: 4px; min-width: 16px; height: 16px; font-size: 10.5px; padding: 0 4px; }
-  .app.collapsed .sidebar-foot { gap: 4px; }
-  .app.collapsed .account { padding: 12px 5px 4px; gap: 0; margin-top: 8px; }
+  .app.collapsed .nav-item { width: 44px; padding: 0; gap: 0; justify-content: center; }
+  /* Badge hangs off the icon's top-right corner; a frame-coloured ring separates it from the tile */
+  .app.collapsed .nav-count { position: absolute; top: 5px; right: 4px; min-width: 16px; height: 16px; font-size: 10px; padding: 0 4px; box-shadow: 0 0 0 2px var(--frame); }
+  .app.collapsed .sidebar-foot { gap: 4px; align-items: flex-start; }
+  .app.collapsed .account { width: 44px; padding: 14px 0 0; gap: 0; margin-top: 8px; justify-content: center; }
 }
 @media (min-width: 761px) and (max-width: 1080px) {
   .sidebar-toggle { display: none; }
@@ -754,8 +750,8 @@ tr:hover .row-actions, .row-actions:focus-within, .list-item:hover .row-actions 
     border-right: 0;
   }
   .sidebar.open { transform: none; visibility: visible; box-shadow: var(--shadow-float); transition: transform 240ms var(--ease); }
-  .sidebar-head { padding-bottom: 18px; align-items: center; }
-  .sidebar-toggle { width: 44px; height: 44px; margin-top: 0; }
+  .sidebar-head { padding-bottom: 18px; justify-content: flex-end; }
+  .sidebar-toggle { width: 44px; height: 44px; background: transparent; border-color: transparent; }
   .sidebar-toggle .ico-panel { display: none; }
   .sidebar-toggle .ico-close { display: block; }
   .sidebar-toggle svg { width: 22px; height: 22px; }
