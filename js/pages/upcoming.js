@@ -41,11 +41,11 @@ SW.pages = SW.pages || {};
   }
 
   /* ---------- The calendar ----------
-     Seven equal columns on one soft field, every row the same height, no lines or boxes.
-     A day carries its date, one quiet mark per payment (filled = paid, open ring = still to
-     pay, diamond = overdue) and the day's total; names live in the opened day below.
-     The selected day opens in a white sheet at the foot of the same field, so the grid never
-     shifts. Days from the neighbouring months fill the first and last rows in faint type. */
+     A real month grid: seven equal columns, hairline cell edges, weekends a step darker.
+     A day carries its date and, when something is due, that day's total beside it and a chip
+     per payment under it (edge colour and shape say paid / still to pay / overdue). Days with
+     nothing due stay empty. On a phone the chips fold into small marks.
+     The selected day opens in a sheet at the foot of the same panel, so the grid never shifts. */
   const cellAmt = v => v >= 1e5 ? F.inrc(v, 1) : F.inr(v);
   let lastSel = null;       // the day the sheet last showed, so only a new day animates
 
@@ -75,11 +75,13 @@ SW.pages = SW.pages || {};
       // Order marks by urgency so a late payment is never hidden behind the "+n"
       const order = { overdue: 0, upcoming: 1, paid: 2 };
       const marks = items.slice().sort((a, b) => order[a.status] - order[b.status]);
+      const shown = marks.slice(0, items.length > 2 ? 1 : 2);
+      const rest = items.length - shown.length;
       cells.push(`<button type="button" class="${cls.join(' ')}" data-day="${iso}" tabindex="${iso === sel ? 0 : -1}" aria-pressed="${iso === sel}" aria-label="${F.esc(label)}">
-          <span class="cal-num">${d}</span>
+          <span class="cal-top"><span class="cal-num">${d}</span>${items.length ? `<span class="cal-amt num" aria-hidden="true">${cellAmt(due || total)}</span>` : ''}</span>
           ${items.length ? `<span class="cal-info" aria-hidden="true">
             <span class="cal-marks">${marks.slice(0, 3).map(x => mark(x.status)).join('')}${items.length > 3 ? `<span class="cal-more">+${items.length - 3}</span>` : ''}</span>
-            <span class="cal-amt num">${cellAmt(due || total)}</span>
+            <span class="cal-chips">${shown.map(x => `<span class="cal-chip is-${x.status}">${F.esc(shortName(x.name))}</span>`).join('')}${rest > 0 ? `<span class="cal-rest">+${rest} more</span>` : ''}</span>
           </span>` : ''}
         </button>`);
     }

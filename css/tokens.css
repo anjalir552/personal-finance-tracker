@@ -1,28 +1,28 @@
 /* ==========================================================================
    Scopewise design tokens: one colour identity for the whole application.
-   Brand: Periwinkle #C4D6FF · Lavender #B8C0FF · Lilac #E7C6FF · Navy #282E42,
-   on white and cool, navy-tinted neutrals.
+   Brand: Periwinkle #C4D6FF · Lavender #B8C0FF · Lilac #E7C6FF · Navy #282E42.
 
-   How the four colours divide the work
-   - Navy is the anchor: all text, money, important icons, the one primary button,
-     today's date, toggles that are on. It carries the product's weight.
-   - Periwinkle is the interactive and data hue: selected states (nav, calendar day,
-     segmented controls), focus rings, the main data element on every screen. The brand
-     value is used as a fill; its deep steps (500/700) are used for marks and text.
-   - Lavender is the secondary accent: comparison series, avatars, text selection,
-     soft fills that sit beside periwinkle without competing with it.
-   - Lilac is rare: the purchase being weighed, and anything that needs attention
-     (overdue, short, over plan) in its deep step, always with words, never colour alone.
+   "Midnight frame": the app lives inside a navy frame (sidebar and rim) and its work happens
+   on one light sheet inset from it. The brand pastels are the light *on* the navy (active
+   navigation, the hero figure, the money map), and their deeper steps do the work on the sheet.
+   - Navy (#282E42) is the structure: the frame and sidebar, the hero panel, the primary button,
+     today's date, the calendar's header band, and all text. It is never just a text colour.
+   - Periwinkle #C4D6FF is the light on navy: active nav, figures and segments on dark panels,
+     soft buttons, the selected day.
+   - Lavender deepens to #5A67DB (--accent) for data on the sheet: bars, lines, progress, links,
+     focus. It is the one chart hue; #B8C0FF stays the comparison tone.
+   - Lilac #E7C6FF is the second voice: the purchase being weighed, goals on dark panels, and in
+     its deep step (#9440BE) anything late or short. Meaning always has words or a shape too.
    Every tier that carries words reaches 4.5:1 on the surface it sits on.
    ========================================================================== */
 :root {
   /* Navy (brand at 800) */
-  --navy-950: #161a27;
-  --navy-900: #1e2334;
+  --navy-950: #151927;
+  --navy-900: #1d2234;
   --navy: #282e42;          /* brand */
-  --navy-700: #3b4259;
-  --navy-600: #4f5670;      /* 7.3:1 on white */
-  --navy-500: #636a82;      /* 5.4:1 on white, 5.0:1 on the ground */
+  --navy-700: #394058;
+  --navy-600: #4a5069;      /* 8:1 on white */
+  --navy-500: #5b627d;      /* 6.2:1 on white, 5.4:1 on the sheet */
   --navy-400: #8e94a8;
   --navy-300: #b7bccb;
   --navy-200: #d9dce5;
@@ -35,7 +35,7 @@
   --peri-200: #c4d6ff;      /* brand */
   --peri-300: #9ebbf7;
   --peri-400: #7598e6;
-  --peri-500: #4d73cf;      /* data marks: 4.5:1 on white */
+  --peri-500: #4a6fd0;
   --peri-600: #3a5bb0;
   --peri-700: #2d4789;      /* periwinkle as text: 8.9:1 on white */
   --peri-800: #22366a;
@@ -45,42 +45,52 @@
   --lav-100: #e9ecff;
   --lav-200: #b8c0ff;       /* brand */
   --lav-300: #9aa3f2;
-  --lav-400: #7c85dd;
-  --lav-600: #5059ae;
+  --lav-400: #7b86e8;
+  --lav-500: #5a67db;       /* the data hue: 4.9:1 on white */
+  --lav-600: #4753c0;
+  
   --lav-700: #3d4488;
 
   /* Lilac (brand at 200) */
   --lilac-50: #fbf5ff;
   --lilac-100: #f5e8ff;
   --lilac-200: #e7c6ff;     /* brand */
-  --lilac-300: #d4a3f5;
-  --lilac-400: #b97fe0;
-  --lilac-600: #9c45aa;     /* attention marks: 5.5:1 on white */
-  --lilac-700: #7b2c88;     /* attention text: 8.2:1 on white */
+  --lilac-300: #d19bf6;
+  --lilac-400: #b46ee8;
+  --lilac-600: #9440be;     /* attention marks: 6.3:1 on white */
+  --lilac-700: #74278f;     /* attention text: 9:1 on white */
 
-  /* Cool neutrals: the chrome */
-  --gray-50: #f8f9fb;
-  --gray-100: #f1f3f7;
-  --gray-200: #e6e9f0;
-  --gray-300: #d3d7e1;
-  --gray-400: #aeb3c2;
-  --gray-500: #8a90a3;
-  --gray-600: #636a82;
+  /* Neutrals: navy-tinted with a breath of lilac, so the sheet is not the generic cool grey */
+  --gray-50: #f7f6fb;
+  --gray-100: #eceaf4;
+  --gray-200: #e0deec;
+  --gray-300: #cdcbdd;
+  --gray-400: #a8a7bd;
+  --gray-500: #7e7e99;
+  --gray-600: #5b627d;
 
-  /* Grounds and surfaces */
-  --ground: #f6f7fa;
+  /* The frame, the sheet and what sits on it */
+  --frame: var(--navy);             /* sidebar and rim */
+  --frame-deep: var(--navy-900);
+  --sheet: #f0eff7;                 /* the working surface, a lilac-tinted mist */
+  --ground: var(--sheet);
   --surface: #ffffff;
-  --sidebar: var(--ground);
+  --sidebar: var(--frame);
   --raised: var(--gray-50);
   --sunken: var(--gray-100);
-  --active: var(--peri-100);  /* nav pill under the current page */
-  --hover: #eef0f5;           /* neutral hover on rows and nav */
-  --well: #f5f7fb;
+  --active: var(--peri-200);        /* nav pill under the current page, on navy */
+  --hover: #e8e6f1;
+  --well: #e8e7f2;
+  --on-frame: #e6e9f6;              /* text on navy: 11:1 */
+  --on-frame-2: #aab1cc;            /* secondary on navy: 6.6:1 */
+  --on-frame-3: #939bb9;            /* group labels on navy: 5.1:1 */
+  --frame-line: rgba(196, 214, 255, 0.12);
+  --frame-hover: rgba(196, 214, 255, 0.09);
 
   /* Lines in three steps */
-  --border: #e4e7ee;
-  --rule: #eef0f4;
-  --control: #d3d7e1;
+  --border: #dedcea;
+  --rule: #eae8f3;
+  --control: #c9c7da;
   --line-strong: var(--gray-400);
 
   /* Text in three tiers, all navy */
@@ -97,14 +107,15 @@
   --on-primary: #ffffff;           /* 13.5:1 */
   --selected: var(--peri-100);
   --selected-ink: var(--navy);
-  --accent: var(--peri-500);       /* interactive marks, focus border, the chosen option */
-  --accent-ink: var(--peri-700);   /* accent as text */
+  --accent: var(--lav-500);        /* interactive marks, focus border, the chosen option */
+  --accent-ink: var(--lav-600);    /* accent as text: 6.6:1 on white */
   --accent-soft: var(--peri-200);  /* the brand periwinkle as a fill */
   --accent-wash: var(--peri-50);
+  --accent-tint: #e4e8ff;          /* a selected cell or chip on white */
 
   /* Data: periwinkle on the main element; lavender and neutrals for what it is compared with */
-  --data: var(--peri-500);
-  --data-soft: var(--peri-200);
+  --data: var(--lav-500);
+  --data-soft: var(--peri-300);
   --data-dim: var(--peri-100);
   --data-prev: var(--lav-200);
   --ess: var(--navy-400);          /* essential-category dot: identity, not data */
@@ -115,7 +126,7 @@
   --alert: var(--lilac-600);
   --alert-ink: var(--lilac-700);
   --alert-soft: var(--lilac-200);
-  --alert-wash: var(--lilac-50);
+  --alert-wash: #f5e7ff;
   --warn: var(--alert-ink);  --warn-bg: var(--alert-wash);
   --neg: var(--alert-ink);   --neg-bg: var(--alert-wash);
 
@@ -124,20 +135,20 @@
   --buy-ink: var(--lilac-700);
 
   /* Money map: committed money in navy steps, free money in the data hue */
-  --seg-bills: var(--navy-700);
+  --seg-bills: var(--navy);
   --seg-everyday: var(--navy-400);
-  --seg-goals: var(--lav-200);
+  --seg-goals: var(--lilac-300);
   --seg-free: var(--data);
 
   /* Charts */
-  --chart-1: var(--navy-200);      /* essentials: the steady comparison, in neutral */
+  --chart-1: var(--navy-700);      /* essentials: the steady part, in navy */
   --chart-2: var(--data);          /* non-essentials: the part that moves */
-  --chart-grid: #e9ecf2;
+  --chart-grid: #e4e2ef;
   --chart-axis: var(--text-3);
-  --c-income: var(--navy-300);
-  --c-income-dim: var(--navy-100);
-  --c-spent: var(--navy-700);
-  --c-spent-dim: var(--navy-300);
+  --c-income: var(--navy-400);
+  --c-income-dim: var(--navy-200);
+  --c-spent: var(--lav-500);
+  --c-spent-dim: var(--lav-200);
 
   /* Type: one grotesk whose figures carry the money */
   --font: "Manrope", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -146,7 +157,7 @@
   --fs-base: 15px;
   --fs-md: 16px;
   --fs-section: 16px;
-  --fs-title: 26px;
+  --fs-title: 30px;
   --fs-kpi: 24px;
   --fs-lead: 34px;
 
@@ -164,7 +175,7 @@
   --card-pad: 24px;
 
   /* Shape: one soft card radius, stepping down inside */
-  --r-card: 16px;
+  --r-card: 18px;
   --r-inner: 10px;
   --r-small: 8px;
   --r-control: 10px;
@@ -173,11 +184,13 @@
   --r-float: 18px;
   --shadow-float: 0 24px 48px -16px rgba(30, 35, 52, 0.28), 0 2px 6px rgba(30, 35, 52, 0.06);
   --shadow-lift: 0 1px 2px rgba(30, 35, 52, 0.08), 0 0 0 1px rgba(30, 35, 52, 0.04);
-  --ring: 0 0 0 3px rgba(77, 115, 207, 0.32);
-  --scrim: rgba(22, 26, 39, 0.4);
+  --ring: 0 0 0 3px rgba(90, 103, 219, 0.34);
+  --scrim: rgba(21, 25, 39, 0.55);
 
   /* Layout */
-  --sidebar-w: 240px;
+  --sidebar-w: 248px;
+  --rim: 10px;                     /* the navy rim around the sheet */
+  --r-sheet: 24px;
   --sidebar-rail: 72px;
   --content-max: 1200px;
   --control-h: 38px;

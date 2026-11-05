@@ -123,7 +123,7 @@ SW.pages = SW.pages || {};
       highlight: keys.indexOf(month),
       ariaLabel: 'Essential and non-essential spending by month',
       series: [
-        { name: 'Essentials', color: 'var(--chart-1)', colors: keys.map(k => k === month ? 'var(--navy-300)' : 'var(--chart-1)'), values: sp.map(s => s.essential) },
+        { name: 'Essentials', color: 'var(--chart-1)', colors: keys.map(k => k === month ? 'var(--chart-1)' : 'var(--navy-300)'), values: sp.map(s => s.essential) },
         { name: 'Non-essentials', color: 'var(--chart-2)', colors: keys.map(k => k === month ? 'var(--chart-2)' : 'var(--data-soft)'), values: sp.map(s => s.nonEssential) }
       ],
       tooltip: i => `<div class="tt-title">${S.monthName(keys[i], true)} ${keys[i].slice(0, 4)}</div>` +
