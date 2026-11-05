@@ -539,51 +539,72 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 
 .fi-section { margin-top: 64px; padding-top: 0; }
 
-/* The analysis board: Spending and Savings on one white surface. Two bands share one 7 / 5 grid,
-   so the chart widths and the divider line up from the first band to the second. */
+/* The analysis board: Spending and Savings read top to bottom on one white surface. Each band has one
+   takeaway (a sentence for spending, a percentage against its guide for savings); charts support it. */
 .fi-board { margin-top: 48px; background: var(--surface); border-radius: 24px; }
-.fi-band { padding: 30px 36px 32px; }
+.fi-band { padding: 36px 40px 40px; }
 .fi-band + .fi-band { border-top: 1px solid var(--rule); }
-.fi-band-head { display: flex; align-items: baseline; gap: 4px 20px; flex-wrap: wrap; margin-bottom: 26px; }
-.fi-band-head .fi-sec-desc { margin: 0; font-size: 14px; flex: 1 1 320px; }
-.fi-duo { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: stretch; }
-.fi-duo > .fi-chart:first-child { padding-right: 36px; }
-.fi-duo > .fi-chart + .fi-chart { padding-left: 36px; border-left: 1px solid var(--rule); }
-.fi-chart { min-width: 0; display: flex; flex-direction: column; }
-.fi-chart-head { display: flex; justify-content: space-between; align-items: center; gap: 6px 16px; flex-wrap: wrap; margin-bottom: 10px; }
+.fi-band > .fi-sec-title { margin-bottom: 0; }
+.fi-take { font-family: var(--font-display); font-size: 32px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.2; margin: 10px 0 36px; color: var(--text); }
+.fi-take b { font-weight: 500; color: var(--text); }
+.fi-take b.warn { color: var(--alert-ink); }
+.fi-take b.pos { color: var(--pos); }
+.fi-take b svg { display: inline-block; width: 0.8em; height: 0.8em; margin-right: 6px; vertical-align: -0.03em; }
+.fi-band > .fi-sec-title + .fi-duo { margin-top: 30px; }
+.fi-duo { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: start; }
+.fi-duo > .fi-chart:first-child { padding-right: 44px; }
+.fi-duo > .fi-chart + .fi-chart { padding-left: 44px; border-left: 1px solid var(--rule); }
+.fi-chart { min-width: 0; }
 .fi-chart-title { font-family: var(--font); font-size: 14px; font-weight: 650; color: var(--text); letter-spacing: 0; }
-.fi-chart-hint { font-size: 12.5px; color: var(--text-3); margin-top: 8px; line-height: 1.5; }
-.fi-chart-hint b { color: var(--text); font-weight: 650; }
-.fi-chart-hint b.warn { color: var(--alert-ink); }
-.fi-chart-hint b.pos { color: var(--pos); }
-.fi-lead { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; margin: 0 0 8px; }
-.fi-lead .v { font-family: var(--font-display); font-size: 34px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.1; }
-.fi-lead .pos { color: var(--pos); }
-.fi-lead .warn { color: var(--alert-ink); }
-.fi-lead .n { font-size: 13px; color: var(--text-3); }
-.fi-chart .legend { gap: 4px 14px; font-size: 12px; }
-.fi-chart .legend i.f-ess { background: var(--navy-700); }
-.fi-chart .legend i.f-non { background: var(--c-spent); }
-.fi-chart .legend i.lg-rate { background: var(--c-spent); }
-.fi-chart .legend i.lg-guide { background: none; height: 0; width: 14px; border-top: 1.5px dashed var(--ink); border-radius: 0; opacity: 0.6; }
-.fi-chart .legend i.lg-usual { width: 2px; height: 12px; border-radius: 1px; background: var(--ink); }
+.fi-cap { font-size: 13px; color: var(--text-3); line-height: 1.5; margin: 2px 0 14px; min-height: 20px; }
+.fi-cap b { font-weight: 650; color: var(--text); }
+.fi-cap b.warn { color: var(--alert-ink); }
+.fi-cap b.pos { color: var(--pos); }
+.chart .bar-value { fill: var(--text); font-weight: 650; }
+.chart .end-label { font-weight: 600; }
 
-.fi-split { display: flex; flex-direction: column; gap: 20px; flex: 1; }
-.fi-split-row { display: flex; flex-direction: column; }
+/* Savings: the percentage, the guide, one sentence */
+.fi-rate-fig { display: flex; align-items: baseline; gap: 12px; margin-top: 10px; }
+.fi-rate-fig .v { font-family: var(--font-display); font-size: 72px; font-weight: 400; letter-spacing: -0.035em; line-height: 1; }
+.fi-rate-fig .n { font-size: 15px; color: var(--text-2); }
+.fi-gauge { position: relative; height: 14px; margin: 44px 0 14px; border-radius: 99px; background: var(--gray-100); }
+.fi-gauge .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: var(--c-spent); }
+.fi-gauge i { position: absolute; top: -7px; bottom: -7px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 1px; }
+.fi-gauge em { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); font-style: normal; font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; }
+.fi-rate-note { font-size: 15px; color: var(--text-2); }
+.fi-rate-note b { font-weight: 650; }
+.fi-rate-note b.warn { color: var(--alert-ink); }
+.fi-rate-note b.pos { color: var(--pos); }
+
+/* Secondary detail kept one tap away */
+.fi-more { margin-top: 32px; border-top: 1px solid var(--rule); }
+.fi-more > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--text-2); border-radius: 8px; }
+.fi-more > summary::-webkit-details-marker { display: none; }
+.fi-more > summary svg { transition: transform var(--dur) var(--ease); }
+.fi-more[open] > summary svg { transform: rotate(180deg); }
+.fi-more > summary:hover { color: var(--text); }
+.fi-more > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fi-more[open] > [data-rate] { padding-bottom: 4px; }
+
+/* Essentials against the rest: this month as a bar, your usual as the thin line beneath */
+.fi-split { display: flex; flex-direction: column; gap: 30px; }
 .fi-split-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.fi-split-top .n { display: flex; flex-direction: column; font-size: 14px; font-weight: 600; }
-.fi-split-top .d { font-size: 12px; color: var(--text-3); font-weight: 450; margin-top: 2px; }
-.fi-split-top .v { font-family: var(--font-display); font-size: 24px; font-weight: 500; letter-spacing: -0.02em; }
-.fi-bullet { position: relative; height: 10px; margin-top: 10px; border-radius: 99px; background: var(--gray-100); }
-.fi-bullet b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; }
-.fi-bullet b.f-ess { background: var(--navy-700); }
-.fi-bullet b.f-non { background: var(--c-spent); }
-.fi-bullet i { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 1px; }
+.fi-split-top .n { font-size: 14px; font-weight: 600; }
+.fi-split-top .v { font-family: var(--font-display); font-size: 26px; font-weight: 400; letter-spacing: -0.02em; }
+.fi-pair-bars { margin-top: 12px; }
+.fi-pair-bars b { display: block; height: 14px; border-radius: 99px; min-width: 4px; }
+.fi-pair-bars b.f-ess { background: var(--navy-700); }
+.fi-pair-bars b.f-non { background: var(--c-spent); }
+.fi-pair-bars i { display: block; height: 3px; margin-top: 5px; border-radius: 2px; background: var(--gray-400); }
 .fi-split-sub { font-size: 13px; color: var(--text-3); margin-top: 8px; }
 .fi-split-sub .warn { color: var(--alert-ink); font-weight: 600; }
 .fi-split-sub .pos { color: var(--pos); font-weight: 600; }
-.fi-split-note { font-size: 12.5px; color: var(--text-3); line-height: 1.5; margin-top: auto; }
-.fi-split .fi-lead { margin: 0; }
+
+/* Show more / fewer */
+.fi-cats-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 14px; }
+.fi-cats-foot .fi-cats-key { margin-top: 0; }
+.fi-more-btn { background: none; border: 0; padding: 6px 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; }
+.fi-obs-more { margin-top: 14px; }
 
 .fi-cats .fi-sec-head .link { font-size: 13px; }
 .fi-table .cell-title { width: 26%; }
@@ -641,7 +662,6 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
   .sg-summary { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .sg-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sg-ws { grid-template-columns: minmax(0, 1fr); }
-  .fi-pair { grid-template-columns: minmax(0, 1fr); gap: 48px; }
   .fi-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 28px; }
 }
 @media (max-width: 760px) {
@@ -726,11 +746,13 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
   .fi-chg { font-size: 12px; }
   .fi-section { margin-top: 48px; }
   .fi-board { margin-top: 32px; border-radius: 20px; }
-  .fi-band { padding: 24px 20px 26px; }
+  .fi-band { padding: 28px 20px 30px; }
   .fi-duo { grid-template-columns: minmax(0, 1fr); gap: 32px; }
   .fi-duo > .fi-chart:first-child { padding-right: 0; }
-  .fi-duo > .fi-chart + .fi-chart { padding-left: 0; border-left: 0; padding-top: 28px; border-top: 1px solid var(--rule); }
-  .fi-lead .v { font-size: 28px; }
+  .fi-duo > .fi-chart + .fi-chart { padding-left: 0; border-left: 0; padding-top: 32px; border-top: 1px solid var(--rule); }
+  .fi-take { font-size: 24px; margin-bottom: 28px; }
+  .fi-rate-fig .v { font-size: 56px; }
+  .fi-split { gap: 26px; }
   .fi-table th:first-child { width: auto; }
   .fi-bar-col { display: none; }
   .fi-ob { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 18px 0; }

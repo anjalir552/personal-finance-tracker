@@ -8,6 +8,8 @@ SW.pages = SW.pages || {};
   const F = SW.fmt, S = SW.store, ui = SW.ui, I = SW.icon, C = SW.charts;
   let month = null;   // selected month
   let type = 'all';   // observation filter
+  let catsAll = false, obsAll = false, rateOpen = false;   // progressive disclosure
+  const CATS_SHOWN = 6, OBS_SHOWN = 4;
 
   const months = () => S.months().filter(k => S.inMonth(k).length);
   const mLong = k => S.monthName(k, true);
@@ -23,7 +25,7 @@ SW.pages = SW.pages || {};
   }
 
   function statementHTML(cur, prev, prevKey) {
-    const fig = (label, v, chg, sub, cls = '') => `<div class="fi-fig ${cls}"><dt class="k">${label}</dt><dd><span class="v num">${F.inr(v)}</span>${chg}${sub ? `<span class="s">${sub}</span>` : ''}</dd></div>`;
+    const fig = (label, v, chg, cls = '') => `<div class="fi-fig ${cls}"><dt class="k">${label}</dt><dd><span class="v num">${F.inr(v)}</span>${chg}</dd></div>`;
     const flowTotal = Math.max(cur.income, cur.essential + cur.nonEssential + cur.saved, 1);
     const parts = [
       ['ess', 'Essentials', cur.essential], ['non', 'Non-essentials', cur.nonEssential], ['sav', 'Saved to goals', cur.saved],
@@ -32,15 +34,15 @@ SW.pages = SW.pages || {};
     return `<section class="fi-statement" aria-labelledby="st-h">
       <h2 class="sr-only" id="st-h">${mLong(cur.key)} ${cur.key.slice(0, 4)} summary</h2>
       <dl class="fi-figs">
-        ${fig('Income', cur.income, change(cur.income, prev && prev.income, prevKey, true), '')}
-        ${fig('Spent', cur.spent, change(cur.spent, prev && prev.spent, prevKey, false), `${F.pct(cur.income ? cur.spent / cur.income : 0)} of income`)}
-        ${fig('Saved to goals', cur.saved, change(cur.saved, prev && prev.saved, prevKey, true), `Savings rate ${F.pct(cur.rate)}`, 'saved')}
-        ${fig(cur.left >= 0 ? 'Left over' : 'Overspent', Math.abs(cur.left), cur.left >= 0 ? change(cur.left, prev && prev.left, prevKey, true) : change(-cur.left, prev && -prev.left, prevKey, false), cur.left >= 0 ? 'Stayed in your account' : 'Came out of your balance', cur.left < 0 ? 'neg' : '')}
+        ${fig('Income', cur.income, change(cur.income, prev && prev.income, prevKey, true))}
+        ${fig('Spent', cur.spent, change(cur.spent, prev && prev.spent, prevKey, false))}
+        ${fig('Saved to goals', cur.saved, change(cur.saved, prev && prev.saved, prevKey, true), 'saved')}
+        ${fig(cur.left >= 0 ? 'Left over' : 'Overspent', Math.abs(cur.left), cur.left >= 0 ? change(cur.left, prev && prev.left, prevKey, true) : change(-cur.left, prev && -prev.left, prevKey, false), cur.left < 0 ? 'neg' : '')}
       </dl>
       <div class="fi-flow">
         <div class="fi-flow-head"><h3 class="fi-flow-title">Where ${F.inr(cur.income)} went</h3>${isCur(cur.key) ? `<span class="fi-flow-note">So far, to ${F.short(S.TODAY)}</span>` : ''}</div>
         <div class="fi-flowbar" role="img" aria-label="${parts.map(p => `${p[1]} ${F.inr(p[2])}`).join(', ')}">${parts.map(p => `<span class="f-${p[0]}" style="flex:${p[2] / flowTotal}"></span>`).join('')}</div>
-        <ul class="fi-flowkey">${parts.map(p => `<li><i class="f-${p[0]}"></i><span>${p[1]}</span><b class="num">${F.inr(p[2])}</b><span class="pc num">${F.pct(p[2] / flowTotal)}</span></li>`).join('')}</ul>
+        <ul class="fi-flowkey">${parts.map(p => `<li><i class="f-${p[0]}"></i><span>${p[1]}</span><b class="num">${F.inr(p[2])}</b></li>`).join('')}</ul>
       </div>
     </section>`;
   }
@@ -68,20 +70,18 @@ SW.pages = SW.pages || {};
       ['Essentials', 'Rent, bills, groceries, transport, health', cur.essential, avg(m => m.essential), 'ess'],
       ['Non-essentials', 'Eating out, shopping, plans, subscriptions', cur.nonEssential, avg(m => m.nonEssential), 'non']
     ];
-    const max = Math.max(...rows.flatMap(r => [r[2], r[3] || 0]), 1) * 1.08;
-    const share = cur.spent ? cur.nonEssential / cur.spent : 0;
+    const max = Math.max(...rows.flatMap(r => [r[2], r[3] || 0]), 1);
     return `<div class="fi-split">
-      <p class="fi-lead"><span class="v num">${F.pct(share)}</span><span class="n">of spending in ${S.monthName(key)}${isCur(key) ? ' so far' : ''} was non-essential${base.length ? `, against ${F.pct(avg(m => m.spent ? m.nonEssential / m.spent : 0))} usually` : ''}</span></p>
       ${rows.map(([n, d, v, a, cls]) => {
         const diff = a != null ? v - a : null;
         const bad = cls === 'non' && diff > 500;
-        return `<div class="fi-split-row">
-          <div class="fi-split-top"><span class="n">${n}<span class="d">${d}</span></span><span class="v num">${F.inr(v)}</span></div>
-          <div class="fi-bullet" aria-hidden="true"><b class="f-${cls}" style="width:${(v / max) * 100}%"></b>${a != null ? `<i style="left:${(a / max) * 100}%"></i>` : ''}</div>
-          <div class="fi-split-sub">${a != null ? `Usual ${F.inr(a)} · <span class="${bad ? 'warn' : diff < -500 ? 'pos' : ''}">${Math.abs(diff) < 1 ? 'same' : `${diff > 0 ? '+' : '−'}${F.inr(Math.abs(diff))}`}</span>` : 'No earlier months to compare'}</div>
+        const note = a == null ? 'No earlier months to compare' : Math.abs(diff) < 1 ? 'Same as usual' : `${F.inr(Math.abs(diff))} ${diff > 0 ? 'above' : 'below'} usual`;
+        return `<div class="fi-split-row" title="${d}">
+          <div class="fi-split-top"><span class="n">${n}</span><span class="v num">${F.inr(v)}</span></div>
+          <div class="fi-pair-bars" aria-hidden="true"><b class="f-${cls}" style="width:${(v / max) * 100}%"></b>${a != null ? `<i style="width:${(a / max) * 100}%"></i>` : ''}</div>
+          <div class="fi-split-sub"><span class="${bad ? 'warn' : diff < -500 ? 'pos' : ''}">${note}</span></div>
         </div>`;
       }).join('')}
-      <p class="fi-split-note">Trimming non-essentials is the quickest way to save more.${base.length ? ` The tick marks your ${base.length}-month average.` : ''}</p>
     </div>`;
   }
 
@@ -90,13 +90,14 @@ SW.pages = SW.pages || {};
     if (!rows.length) return '';
     const max = Math.max(...rows.map(r => Math.max(r.now, r.prev)), 1);
     const total = rows.reduce((a, r) => a + r.now, 0);
+    const shown = catsAll ? rows : rows.slice(0, CATS_SHOWN);
     return `<section class="fi-section fi-cats" aria-labelledby="cat-h">
       <div class="fi-sec-head"><div><h2 class="fi-sec-title" id="cat-h">Categories against ${mLong(prevKey)}</h2>
         <p class="fi-sec-desc">The bar is ${mLong(key)}${isCur(key) ? ' so far' : ''}; the thin line under it is ${mLong(prevKey)}.</p></div>
         <a class="link" href="#/spending">Full spending analysis${I('arrowRight', 14)}</a></div>
       <div class="table-wrap"><table class="table fi-table">
         <thead><tr><th scope="col">Category</th><th scope="col" class="fi-bar-col"><span class="sr-only">Comparison</span></th><th scope="col" class="r">${S.monthName(key)}</th><th scope="col" class="r">Change</th><th scope="col" class="r hide-sm">3-month avg</th><th scope="col" class="r hide-sm">Share</th></tr></thead>
-        <tbody>${rows.map(r => {
+        <tbody>${shown.map(r => {
           const d = r.now - r.prev;
           const big = Math.abs(d) >= 500 && r.prev && Math.abs(d / r.prev) >= 0.2;
           return `<tr>
@@ -108,7 +109,7 @@ SW.pages = SW.pages || {};
             <td class="r num hide-sm subtle">${total ? F.pct(r.now / total) : '—'}</td></tr>`;
         }).join('')}</tbody>
       </table></div>
-      <p class="fi-cats-key"><i class="ess"></i> Essential category</p>
+      <div class="fi-cats-foot"><p class="fi-cats-key"><i class="ess"></i> Essential category</p>${rows.length > CATS_SHOWN ? `<button type="button" class="link fi-more-btn" data-cats-more aria-expanded="${catsAll}">${catsAll ? 'Show fewer' : `Show all ${rows.length} categories`}</button>` : ''}</div>
     </section>`;
   }
 
@@ -128,11 +129,12 @@ SW.pages = SW.pages || {};
           { value: 'upcoming', label: 'Upcoming', count: all.filter(x => x.type === 'upcoming').length }
         ], type, 'Observation type')}
       </div>
-      <div class="fi-obs" data-obs>${list.length ? list.map(x => `<article class="fi-ob ${x.tone}">
+      <div class="fi-obs" data-obs>${list.length ? (obsAll ? list : list.slice(0, OBS_SHOWN)).map(x => `<article class="fi-ob ${x.tone}">
           <div class="fi-ob-fig"><span class="num">${x.figure || ''}</span><span class="n">${x.figureNote || ''}</span></div>
           <div class="fi-ob-body"><h3>${x.title}</h3><p>${x.text}</p>${x.detail ? `<p class="d">${x.detail}</p>` : ''}</div>
           <a class="link" href="${x.link[0]}">${x.link[1]}${I('arrowRight', 14)}</a>
-        </article>`).join('') : ui.empty({ icon: 'insights', title: 'Nothing to flag here', text: 'No observations of this kind right now. That’s usually a good sign.' })}</div>`;
+        </article>`).join('') : ui.empty({ icon: 'insights', title: 'Nothing to flag here', text: 'No observations of this kind right now. That’s usually a good sign.' })}</div>
+      ${list.length > OBS_SHOWN ? `<button type="button" class="link fi-more-btn fi-obs-more" data-obs-more aria-expanded="${obsAll}">${obsAll ? 'Show fewer' : `Show ${list.length - OBS_SHOWN} more`}</button>` : ''}`;
   }
 
   function render() {
@@ -156,37 +158,35 @@ SW.pages = SW.pages || {};
       ${statementHTML(cur, prev, prevKey)}
       <div class="fi-board">
         <section class="fi-band" aria-labelledby="sp-sec">
-          <div class="fi-band-head"><h2 class="fi-sec-title" id="sp-sec">Spending</h2><p class="fi-sec-desc" data-trend-desc></p></div>
+          <h2 class="fi-sec-title" id="sp-sec">Spending</h2>
+          <p class="fi-take" data-trend-desc></p>
           <div class="fi-duo">
             <div class="fi-chart">
-              <div class="fi-chart-head"><h3 class="fi-chart-title" id="tr-h">Month by month</h3>
-                <div class="legend"><span><i class="f-ess"></i>Essentials</span><span><i class="f-non"></i>Non-essentials</span><span><i class="lg-income"></i>Income</span></div></div>
-              <p class="fi-lead" data-trend-lead></p>
+              <h3 class="fi-chart-title" id="tr-h">Month by month</h3>
+              <p class="fi-cap">Select a bar to open that month.</p>
               <div data-trend></div>
-              <p class="fi-chart-hint">Select a month’s bar to read its report.</p>
             </div>
             <div class="fi-chart">
-              <div class="fi-chart-head"><h3 class="fi-chart-title" id="pace-h">Pace through the month</h3>
-                <div class="legend"><span><i class="lg-sel"></i>${S.monthName(month)}</span>${hasPrev ? `<span><i class="dash"></i>${S.monthName(prevKey)}</span>` : ''}</div></div>
-              <p class="fi-lead" data-pace-lead></p>
+              <h3 class="fi-chart-title" id="pace-h">Pace through the month</h3>
+              <p class="fi-cap" data-pace-desc></p>
               <div data-pace></div>
-              <p class="fi-chart-hint" data-pace-desc></p>
             </div>
           </div>
         </section>
         <section class="fi-band" aria-labelledby="sv-sec">
-          <div class="fi-band-head"><h2 class="fi-sec-title" id="sv-sec">Savings</h2><p class="fi-sec-desc" data-rate-desc></p></div>
+          <h2 class="fi-sec-title" id="sv-sec">Savings</h2>
           <div class="fi-duo">
-            <div class="fi-chart">
-              <div class="fi-chart-head"><h3 class="fi-chart-title" id="sr-h">Share of income saved</h3>
-                <div class="legend"><span><i class="lg-rate"></i>${S.monthName(month)}</span><span><i class="lg-guide"></i>20% guide</span></div></div>
-              <p class="fi-lead" data-rate-lead></p>
-              <div data-rate></div>
-              <p class="fi-chart-hint">Select a month’s bar to read its report.</p>
+            <div class="fi-chart fi-hero">
+              <h3 class="fi-chart-title" id="sr-h">Share of income saved</h3>
+              <div data-rate-hero></div>
+              <details class="fi-more" data-rate-more ${rateOpen ? 'open' : ''}>
+                <summary><span data-rate-sum>By month</span>${I('chevronDown', 16)}</summary>
+                <div data-rate></div>
+              </details>
             </div>
             <div class="fi-chart">
-              <div class="fi-chart-head"><h3 class="fi-chart-title" id="sp-h">Essentials and the rest</h3>
-                <div class="legend"><span><i class="lg-usual"></i>Usual</span></div></div>
+              <h3 class="fi-chart-title" id="sp-h">Essentials and the rest</h3>
+              <p class="fi-cap">${mLong(month)}${isCur(month) ? ' so far' : ''}. The thin line is your usual.</p>
               ${splitHTML(month)}
             </div>
           </div>
@@ -205,76 +205,76 @@ SW.pages = SW.pages || {};
     const v = n => css.getPropertyValue(n).trim();
     const dim = (base, faded) => list.map((k, i) => (i === sel ? base : faded));
     const pick = i => { month = list[i]; SW.refresh(); root = document.querySelector('.page-insights'); root?.querySelector(`[data-month="${month}"]`)?.focus(); };
+    const c = sums[sel];
+    const done = sums.filter(x => !isCur(x.key));
 
-    // 1. Spending by month, split essential / non-essential, income as a tick
+    // 1. Spending by month: one bar per month against your average; the split and income are in the tooltip
+    const avgSpent = done.length ? done.reduce((a, x) => a + x.spent, 0) / done.length : 0;
     C.bars(root.querySelector('[data-trend]'), {
-      labels: list.map(k => S.monthName(k)), stack: true,
-      series: [
-        { name: 'Essentials', colors: dim(v('--navy-700'), v('--gray-300')), values: sums.map(x => x.essential) },
-        { name: 'Non-essentials', colors: dim(v('--c-spent'), v('--lav-150')), values: sums.map(x => x.nonEssential) }
-      ],
-      overlay: { values: sums.map(x => x.income), colors: dim(v('--ink'), v('--gray-400')) },
-      highlight: sel, height: 200, maxBar: 36, onSelect: pick,
-      ariaLabel: 'Essential and non-essential spending by month, with income',
+      labels: list.map(k => S.monthName(k)), minimal: true,
+      series: [{ name: 'Spent', colors: dim(v('--c-spent'), v('--lav-150')), values: sums.map(x => x.spent) }],
+      reference: done.length ? { value: avgSpent, label: `Average ${F.inrc(avgSpent, 0)}`, align: sel > list.length / 2 ? 'start' : 'end' } : null,
+      valueLabel: x => F.inr(x),
+      highlight: sel, height: 210, maxBar: 44, onSelect: pick,
+      ariaLabel: 'Total spending by month against the average',
       tooltip: i => `<div class="tt-title">${mLong(list[i])}${isCur(list[i]) ? ' (so far)' : ''}</div>
         ${C.row(v('--navy-700'), 'Essentials', F.inr(sums[i].essential))}${C.row(v('--c-spent'), 'Non-essentials', F.inr(sums[i].nonEssential))}
         ${C.row('#fff', 'Income', F.inr(sums[i].income))}
         <div class="tt-note">Spent ${F.pct(sums[i].income ? sums[i].spent / sums[i].income : 0)} of income</div>`
     });
-    const done = sums.filter(x => !isCur(x.key));
-    const avgSpent = done.length ? done.reduce((a, x) => a + x.spent, 0) / done.length : 0;
-    const c = sums[sel];
-    root.querySelector('[data-trend-desc]').innerHTML = isCur(month) ? `${F.inr(c.spent)} so far this month` :
-      `${F.inr(c.spent)} in ${S.monthName(month)}, <b class="${c.spent > avgSpent * 1.03 ? 'warn' : ''}">${c.spent >= avgSpent ? F.inr(c.spent - avgSpent) + ' above' : F.inr(avgSpent - c.spent) + ' below'}</b> your ${done.length}-month average`;
+    const up = c.spent > avgSpent;
+    root.querySelector('[data-trend-desc]').innerHTML = isCur(month) ? `<b>${F.inr(c.spent)}</b> so far this month` :
+      `<b class="${c.spent > avgSpent * 1.03 ? 'warn' : c.spent < avgSpent * 0.97 ? 'pos' : ''}">${I(up ? 'arrowUp' : 'arrowDown', 22)}${F.inr(Math.abs(c.spent - avgSpent))} ${up ? 'above' : 'below'}</b> your ${done.length}-month average`;
 
-    const lead = (sel, v, n) => { const e = root.querySelector(sel); if (e) e.innerHTML = `<span class="v num">${v}</span><span class="n">${n}</span>`; };
-    lead('[data-trend-lead]', F.inr(c.spent), `${isCur(month) ? 'spent so far' : 'spent'} in ${S.monthName(month)}, ${F.pct(c.income ? c.spent / c.income : 0)} of income`);
-
-    // 2. Savings rate by month against a 20% marker
+    // 2. Savings: the rate against the 20% guide, then the months behind it
     const TARGET = 0.2;
+    const avgRate = done.length ? done.reduce((a, x) => a + x.rate, 0) / done.length : 0;
+    const scale = Math.max(0.3, c.rate * 1.15);
+    const ok = c.rate >= TARGET;
+    root.querySelector('[data-rate-hero]').innerHTML = `
+      <div class="fi-rate-fig"><span class="v num">${F.pct(c.rate)}</span><span class="n">of income saved${isCur(month) ? ' so far' : ''}</span></div>
+      <div class="fi-gauge" role="img" aria-label="${F.pct(c.rate)} saved; the guide is ${F.pct(TARGET)}">
+        <span class="fill" style="width:${Math.max(0, Math.min(1, c.rate / scale)) * 100}%"></span>
+        <i style="left:${(TARGET / scale) * 100}%"><em>20% guide</em></i></div>
+      <p class="fi-rate-note"><b class="${ok ? 'pos' : 'warn'}">${ok ? 'At or above' : `${F.pct(TARGET - c.rate)} below`}</b> the 20% guide</p>`;
+    root.querySelector('[data-rate-sum]').textContent = done.length ? `By month · ${F.pct(avgRate)} on average` : 'By month';
     C.bars(root.querySelector('[data-rate]'), {
-      labels: list.map(k => S.monthName(k)),
+      labels: list.map(k => S.monthName(k)), minimal: true,
       series: [{ name: 'Savings rate', colors: dim(v('--c-spent'), v('--lav-150')), values: sums.map(x => Math.round(x.rate * 1000) / 10) }],
-      reference: { value: TARGET * 100, label: '20% guide' },
-      yFormat: x => x + '%', highlight: sel, height: 262, maxBar: 36, onSelect: pick,
+      reference: { value: TARGET * 100, label: '20% guide', align: sel > list.length / 2 ? 'start' : 'end' },
+      valueLabel: x => x + '%',
+      highlight: sel, height: 170, maxBar: 36, onSelect: pick,
       ariaLabel: 'Share of income saved to goals by month',
       tooltip: i => `<div class="tt-title">${mLong(list[i])}${isCur(list[i]) ? ' (so far)' : ''}</div>
         ${C.row(v('--c-spent'), 'Saved', F.inr(sums[i].saved))}${C.row(v('--gray-400'), 'Of income', F.pct(sums[i].rate))}`
     });
-    const avgRate = done.length ? done.reduce((a, x) => a + x.rate, 0) / done.length : 0;
-    root.querySelector('[data-rate-desc]').innerHTML = `${F.pct(c.rate)} of income saved in ${S.monthName(month)}${isCur(month) ? ' so far' : ''}; ${F.pct(avgRate)} on average. <b class="${c.rate >= TARGET ? 'pos' : 'warn'}">${c.rate >= TARGET ? 'At or above' : `${F.pct(TARGET - c.rate)} below`} the 20% guide.</b>`;
 
-    lead('[data-rate-lead]', F.pct(c.rate), `of income saved in ${S.monthName(month)}${isCur(month) ? ' so far' : ''}, ${F.inr(c.saved)}`);
-
-    // 3. Spending pace against the month before
+    // 3. Spending pace against the month before; each line is named where it ends
     const prevKey = S.addMonths(month, -1);
     const cur = S.dailyCumulative(month);
     const prev = list.includes(prevKey) ? S.dailyCumulative(prevKey) : null;
     const n = Math.max(cur.length, prev ? prev.length : 0);
     const pad = a => a ? Array.from({ length: n }, (_, i) => (i < a.length ? a[i] : null)) : null;
-    const lastIdx = cur.reduce((a, x, i) => (x != null ? i : a), 0);
+    const last = a => a.reduce((r, x, i) => (x != null ? i : r), -1);
+    const lastIdx = Math.max(0, last(cur));
     const series = [];
-    if (prev) series.push({ name: S.monthName(prevKey), color: v('--c-spent-dim'), values: pad(prev), dashed: true, width: 1.5 });
-    series.push({ name: S.monthName(month), color: v('--accent'), values: pad(cur), width: 2.25, endDot: true });
+    if (prev) series.push({ name: S.monthName(prevKey), label: `${S.monthName(prevKey)} ${F.inrc(prev[last(prev)], 1)}`, labelColor: v('--text-3'), color: v('--gray-400'), values: pad(prev), dashed: true, width: 1.75 });
+    series.push({ name: S.monthName(month), label: `${S.monthName(month)} ${F.inrc(cur[lastIdx] ?? 0, 1)}`, labelColor: v('--text'), color: v('--c-spent'), values: pad(cur), width: 2.5, endDot: true });
     C.line(root.querySelector('[data-pace]'), {
       labels: Array.from({ length: n }, (_, i) => String(i + 1)),
-      series, height: 200, zero: true, xEvery: 5,
+      series, height: 210, zero: true, xEvery: 10, minimal: true, endLabels: true,
       ariaLabel: 'Running total of spending by day of month',
       tooltip: i => `<div class="tt-title">Day ${i + 1}</div>
-        ${cur[i] != null ? C.row(v('--accent'), S.monthName(month), F.inr(cur[i])) : ''}
-        ${prev && prev[i] != null ? C.row(v('--c-spent-dim'), S.monthName(prevKey), F.inr(prev[i]), true) : ''}`
+        ${cur[i] != null ? C.row(v('--c-spent'), S.monthName(month), F.inr(cur[i])) : ''}
+        ${prev && prev[i] != null ? C.row(v('--gray-400'), S.monthName(prevKey), F.inr(prev[i]), true) : ''}`
     });
     const desc = root.querySelector('[data-pace-desc]');
-    // compare at the last day both months have (October's 31st has no September counterpart)
-    const at = prev ? Math.min(lastIdx, prev.reduce((a, x, i) => (x != null ? i : a), -1)) : -1;
+    // compare at the last day both months have (the 31st has no counterpart in a 30-day month)
+    const at = prev ? Math.min(lastIdx, last(prev)) : -1;
     if (prev && at >= 0 && cur[at] != null) {
       const d = cur[at] - prev[at];
-      lead('[data-pace-lead]', `<span class="${d > 0 ? 'warn' : 'pos'}">${d > 0 ? '+' : '−'}${F.inr(Math.abs(d))}</span>`, `${d > 0 ? 'more' : 'less'} than ${S.monthName(prevKey)} by day ${at + 1}`);
-      desc.innerHTML = `By day ${at + 1}: ${F.inr(cur[at])} against ${F.inr(prev[at])} in ${S.monthName(prevKey)}`;
-    } else {
-      lead('[data-pace-lead]', F.inr(cur[lastIdx] ?? 0), `spent by day ${lastIdx + 1}`);
-      desc.textContent = `Running total of spending through ${mLong(month)}`;
-    }
+      desc.innerHTML = `<b class="${d > 0 ? 'warn' : 'pos'}">${F.inr(Math.abs(d))} ${d > 0 ? 'more' : 'less'}</b> than ${S.monthName(prevKey)} by day ${at + 1}`;
+    } else desc.textContent = `Running total through ${mLong(month)}`;
   }
 
   function mount(r) {
@@ -304,6 +304,19 @@ SW.pages = SW.pages || {};
     });
     const ml = r.querySelector('[data-mlist] [aria-pressed="true"]');
     if (ml) ml.parentElement.scrollLeft = ml.offsetLeft - ml.parentElement.clientWidth / 2 + ml.clientWidth / 2;
+    r.addEventListener('toggle', e => { if (e.target.matches('[data-rate-more]')) rateOpen = e.target.open; }, true);
+    ui.on(r, 'click', '[data-cats-more]', () => {
+      catsAll = !catsAll;
+      const sec = r.querySelector('.fi-cats'), tmp = document.createElement('div');
+      tmp.innerHTML = categoriesHTML(month, S.addMonths(month, -1));
+      sec.replaceWith(tmp.firstElementChild);
+      r.querySelector('[data-cats-more]')?.focus();
+    });
+    ui.on(r, 'click', '[data-obs-more]', () => {
+      obsAll = !obsAll;
+      r.querySelector('.fi-obs-wrap').innerHTML = obsHTML(obsFor());
+      r.querySelector('[data-obs-more]')?.focus();
+    });
     ui.on(r, 'click', '[data-seg="itype"] button', (e, b) => {
       type = b.dataset.value;
       r.querySelector('.fi-obs-wrap').innerHTML = obsHTML(obsFor());

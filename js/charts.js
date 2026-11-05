@@ -80,8 +80,9 @@
     tip.style.top = top + 'px';
   }
 
-  function yAxis(svg, ticks, y, padL, w, padR, fmt) {
+  function yAxis(svg, ticks, y, padL, w, padR, fmt, minimal) {
     const g = el('g', {}, svg);
+    if (minimal) { el('line', { x1: padL, x2: w - padR, y1: y(0), y2: y(0), class: 'zero-line' }, g); return; }
     ticks.forEach(v => {
       const yy = y(v);
       el('line', { x1: padL, x2: w - padR, y1: yy, y2: yy, class: v === 0 ? 'zero-line' : 'grid-line' }, g);
@@ -98,7 +99,7 @@
   function line(container, opts) {
     mount(container, (root, w, tip) => {
       const h = opts.height || 240;
-      const padL = 56, padR = 14, padT = 12, padB = 30;
+      const padL = opts.minimal ? 8 : 56, padR = opts.endLabels ? 74 : 14, padT = 12, padB = 30;
       const n = opts.labels.length;
       const all = [];
       opts.series.forEach(s => s.values.forEach(v => v != null && all.push(v)));
@@ -116,7 +117,7 @@
       const svg = el('svg', { width: w, height: h, viewBox: `0 0 ${w} ${h}`, role: 'img', 'aria-label': opts.ariaLabel || 'Chart' });
       root.insertBefore(svg, tip);
       const defs = el('defs', {}, svg);
-      yAxis(svg, ticks, y, padL, w, padR, opts.yFormat || F.inrc);
+      yAxis(svg, ticks, y, padL, w, padR, opts.yFormat || F.inrc, opts.minimal);
 
       // X labels
       const every = opts.xEvery || Math.ceil(n / Math.max(2, Math.floor((w - padL) / 64)));
@@ -186,6 +187,17 @@
           const p = pts[pts.length - 1];
           el('circle', { cx: p[0], cy: p[1], r: 3.5, fill: s.color, stroke: '#fff', 'stroke-width': 2 }, svg);
         }
+        if (opts.endLabels && s.label && pts.length) {
+          // name the line where it ends, so a legend isn't needed; nudge apart when two ends are close
+          const p = pts[pts.length - 1];
+          s._ey = p[1];
+          const prevEnds = opts.series.slice(0, si).filter(o => o._ey != null);
+          let ty = p[1];
+          prevEnds.forEach(o => { if (Math.abs(ty - o._ty) < 15) ty = o._ty + (ty >= o._ty ? 15 : -15); });
+          s._ty = ty;
+          const t = el('text', { x: p[0] + 9, y: ty + 4, class: 'axis-label end-label', style: `fill:${s.labelColor || s.color}` }, svg);
+          t.textContent = s.label;
+        }
       });
 
       // Hover layer
@@ -224,7 +236,7 @@
   function bars(container, opts) {
     mount(container, (root, w, tip) => {
       const h = opts.height || 240;
-      const padL = 56, padR = 8, padT = 12, padB = 30;
+      const padL = opts.minimal ? 8 : 56, padR = 8, padT = opts.minimal ? 26 : 12, padB = 30;
       const n = opts.labels.length, k = opts.series.length;
       const all = [0];
       if (opts.stack) opts.labels.forEach((l, i) => all.push(opts.series.reduce((a, s) => a + (s.values[i] || 0), 0)));
@@ -241,7 +253,7 @@
 
       const svg = el('svg', { width: w, height: h, viewBox: `0 0 ${w} ${h}`, role: 'img', 'aria-label': opts.ariaLabel || 'Bar chart' });
       root.insertBefore(svg, tip);
-      yAxis(svg, ticks, y, padL, w, padR, opts.yFormat || F.inrc);
+      yAxis(svg, ticks, y, padL, w, padR, opts.yFormat || F.inrc, opts.minimal);
 
       const groups = [];
       opts.labels.forEach((l, i) => {
@@ -280,6 +292,11 @@
           }
           el('path', { d, fill: (s.colors && s.colors[i]) || s.color, class: 'bar-rect' }, g);
         });
+        if (opts.valueLabel && opts.highlight === i && !opts.stack) {
+          const v = opts.series[0].values[i];
+          const vt = el('text', { x: cx, y: y(Math.max(v, 0)) - 8, 'text-anchor': 'middle', class: 'axis-label bar-value' }, svg);
+          vt.textContent = opts.valueLabel(v, i);
+        }
         const t = el('text', { x: cx, y: h - 8, 'text-anchor': 'middle', class: 'axis-label' }, svg);
         t.textContent = l;
         if (opts.highlight === i) t.setAttribute('style', 'font-weight:600;fill:var(--text)');
@@ -290,7 +307,8 @@
         const ry = y(opts.reference.value);
         el('line', { x1: padL, x2: w - padR, y1: ry, y2: ry, class: 'ref-line' }, svg);
         if (opts.reference.label) {
-          const t = el('text', { x: w - padR, y: ry - 6, 'text-anchor': 'end', class: 'axis-label ref-label' }, svg);
+          const st = opts.reference.align === 'start';
+          const t = el('text', { x: st ? padL + 2 : w - padR, y: ry - 6, 'text-anchor': st ? 'start' : 'end', class: 'axis-label ref-label' }, svg);
           t.textContent = opts.reference.label;
         }
       }
