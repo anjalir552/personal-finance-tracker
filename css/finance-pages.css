@@ -16,7 +16,7 @@
    - Periwinkle marks data and the chosen option; deep lilac marks anything late or short;
      navy is the primary action. Everything else is ink and grey.
    ========================================================================== */
-:is(.page-decisions, .page-goals, .page-upcoming, .page-insights, .page-spending) { max-width: 1180px; font-variant-numeric: tabular-nums; }
+:is(.page-decisions, .page-goals, .page-upcoming, .page-insights, .page-spending) { font-variant-numeric: tabular-nums; }
 :is(.page-decisions, .page-goals, .page-upcoming, .page-insights, .page-spending) .page-header { margin-bottom: 40px; align-items: flex-start; }
 :is(.page-decisions, .page-goals, .page-upcoming, .page-insights, .page-spending) .page-title { font-size: 38px; letter-spacing: -0.025em; }
 :is(.page-decisions, .page-goals, .page-upcoming, .page-insights, .page-spending) .page-sub { font-size: 16px; max-width: 70ch; }

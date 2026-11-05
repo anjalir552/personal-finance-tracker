@@ -210,7 +210,8 @@
   --rim: 12px;                     /* the periwinkle rim around the sheet */
   --r-sheet: 28px;
   --sidebar-rail: 76px;
-  --content-max: 1200px;
+  --dur-nav: 240ms;
+  --content-max: 1360px;
   --control-h: 40px;
 
   /* Motion: feedback only */

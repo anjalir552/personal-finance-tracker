@@ -63,11 +63,30 @@ svg { display: block; flex-shrink: 0; }
   display: flex; flex-direction: column;
   padding: 26px 14px 16px;
   z-index: 40;
-  overflow-y: auto;
+  overflow-y: auto; overflow-x: hidden;
   scrollbar-width: none;
+  transition: width var(--dur-nav) var(--ease), padding var(--dur-nav) var(--ease);
 }
 .sidebar::-webkit-scrollbar { display: none; }
-.brand { display: flex; align-items: center; gap: 11px; padding: 0 10px 22px; }
+.sidebar-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding-bottom: 22px; }
+.brand { display: flex; align-items: center; gap: 11px; padding: 0 0 0 10px; min-width: 0; white-space: nowrap; }
+.sidebar-toggle {
+  flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; margin-top: -1px;
+  background: transparent; border: 0; padding: 0; cursor: pointer;
+  display: grid; place-items: center; color: var(--navy-600);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.sidebar-toggle:hover { background: var(--frame-hover); color: var(--navy); }
+.sidebar-toggle svg { width: 18px; height: 18px; }
+.sidebar-toggle .ico-close { display: none; }
+.nav-item .nav-text, .brand-name, .account-meta { transition: max-width var(--dur-nav) var(--ease), opacity var(--dur-nav) var(--ease); max-width: 200px; }
+.nav-label { max-height: 60px; overflow: hidden; white-space: nowrap; transition: max-height var(--dur-nav) var(--ease), padding var(--dur-nav) var(--ease), opacity var(--dur-nav) var(--ease); }
+.sidebar-tip {
+  position: fixed; z-index: 60; transform: translateY(-50%); pointer-events: none;
+  background: var(--peri-200); color: var(--navy); font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 8px;
+  white-space: nowrap; opacity: 0; transition: opacity 120ms var(--ease);
+}
+.sidebar-tip.show { opacity: 1; }
 .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; }
 .brand-name { font-family: var(--font-display); font-weight: 600; font-size: 23px; letter-spacing: -0.025em; color: var(--navy); }
 .nav { display: flex; flex-direction: column; gap: 2px; }
@@ -79,7 +98,7 @@ svg { display: block; flex-shrink: 0; }
   border-radius: 14px;
   font-size: 14.5px; color: var(--navy-700); font-weight: 550;
   white-space: nowrap;
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease), padding var(--dur-nav) var(--ease), gap var(--dur-nav) var(--ease);
 }
 .nav-item .nav-text { overflow: hidden; text-overflow: ellipsis; }
 .nav-item svg { width: 18px; height: 18px; color: var(--navy-600); transition: color var(--dur) var(--ease); }
@@ -97,6 +116,7 @@ svg { display: block; flex-shrink: 0; }
 .sidebar-foot { margin-top: auto; padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
 .account {
   display: flex; align-items: center; gap: 11px; padding: 14px 12px 4px; margin-top: 10px;
+  transition: padding var(--dur-nav) var(--ease), gap var(--dur-nav) var(--ease);
   border-top: 1px solid var(--frame-line);
 }
 .account:hover .account-name { color: var(--navy-700); }
@@ -695,19 +715,27 @@ tr:hover .row-actions, .row-actions:focus-within, .list-item:hover .row-actions 
   .set-sec { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 26px 28px; }
 }
 
+/* Collapsed rail: chosen on desktop (remembered), automatic on tablet. Never on phone, which uses the drawer.
+   One 44px column: logo, toggle, nav items and avatar share the same centre line. */
+@media (min-width: 761px) {
+  .app.collapsed .sidebar { width: var(--sidebar-rail); padding-left: 16px; padding-right: 16px; }
+  .app.collapsed .sidebar-head { flex-direction: column; align-items: center; gap: 10px; padding-bottom: 14px; }
+  .app.collapsed .brand { padding-left: 0; gap: 0; }
+  .app.collapsed .sidebar-toggle { width: 44px; height: 36px; margin-top: 0; }
+  .app.collapsed .brand-name, .app.collapsed .nav-item .nav-text, .app.collapsed .account-meta { max-width: 0; opacity: 0; overflow: hidden; }
+  /* Group headings become a hairline so the Track / Plan & decide grouping still reads */
+  .app.collapsed .nav-label { max-height: 1px; padding: 0; margin: 10px 8px; background: var(--frame-line); color: transparent; font-size: 0; opacity: 1; }
+  .app.collapsed .nav { gap: 4px; }
+  .app.collapsed .nav-item { min-height: 44px; padding: 0 12px; gap: 0; border-radius: 14px; }
+  .app.collapsed .nav-item svg { width: 20px; height: 20px; }
+  .app.collapsed .nav-count { position: absolute; top: 4px; right: 4px; min-width: 16px; height: 16px; font-size: 10.5px; padding: 0 4px; }
+  .app.collapsed .sidebar-foot { gap: 4px; }
+  .app.collapsed .account { padding: 12px 5px 4px; gap: 0; margin-top: 8px; }
+}
+@media (min-width: 761px) and (max-width: 1080px) {
+  .sidebar-toggle { display: none; }
+}
 @media (max-width: 1080px) {
-  .sidebar { width: var(--sidebar-rail); padding: 22px 12px 14px; }
-  .brand { justify-content: center; padding: 0 0 20px; }
-  .brand-name, .nav-label, .nav-item .nav-text, .account-meta { display: none; }
-  .nav-item { justify-content: center; padding: 0; width: 44px; height: 42px; margin: 0 auto; }
-  .nav-count { position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; font-size: 11px; padding: 0 5px; }
-  .nav-item:hover::after, .nav-item:focus-visible::after {
-    content: attr(data-label); position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%);
-    background: var(--peri-200); color: var(--navy); font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 8px;
-    white-space: nowrap; pointer-events: none; z-index: 5;
-  }
-  .nav-label + .nav-item { margin-top: 18px; }
-  .account { justify-content: center; padding: 14px 0 6px; }
   .page { padding: 32px 30px 56px; }
   .grid-main { grid-template-columns: minmax(0, 1fr); }
 }
@@ -726,14 +754,15 @@ tr:hover .row-actions, .row-actions:focus-within, .list-item:hover .row-actions 
     border-right: 0;
   }
   .sidebar.open { transform: none; visibility: visible; box-shadow: var(--shadow-float); transition: transform 240ms var(--ease); }
-  .brand { justify-content: flex-start; padding: 0 10px 18px; }
-  .brand-name, .nav-label, .nav-item .nav-text, .account-meta { display: initial; }
-  .account-meta { display: flex; }
+  .sidebar-head { padding-bottom: 18px; align-items: center; }
+  .sidebar-toggle { width: 44px; height: 44px; margin-top: 0; }
+  .sidebar-toggle .ico-panel { display: none; }
+  .sidebar-toggle .ico-close { display: block; }
+  .sidebar-toggle svg { width: 22px; height: 22px; }
   .nav-item { justify-content: flex-start; padding: 0 12px; width: auto; margin: 0; min-height: 46px; font-size: 15px; }
   .nav-count { position: static; min-width: 22px; height: 22px; }
-  .nav-label + .nav-item { margin-top: 0; }
-  .nav-item:hover::after, .nav-item:focus-visible::after { display: none; }
   .account { justify-content: flex-start; padding: 14px 12px 6px; }
+  .sidebar-tip { display: none; }
   .sidebar-scrim:not([hidden]) { display: block; position: fixed; inset: 0; z-index: 35; background: var(--scrim); animation: fade-in 200ms; }
   .topbar .icon-btn { width: 44px; height: 44px; color: var(--navy); }
   .topbar .icon-btn:hover { background: var(--frame-hover); color: var(--navy); }
