@@ -68,7 +68,9 @@ svg { display: block; flex-shrink: 0; }
   transition: width var(--dur-nav) var(--ease), padding var(--dur-nav) var(--ease);
 }
 .sidebar::-webkit-scrollbar { display: none; }
-.sidebar-head { display: flex; align-items: center; padding-bottom: 14px; }
+.sidebar-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 14px; min-height: 54px; }
+.brand { display: flex; align-items: center; gap: 10px; padding-left: 12px; min-width: 0; white-space: nowrap; }
+.brand-name { font-family: var(--font-display); font-weight: 600; font-size: 22px; letter-spacing: -0.025em; color: var(--navy); }
 /* The toggle sits on the same 44px column as the icons below it, in both states, so it never jumps */
 .sidebar-toggle {
   flex-shrink: 0; width: 44px; height: 40px; border-radius: 12px;
@@ -87,7 +89,8 @@ svg { display: block; flex-shrink: 0; }
   white-space: nowrap; opacity: 0; transition: opacity 120ms var(--ease);
 }
 .sidebar-tip.show { opacity: 1; }
-.brand-mark { width: 30px; height: 30px; display: grid; place-items: center; }
+.brand-mark { width: 22px; height: 22px; display: grid; place-items: center; flex-shrink: 0; }
+.topbar .brand-mark { width: 30px; height: 30px; }
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-label { font-size: 12.5px; color: var(--on-frame-3); padding: 22px 12px 8px; font-weight: 650; letter-spacing: 0.01em; }
 .nav-item {
@@ -144,7 +147,7 @@ svg { display: block; flex-shrink: 0; }
 /* ---------- Page ---------- */
 .page {
   max-width: var(--content-max);
-  margin: 0 auto;
+  margin: 0;
   padding: 40px 44px 80px;
 }
 .page-header {
@@ -718,6 +721,7 @@ tr:hover .row-actions, .row-actions:focus-within, .list-item:hover .row-actions 
    One 44px column: logo, toggle, nav items and avatar share the same centre line. */
 @media (min-width: 761px) {
   .app.collapsed .sidebar { width: var(--sidebar-rail); }
+  .app.collapsed .brand { display: none; }
   .app.collapsed .nav-item .nav-text, .app.collapsed .account-meta { max-width: 0; opacity: 0; overflow: hidden; }
   /* Group headings become a short hairline so the Track / Plan & decide grouping still reads */
   .app.collapsed .nav-label { max-height: 1px; padding: 0; margin: 8px 12px; background: rgba(40, 46, 66, 0.22); color: transparent; font-size: 0; opacity: 1; }
@@ -750,7 +754,7 @@ tr:hover .row-actions, .row-actions:focus-within, .list-item:hover .row-actions 
     border-right: 0;
   }
   .sidebar.open { transform: none; visibility: visible; box-shadow: var(--shadow-float); transition: transform 240ms var(--ease); }
-  .sidebar-head { padding-bottom: 18px; justify-content: flex-end; }
+  .sidebar-head { padding-bottom: 18px; }
   .sidebar-toggle { width: 44px; height: 44px; background: transparent; border-color: transparent; }
   .sidebar-toggle .ico-panel { display: none; }
   .sidebar-toggle .ico-close { display: block; }

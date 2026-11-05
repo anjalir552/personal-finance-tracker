@@ -31,6 +31,7 @@
     const name = s.name || 'Your name';
     sidebar.innerHTML = `
       <div class="sidebar-head">
+        <a href="#/overview" class="brand" aria-label="Scopewise home"><span class="brand-mark">${SW.logo(22)}</span><span class="brand-name">Scopewise</span></a>
         <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-controls="sidebar"><span class="ico-panel">${I('panelLeft', 18)}</span><span class="ico-close">${I('close', 22)}</span></button>
       </div>
       <nav class="nav" aria-label="Main">
