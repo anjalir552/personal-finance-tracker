@@ -79,7 +79,7 @@ SW.pages = SW.pages || {};
         </section>
 
         <div class="stack">
-          <section class="panel" aria-labelledby="ess-h">
+          <section class="panel tone-lavender" aria-labelledby="ess-h">
             <div class="panel-head"><div><h2 class="panel-title" id="ess-h">Essentials vs non-essentials</h2><div class="panel-desc">${monthLabel(month)}</div></div></div>
             <div class="panel-body">
               <div class="money-bar" aria-hidden="true" style="height:20px">

@@ -129,7 +129,7 @@ SW.pages = SW.pages || {};
           <div class="panel-foot"><span>${m.bills ? 'Due before payday' : ''}</span><a class="link" href="#/upcoming">All upcoming expenses${I('arrowRight', 14)}</a></div>
         </section>
 
-        <section class="panel" aria-labelledby="goal-h" style="display:flex;flex-direction:column">
+        <section class="panel tone-lilac" aria-labelledby="goal-h" style="display:flex;flex-direction:column">
           <div class="panel-head"><div><h2 class="panel-title" id="goal-h">Savings progress</h2><div class="panel-desc">${goals.length ? `${F.inr(S.goalsMonthly())} planned each month` : 'What you’re saving towards'}</div></div>
             ${goals.length ? `<div class="panel-figure">${F.inr(goals.reduce((a, g) => a + S.goalStatus(g).saved, 0))}</div>` : ''}</div>
           <div style="flex:1">${goalsHTML}</div>

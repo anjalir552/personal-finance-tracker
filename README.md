@@ -67,7 +67,7 @@ Scopewise is intentionally dependency-free: no framework, no bundler and no pack
 - **Vanilla JavaScript**: modular scripts under one shared `SW` namespace, with hash-based client-side routing
 - **SVG**: hand-built responsive charts with tooltips (`js/charts.js`) and an inline line-icon set (`js/icons.js`)
 - **Web APIs**: `localStorage` for persistence, `Intl.NumberFormat` for INR formatting, and `Blob` downloads for CSV and JSON export
-- **Font**: [Manrope](https://fonts.google.com/specimen/Manrope), loaded from Google Fonts
+- **Fonts**: [Fraunces](https://fonts.google.com/specimen/Fraunces) for titles and headline figures and [Figtree](https://fonts.google.com/specimen/Figtree) for the interface, both self-hosted in `fonts/` (`css/fonts.css`)
 
 ## Project structure
 
