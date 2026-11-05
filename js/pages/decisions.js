@@ -13,6 +13,7 @@ SW.pages = SW.pages || {};
   let plan = null;        // 'now' | 'later' | 'save'; null = follow the recommendation
   let saveMonthly = null; // the save-first amount; null = suggested
   let lastSaved = null;
+  let projOpen = false;   // balance-path chart toggle
   let root = null;
 
   const PLAN_NAMES = { now: 'Buy now', later: 'Delay', save: 'Save first' };
@@ -59,7 +60,8 @@ SW.pages = SW.pages || {};
     if (r.key === 'comfortable') rec = 'now';
     else if (r.key === 'tight') rec = p.wait.ok || laterOn > payday || (lowBefore(path.now) < r.cushion && lowBefore(path.later) >= r.cushion) ? 'later' : 'now';
     else rec = p.wait.ok ? 'later' : 'save';
-    return { p, payday, laterOn, horizon, base, path, lowBefore, rec, cur: plan || rec };
+    const names = { now: PLAN_NAMES.now, later: laterOn === payday ? 'Wait until payday' : `Buy on ${F.short(laterOn)}`, save: PLAN_NAMES.save };
+    return { p, payday, laterOn, horizon, base, path, lowBefore, rec, names, cur: plan || rec };
   }
 
   /* ---------- The answer ---------- */
@@ -90,13 +92,13 @@ SW.pages = SW.pages || {};
     return `<div class="pd-snap-figs">
         ${fig('Current balance', r.balance, ov.balance ? 'Your what-if figure' : 'In your account today')}
         <span class="pd-op" aria-hidden="true">−</span>
-        ${fig('Committed before payday', committed, `${F.inrc(r.bills)} bills · ${F.inrc(r.everyday)} essentials · ${F.inrc(r.goals)} savings`)}
+        ${fig('Committed before payday', committed, 'Bills, essentials and savings')}
         <span class="pd-op" aria-hidden="true">=</span>
         ${fig('Available to spend', r.free, `Until payday on ${F.short(S.nextPayday())}`, 'free')}
         ${fig(F.esc(inp.name.trim() || 'This purchase'), r.price, r.price && r.free > 0 ? `${r.share >= 10 ? '10×+' : F.pct(r.share)} of what’s available` : r.price ? 'Nothing is free until payday' : 'Enter a price', 'buy')}
       </div>
       ${ui.moneyBar({ balance: r.balance, bills: r.bills, everyday: r.everyday, goals: r.goals, free: r.free }, r.price)}
-      <div class="legend pd-legend" aria-hidden="true"><span><i class="key-bills"></i>Bills</span><span><i class="key-everyday"></i>Essentials</span><span><i class="key-goals"></i>Savings</span><span><i class="key-free"></i>Available</span>${r.price ? '<span><i class="key-purchase"></i>This purchase, from the right</span>' : ''}</div>`;
+      <div class="legend pd-legend" aria-hidden="true"><span><i class="key-bills"></i>Bills <b class="num">${F.inrc(r.bills)}</b></span><span><i class="key-everyday"></i>Essentials <b class="num">${F.inrc(r.everyday)}</b></span><span><i class="key-goals"></i>Savings <b class="num">${F.inrc(r.goals)}</b></span><span><i class="key-free"></i>Available <b class="num">${F.inrc(r.free)}</b></span>${r.price ? `<span><i class="key-purchase"></i>This purchase <b class="num">${F.inrc(r.price)}</b></span>` : ''}</div>`;
   }
 
   /* ---------- What changes until payday ---------- */
@@ -144,9 +146,9 @@ SW.pages = SW.pages || {};
   /* ---------- Buy now, delay, save first ---------- */
   function compareHTML(r, P) {
     if (!r.price) return '';
-    const { p, payday, laterOn, path, lowBefore, rec, cur } = P;
+    const { p, payday, laterOn, path, lowBefore, rec, cur, names } = P;
     const later = laterOn > payday;
-    const laterLabel = laterOn === payday ? `Wait until payday` : `Buy on ${F.short(laterOn)}`;
+    const laterLabel = names.later;
     const saveReady = path.save.readyOn || (p.save.when + '-01');
     const maxMonthly = Math.max(1000, Math.ceil(r.price / 100) * 100);
     const low = pp => lowBefore(pp);
@@ -181,19 +183,19 @@ SW.pages = SW.pages || {};
             <input type="range" min="500" max="${maxMonthly}" step="100" value="${Math.min(maxMonthly, p.save.monthly)}" data-monthly aria-label="Monthly amount to save" aria-valuetext="${F.inr(p.save.monthly)} a month" />
             <span class="pd-slider-ends num"><span>₹500</span><span>${F.inrc(maxMonthly)}</span></span></label>`)}
       </div>
-      <div class="pd-proj">
-        <div class="pd-proj-head">
-          <h3 class="pd-proj-title">Your balance, ${S.monthName(S.CUR_MONTH)} to ${S.monthName(P.base.dates[P.base.dates.length - 1].slice(0, 7))}</h3>
-          <div class="legend"><span><i class="lg-sel"></i>${PLAN_NAMES[cur]}</span><span><i class="lg-other"></i>Other plans</span><span><i class="lg-base"></i>Without it</span></div>
-        </div>
-        <p class="pd-proj-desc">If your usual spending carries on, scheduled bills land on their dates and pay arrives on the ${ordinal(F.d(payday).getDate())}. ${below >= 0 ? `<b class="warn">With this plan your balance drops below your ${F.inr(r.cushion)} cushion on ${F.date(sel.dates[below], false)}.</b>` : `With this plan your balance stays above your ${F.inr(r.cushion)} cushion; its lowest point is ${F.inr(sel.low.value)} on ${F.date(sel.low.date, false)}.`}</p>
-        <div data-proj></div>
-      </div>
       <div class="pd-commit">
         <button type="button" class="btn btn-primary" data-save="${{ now: 'bought', later: 'waiting', save: 'saving' }[cur]}">${commitLabel}</button>
         ${cur === 'save' ? `<button type="button" class="btn btn-secondary" data-action="goal">${I('goals', 15)}Make it a savings goal</button>` : ''}
         <button type="button" class="btn btn-ghost" data-save="skipped">Skip it</button>
         <span class="pd-commit-note">Saving a decision doesn’t record a transaction.</span>
+      </div>
+      <div class="pd-proj">
+        <p class="pd-proj-desc">If your usual spending carries on, scheduled bills land on their dates and pay arrives on the ${ordinal(F.d(payday).getDate())}. ${below >= 0 ? `<b class="warn">With this plan your balance drops below your ${F.inr(r.cushion)} cushion on ${F.date(sel.dates[below], false)}.</b>` : `With this plan your balance stays above your ${F.inr(r.cushion)} cushion; its lowest point is ${F.inr(sel.low.value)} on ${F.date(sel.low.date, false)}.`}</p>
+        <details class="pd-more" data-proj-more ${projOpen ? 'open' : ''}>
+          <summary><span>Balance path, ${S.monthName(S.CUR_MONTH)} to ${S.monthName(P.base.dates[P.base.dates.length - 1].slice(0, 7))}</span>${I('chevronDown', 16)}</summary>
+          <div class="legend pd-proj-legend"><span><i class="lg-sel"></i>${names[cur]}</span><span><i class="lg-other"></i>Other plans</span><span><i class="lg-base"></i>Without it</span></div>
+          <div data-proj></div>
+        </details>
       </div>`;
   }
 
@@ -202,25 +204,25 @@ SW.pages = SW.pages || {};
     if (!el) return;
     const css = getComputedStyle(root);
     const v = n => css.getPropertyValue(n).trim();
-    const { path, base, cur } = P;
+    const { path, base, cur, names } = P;
     const dates = base.dates;
     const others = Object.keys(path).filter(k => k !== cur);
     const pays = S.paydaysUntil(dates[dates.length - 1]);
     C.line(el, {
       labels: dates.map(d => F.date(d, false)),
-      height: 240, zero: false,
+      height: 220, zero: false,
       ariaLabel: `Projected balance for each plan over ${dates.length - 1} days`,
       reference: r.cushion ? { value: r.cushion, label: `Cushion ${F.inrc(r.cushion)}`, align: 'start' } : null,
-      markers: pays.slice(0, 4).map(pd => ({ index: dates.indexOf(pd), label: '' })).filter(m => m.index > 0),
+      markers: pays.slice(0, 4).map(pd => ({ index: dates.indexOf(pd), label: '', color: v('--gray-200') })).filter(m => m.index > 0),
       series: [
-        { name: 'Without it', color: v('--gray-300'), values: base.values, dashed: true, width: 1.5 },
-        ...others.map(k => ({ name: PLAN_NAMES[k], color: v('--gray-500'), values: path[k].values, width: 1.25 })),
-        { name: PLAN_NAMES[cur], color: v('--accent'), values: path[cur].values, width: 2.5 }
+        { name: 'Without it', color: v('--gray-400'), values: base.values, dashed: true, width: 1.5 },
+        ...others.map(k => ({ name: names[k], color: v('--gray-300'), values: path[k].values, width: 1.25 })),
+        { name: names[cur], color: v('--accent'), values: path[cur].values, width: 2.5 }
       ],
       tooltip: i => `<div class="tt-title">${F.date(dates[i])}${pays.includes(dates[i]) ? ' · payday' : ''}</div>
-        ${C.row(v('--accent'), PLAN_NAMES[cur], F.inr(path[cur].values[i]))}
-        ${others.map(k => C.row(v('--gray-400'), PLAN_NAMES[k], F.inr(path[k].values[i]))).join('')}
-        ${C.row(v('--gray-300'), 'Without it', F.inr(base.values[i]), true)}`
+        ${C.row(v('--accent'), names[cur], F.inr(path[cur].values[i]))}
+        ${others.map(k => C.row(v('--gray-400'), names[k], F.inr(path[k].values[i]))).join('')}
+        ${C.row(v('--gray-400'), 'Without it', F.inr(base.values[i]), true)}`
     });
   }
 
@@ -301,16 +303,17 @@ SW.pages = SW.pages || {};
         <aside class="pd-side">${formHTML()}</aside>
         <div class="pd-main">
           <section class="pd-answer ${r.tone || ''}" data-answer aria-live="polite" aria-labelledby="ans-h">${answerHTML(r)}</section>
-          <section class="pd-snap" aria-labelledby="snap-h">
-            <div class="pd-sec-head"><h2 class="pd-sec-title" id="snap-h">Available to spend</h2><p class="pd-sec-desc">Your balance, minus what’s already promised before payday</p></div>
+          <section class="pd-fit" aria-labelledby="snap-h">
+            <div class="pd-sec-head"><h2 class="pd-sec-title" id="snap-h">How it fits</h2><p class="pd-sec-desc">Your balance, minus what’s already promised before payday${r.price ? ', and what buying it changes' : ''}</p></div>
             <div data-snap>${snapHTML(r)}</div>
-          </section>
-          <section class="pd-break" aria-labelledby="br-h" data-break ${r.price ? '' : 'hidden'}>
-            <div class="pd-sec-head"><h2 class="pd-sec-title" id="br-h">Financial impact</h2><p class="pd-sec-desc">What changes between today and payday if you buy it now</p></div>
-            <div class="pd-break-grid"><div><div class="pd-wf" data-waterfall></div><p class="pd-wf-note"><i aria-hidden="true"></i><span data-wf-note>Your safety cushion</span></p></div><div data-impact>${impactHTML(r)}</div></div>
+            <div data-break ${r.price ? '' : 'hidden'}>
+              <div data-impact>${impactHTML(r)}</div>
+              <details class="disclosure pd-steps"><summary><span>Step by step</span>${I('chevronDown', 18)}</summary>
+                <div class="disc-body"><div class="pd-wf" data-waterfall></div><p class="pd-wf-note"><i aria-hidden="true"></i><span data-wf-note>Your safety cushion</span></p></div></details>
+            </div>
           </section>
           <section class="pd-compare" aria-labelledby="cmp-h" data-compare-wrap ${r.price ? '' : 'hidden'}>
-            <div class="pd-sec-head"><h2 class="pd-sec-title" id="cmp-h">Alternative plans</h2><p class="pd-sec-desc">Buy now, delay, or save first. Pick one to see where it takes your balance.</p></div>
+            <div class="pd-sec-head"><h2 class="pd-sec-title" id="cmp-h">Your options</h2><p class="pd-sec-desc">Buy now, wait, or save first. The one you pick is the one you can save.</p></div>
             <div data-compare>${compareHTML(r, P)}</div>
           </section>
         </div>
@@ -373,6 +376,12 @@ SW.pages = SW.pages || {};
       update();
     });
     ui.on(root, 'click', '[data-pick]', (e, b) => { plan = b.dataset.pick; update(plan); });
+    ui.on(root, 'click', '.pd-plan', (e, t) => {
+      if (e.target.closest('input, label, button')) return;
+      const b = t.querySelector('[data-pick]');
+      if (b && b.dataset.pick !== (plan || plans(evaluate()).rec)) { plan = b.dataset.pick; update(plan); }
+    });
+    root.addEventListener('toggle', e => { if (e.target.matches('[data-proj-more]')) projOpen = e.target.open; }, true);
     root.addEventListener('keydown', e => {
       const b = e.target.closest('[data-pick]');
       if (!b) return;

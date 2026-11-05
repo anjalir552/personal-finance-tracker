@@ -68,9 +68,9 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 @media (hover: none) { .cal-rec-act, .pd-hist .icon-btn { opacity: 1; } }
 
 /* ==========================================================================
-   Purchase Decisions: a workspace. Inputs on the left; on the right four parts in
-   reading order, divided by space and a rule: the verdict, available to spend,
-   the impact until payday, and the alternative plans.
+   Purchase Decisions: a workspace. Inputs on the left; on the right three parts in
+   reading order, divided by space alone: the verdict, how it fits (the money bar and what
+   changes), and your options (three plans, the decision, the balance path behind a toggle).
    ========================================================================== */
 .pd { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 56px; align-items: start; }
 .pd-side { position: sticky; top: 24px; }
@@ -94,8 +94,8 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .pd-reset { margin-top: 14px; font-size: 13px; color: var(--accent-ink); }
 
 .pd-main { display: flex; flex-direction: column; min-width: 0; }
-.pd-main > section + section { margin-top: 56px; padding-top: 48px; border-top: 1px solid var(--rule); }
-.pd-main > section[hidden] + section { margin-top: 56px; }
+.pd-main > section + section { margin-top: 72px; }
+.pd-main > section[hidden] + section { margin-top: 72px; }
 
 /* The verdict: the page's lead block. Lavender when the purchase fits, lilac when it is a caution.
    The figure answers "what's left?" */
@@ -130,7 +130,9 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .pd-snap .money-bar { height: 10px; }
 .pd-snap .seg-purchase { background: var(--buy); }
 .pd-snap .key-purchase { background: var(--buy); }
-.pd-legend { margin-top: 12px; }
+.pd-legend { margin-top: 12px; gap: 6px 20px; }
+.pd-legend b { color: var(--text); font-weight: 650; margin-left: 2px; }
+.pd-fit [data-impact] { margin-top: 36px; }
 
 /* Impact: the waterfall beside the table it explains */
 .pd-break-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
@@ -148,7 +150,8 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .chart .wf-buy-label { fill: var(--buy-ink); font-weight: 600; }
 .pd-wf-note { font-size: 12px; color: var(--text-3); margin-top: 8px; display: flex; align-items: center; gap: 8px; }
 .pd-wf-note i { width: 16px; border-top: 1px dashed var(--ink); opacity: 0.6; }
-.pd-impact { width: 100%; border-collapse: collapse; font-size: 14px; }
+.pd-impact { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+.pd-impact th:first-child { width: 46%; }
 .pd-impact th, .pd-impact td { padding: 12px 0; border-bottom: 1px solid var(--rule); text-align: left; font-weight: 450; vertical-align: top; }
 .pd-impact thead th { font-size: 12px; color: var(--text-3); padding-top: 0; border-bottom-color: var(--border); }
 .pd-impact .r { text-align: right; padding-left: 16px; white-space: nowrap; }
@@ -160,9 +163,12 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .pd-why .reasons li::before { content: ""; width: 5px; height: 5px; border-radius: 99px; background: var(--gray-400); margin-top: 9px; flex: none; }
 
 /* Alternative plans: three open columns, the chosen one marked by a periwinkle rule */
-.pd-plan-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 32px; }
-.pd-plan { padding-top: 16px; border-top: 2px solid var(--gray-200); min-width: 0; transition: border-color var(--dur) var(--ease); }
-.pd-plan.on { border-top-color: var(--accent); }
+.pd-plan-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, auto); gap: 0 16px; }
+/* the tiles share their rows, so a title that wraps doesn't push one plan's figures below its neighbours' */
+@supports (grid-template-rows: subgrid) { .pd-plan { display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 0; align-content: start; } }
+.pd-plan { padding: 18px 20px 20px; border: 1px solid var(--border); border-radius: 16px; min-width: 0; cursor: pointer; transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+.pd-plan:hover { border-color: var(--control); }
+.pd-plan.on { background: var(--surface); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); cursor: default; }
 .pd-plan-pick { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 32px; font-size: 15px; font-weight: 650; color: var(--text); text-align: left; border-radius: var(--r-small); touch-action: manipulation; }
 .pd-plan-pick:hover .pd-radio { border-color: var(--ink); }
 .pd-radio { width: 18px; height: 18px; border-radius: 99px; border: 1.5px solid var(--gray-400); flex: none; display: grid; place-items: center; transition: border-color var(--dur) var(--ease); }
@@ -179,14 +185,22 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .pd-slider { display: block; margin-top: 12px; }
 .pd-slider-k { font-size: 12px; color: var(--text-3); }
 .pd-slider-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-3); }
-.pd-proj { margin-top: 40px; }
-.pd-proj-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 20px; flex-wrap: wrap; }
-.pd-proj-title { font-family: var(--font-display); font-size: 21px; font-weight: 500; letter-spacing: -0.015em; }
-.pd-proj-desc { font-size: 14px; color: var(--text-2); margin: 6px 0 16px; max-width: 76ch; line-height: 1.5; }
+.pd-proj { margin-top: 36px; }
+.pd-proj-desc { font-size: 15px; color: var(--text-2); max-width: 66ch; line-height: 1.55; }
+.pd-more { margin-top: 12px; border-top: 1px solid var(--rule); }
+.pd-more > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--text-2); border-radius: 8px; }
+.pd-more > summary::-webkit-details-marker { display: none; }
+.pd-more > summary svg { transition: transform var(--dur) var(--ease); }
+.pd-more[open] > summary svg { transform: rotate(180deg); }
+.pd-more > summary:hover { color: var(--text); }
+.pd-more > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pd-proj-legend { margin: 2px 0 12px; }
+.pd-steps { margin-top: 0; }
 .pd-proj-desc b.warn { font-weight: 600; }
-.pd-commit { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
+.pd-commit { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
 .pd-commit-note { margin-left: auto; font-size: 13px; color: var(--text-3); }
-.pd-history { margin-top: 88px; }
+.pd-history { margin-top: 96px; }
+.pd-hist .cell-sub { display: block; font-weight: 450; font-size: 12px; color: var(--text-3); margin-top: 2px; }
 .pd-hist-empty .empty { padding: 32px 0; text-align: left; }
 .pd-hist-empty .empty-icon { margin: 0 0 12px; }
 .pd-hist-empty .empty-text { margin-left: 0; }
@@ -703,7 +717,9 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 
   .pd-form { padding: 18px; }
   .pd-adjust { margin: 0 -18px -18px; padding: 0 18px 6px; }
-  .pd-main > section + section { margin-top: 40px; padding-top: 36px; }
+  .pd-main > section + section { margin-top: 48px; }
+  .pd-impact { table-layout: auto; }
+  .pd-impact th:first-child { width: auto; }
   .pd-answer { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .pd-answer-fig { align-items: flex-start; text-align: left; padding: 16px 0 0; border-left: 0; border-top: 1px solid var(--rule); }
   .pd-answer-fig .v { font-size: 44px; }
@@ -714,7 +730,8 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
   .pd-snap-fig:first-child { border-top: 0; padding-top: 0; }
   .pd-snap-fig .v { margin: 0; font-size: 18px; grid-row: 1 / span 2; grid-column: 2; align-self: center; }
   .pd-snap-fig .s { grid-column: 1; }
-  .pd-plan-row { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .pd-plan-row { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 16px; }
+  .pd-plan { grid-row: auto; display: block; }
   .pd-commit .btn { flex: 1 1 auto; }
   .pd-commit-note { margin-left: 0; width: 100%; }
   .pd-history { margin-top: 56px; }
