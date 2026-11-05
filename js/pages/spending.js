@@ -54,22 +54,23 @@ SW.pages = SW.pages || {};
     }
     const share = v => F.pct(split.total ? v / split.total : 0);
     return `<section class="sa-lead" aria-labelledby="sa-lead-h">
-      <div class="sa-total">
-        <h2 class="sa-eyebrow" id="sa-lead-h">${partial ? `Spent so far in ${mLong}` : `Spent in ${mLong}`}</h2>
-        <div class="sa-big num">${F.inr(total)}</div>
+      <div class="sa-top">
+        <div class="sa-total">
+          <h2 class="sa-eyebrow" id="sa-lead-h">${partial ? `Spent so far in ${mLong}` : `Spent in ${mLong}`}</h2>
+          <div class="sa-big num">${F.inr(total)}</div>
+        </div>
         ${change}
       </div>
       <div class="sa-split">
-        <h3 class="sa-eyebrow">Essentials and the rest</h3>
         <div class="sa-splitbar" role="img" aria-label="Essentials ${F.inr(split.essential)}, non-essentials ${F.inr(split.nonEssential)}">
           <span class="e" style="flex:${split.essential || 0.0001}"></span><span class="n" style="flex:${split.nonEssential || 0.0001}"></span>
         </div>
         <dl class="sa-splitfigs">
-          <div><dt><i class="e"></i>Essentials</dt><dd class="num">${F.inr(split.essential)}</dd><dd class="s">${share(split.essential)} · rent, bills, groceries, transport</dd></div>
-          <div><dt><i class="n"></i>Non-essentials</dt><dd class="num">${F.inr(split.nonEssential)}</dd><dd class="s">${share(split.nonEssential)} · eating out, shopping, fun</dd></div>
+          <div title="Rent, bills, groceries, transport"><dt><i class="e"></i>Essentials<span class="p">${share(split.essential)}</span></dt><dd class="num">${F.inr(split.essential)}</dd></div>
+          <div title="Eating out, shopping, fun"><dt><i class="n"></i>Non-essentials<span class="p">${share(split.nonEssential)}</span></dt><dd class="num">${F.inr(split.nonEssential)}</dd></div>
         </dl>
-        ${note ? `<p class="sa-note">${note}</p>` : ''}
       </div>
+      ${note ? `<p class="sa-note">${note}</p>` : ''}
     </section>`;
   }
 
