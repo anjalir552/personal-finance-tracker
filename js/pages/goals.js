@@ -147,17 +147,21 @@ SW.pages = SW.pages || {};
           <button type="button" class="btn btn-ghost btn-sm" data-action="plan-reset" ${dirty ? '' : 'disabled'}>Reset</button>
           <button type="button" class="btn btn-primary btn-sm" data-action="plan-save" ${dirty ? '' : 'disabled'}>Save plan</button>
         </div></div>
-      <div class="sg-plan">${active.map(g => {
-        const s = S.goalStatus(g);
-        const m = draft[g.id] != null ? draft[g.id] : g.monthly;
-        return `<div class="sg-plan-row">
-          <div class="sg-plan-name"><label for="pm-${g.id}">${F.esc(g.name)}</label>
-            <span class="sg-plan-sub" data-finish="${g.id}">${planRowSub(g, m)}</span>
-            <span class="sg-plan-need">Needs about ${F.inr(round100(s.suggested))} a month</span></div>
-          <div class="input-affix has-pre sg-plan-in"><span class="affix pre">₹</span><input class="input num" id="pm-${g.id}" name="plan-${g.id}" data-plan="${g.id}" inputmode="numeric" autocomplete="off" value="${m ? F.num(m) : ''}" placeholder="0" data-money /></div>
-        </div>`;
-      }).join('')}</div>
-      <div class="sg-plan-totals" data-totals aria-live="polite">${plannerTotals(active)}</div>`;
+      <div class="sg-plan-grid">
+        <div class="sg-plan">${active.map(g => {
+          const s = S.goalStatus(g);
+          const m = draft[g.id] != null ? draft[g.id] : g.monthly;
+          return `<div class="sg-plan-row">
+            <div class="sg-plan-name"><label for="pm-${g.id}">${F.esc(g.name)}</label>
+              <span class="sg-plan-sub" data-finish="${g.id}">${planRowSub(g, m)}</span></div>
+            <span class="sg-plan-need num">needs ${F.inr(round100(s.suggested))}</span>
+            <div class="input-affix has-pre sg-plan-in"><span class="affix pre">₹</span><input class="input num" id="pm-${g.id}" name="plan-${g.id}" data-plan="${g.id}" inputmode="numeric" autocomplete="off" value="${m ? F.num(m) : ''}" placeholder="0" data-money /></div>
+          </div>`;
+        }).join('')}
+          <div class="sg-plan-totals" data-totals aria-live="polite">${plannerTotals(active)}</div>
+        </div>
+        <aside class="sg-side"><section class="sg-milestones" aria-labelledby="ms-h">${milestonesHTML(active)}</section></aside>
+      </div>`;
   }
 
   /* ---------- Milestones ahead: the next three; the rest on request ---------- */
@@ -165,8 +169,8 @@ SW.pages = SW.pages || {};
     const next = active.flatMap(g => S.goalMilestones(g).filter(m => !m.reached && m.eta).map(m => ({ g, m })))
       .sort((a, b) => a.m.eta.localeCompare(b.m.eta) || a.m.p - b.m.p);
     if (!next.length) return '';
-    const row = x => `<li><span class="m num">${monthYear(x.m.eta)}</span><span class="n">${F.esc(x.g.name)} <span class="subtle">${x.m.p === 1 ? 'reaches its target' : `hits ${F.pct(x.m.p)}`}</span></span></li>`;
-    return `<div class="sg-sec-head"><div><h2 class="sg-sec-title" id="ms-h">Coming up</h2></div></div>
+    const row = x => `<li><span class="m num">${monthYear(x.m.eta)}</span><span class="n">${F.esc(x.g.name)} <span class="subtle">${x.m.p === 1 ? 'reaches its target' : `reaches ${F.pct(x.m.p)}`}</span></span></li>`;
+    return `<h3 class="sg-side-title" id="ms-h">Coming up</h3>
       <ol class="sg-next">${next.slice(0, 3).map(row).join('')}</ol>
       ${next.length > 3 ? `<details class="sg-more sg-next-more"><summary><span>Show ${next.length - 3} more</span>${I('chevronDown', 16)}</summary><ol class="sg-next">${next.slice(3, 9).map(row).join('')}</ol></details>` : ''}`;
   }
@@ -193,10 +197,7 @@ SW.pages = SW.pages || {};
         ${reached.length ? `<details class="disclosure sg-reached"><summary><span>Reached goals<span class="sum-sub">${reached.length}</span></span>${I('chevronDown', 18)}</summary>
           <div class="disc-body"><div class="sg-list">${reached.map(goalHTML).join('')}</div></div></details>` : ''}
       </section>
-      ${active.length ? `<div class="sg-lower">
-        <section class="sg-planner" aria-labelledby="pl-h">${plannerHTML(active)}</section>
-        <section class="sg-milestones" aria-labelledby="ms-h">${milestonesHTML(active)}</section>
-      </div>` : ''}
+      ${active.length ? `<section class="sg-planner" aria-labelledby="pl-h">${plannerHTML(active)}</section>` : ''}
       ${active.length ? `<details class="sg-more sg-how"><summary><span>How these numbers are worked out</span>${I('chevronDown', 16)}</summary><p>“Needs” is what’s left divided by the months to the deadline, rounded up to the nearest ₹100. Money you add is recorded as a transfer, so your available balance goes down by the same amount.</p></details>` : ''}`;
   }
 
@@ -305,7 +306,12 @@ SW.pages = SW.pages || {};
 
   function mount(root) {
     const active = () => S.activeGoals();
-    root.querySelectorAll('[data-more]').forEach(d => d.addEventListener('toggle', () => { if (d.open) drawTrajectories(root, d.dataset.more); }));
+    // Details open and close together so cards in a row stay the same height
+    root.querySelectorAll('[data-more]').forEach(d => d.addEventListener('toggle', () => {
+      const grid = d.closest('.sg-list');
+      grid.querySelectorAll('[data-more]').forEach(o => { if (o.open !== d.open) o.open = d.open; });
+      if (d.open) drawTrajectories(root, d.dataset.more);
+    }));
     const planner = root.querySelector('.sg-planner');
     if (planner) {
       ui.bindMoney(planner);
