@@ -537,32 +537,53 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .f-left { background: var(--gray-300); }
 .f-over { background: var(--alert); }
 
-.fi-section { margin-top: 80px; padding-top: 40px; border-top: 1px solid var(--border); }
-.fi-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: start; }
-.fi-chart { min-width: 0; }
-.fi-chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 14px; }
-.fi-chart-title { font-family: var(--font-display); font-size: 19px; font-weight: 500; color: var(--text); letter-spacing: -0.01em; }
-.fi-chart-note { font-size: 12px; color: var(--text-3); }
-.fi-chart-hint { font-size: 13px; color: var(--text-3); margin-top: 10px; line-height: 1.5; }
+.fi-section { margin-top: 64px; padding-top: 0; }
+
+/* The analysis board: Spending and Savings on one white surface. Two bands share one 7 / 5 grid,
+   so the chart widths and the divider line up from the first band to the second. */
+.fi-board { margin-top: 48px; background: var(--surface); border-radius: 24px; }
+.fi-band { padding: 30px 36px 32px; }
+.fi-band + .fi-band { border-top: 1px solid var(--rule); }
+.fi-band-head { display: flex; align-items: baseline; gap: 4px 20px; flex-wrap: wrap; margin-bottom: 26px; }
+.fi-band-head .fi-sec-desc { margin: 0; font-size: 14px; flex: 1 1 320px; }
+.fi-duo { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: stretch; }
+.fi-duo > .fi-chart:first-child { padding-right: 36px; }
+.fi-duo > .fi-chart + .fi-chart { padding-left: 36px; border-left: 1px solid var(--rule); }
+.fi-chart { min-width: 0; display: flex; flex-direction: column; }
+.fi-chart-head { display: flex; justify-content: space-between; align-items: center; gap: 6px 16px; flex-wrap: wrap; margin-bottom: 10px; }
+.fi-chart-title { font-family: var(--font); font-size: 14px; font-weight: 650; color: var(--text); letter-spacing: 0; }
+.fi-chart-hint { font-size: 12.5px; color: var(--text-3); margin-top: 8px; line-height: 1.5; }
 .fi-chart-hint b { color: var(--text); font-weight: 650; }
 .fi-chart-hint b.warn { color: var(--alert-ink); }
 .fi-chart-hint b.pos { color: var(--pos); }
+.fi-lead { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; margin: 0 0 8px; }
+.fi-lead .v { font-family: var(--font-display); font-size: 34px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.1; }
+.fi-lead .pos { color: var(--pos); }
+.fi-lead .warn { color: var(--alert-ink); }
+.fi-lead .n { font-size: 13px; color: var(--text-3); }
+.fi-chart .legend { gap: 4px 14px; font-size: 12px; }
 .fi-chart .legend i.f-ess { background: var(--navy-700); }
-.fi-chart .legend i.f-non { background: var(--data); }
+.fi-chart .legend i.f-non { background: var(--c-spent); }
+.fi-chart .legend i.lg-rate { background: var(--c-spent); }
+.fi-chart .legend i.lg-guide { background: none; height: 0; width: 14px; border-top: 1.5px dashed var(--ink); border-radius: 0; opacity: 0.6; }
+.fi-chart .legend i.lg-usual { width: 2px; height: 12px; border-radius: 1px; background: var(--ink); }
 
-.fi-split { display: flex; flex-direction: column; gap: 26px; padding-top: 4px; }
+.fi-split { display: flex; flex-direction: column; gap: 20px; flex: 1; }
+.fi-split-row { display: flex; flex-direction: column; }
 .fi-split-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .fi-split-top .n { display: flex; flex-direction: column; font-size: 14px; font-weight: 600; }
 .fi-split-top .d { font-size: 12px; color: var(--text-3); font-weight: 450; margin-top: 2px; }
-.fi-split-top .v { font-family: var(--font-display); font-size: 26px; font-weight: 500; letter-spacing: -0.02em; }
+.fi-split-top .v { font-family: var(--font-display); font-size: 24px; font-weight: 500; letter-spacing: -0.02em; }
 .fi-bullet { position: relative; height: 10px; margin-top: 10px; border-radius: 99px; background: var(--gray-100); }
 .fi-bullet b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; }
+.fi-bullet b.f-ess { background: var(--navy-700); }
+.fi-bullet b.f-non { background: var(--c-spent); }
 .fi-bullet i { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 1px; }
 .fi-split-sub { font-size: 13px; color: var(--text-3); margin-top: 8px; }
 .fi-split-sub .warn { color: var(--alert-ink); font-weight: 600; }
 .fi-split-sub .pos { color: var(--pos); font-weight: 600; }
-.fi-split-note { font-size: 13px; color: var(--text-2); line-height: 1.55; padding-top: 16px; border-top: 1px solid var(--rule); }
-.fi-split-note b { color: var(--text); }
+.fi-split-note { font-size: 12.5px; color: var(--text-3); line-height: 1.5; margin-top: auto; }
+.fi-split .fi-lead { margin: 0; }
 
 .fi-cats .fi-sec-head .link { font-size: 13px; }
 .fi-table .cell-title { width: 26%; }
@@ -703,7 +724,13 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
   .fi-mbtn[aria-pressed="true"]::after { left: 12px; right: 12px; }
   .fi-fig .v { font-size: 22px; }
   .fi-chg { font-size: 12px; }
-  .fi-section { margin-top: 56px; padding-top: 32px; }
+  .fi-section { margin-top: 48px; }
+  .fi-board { margin-top: 32px; border-radius: 20px; }
+  .fi-band { padding: 24px 20px 26px; }
+  .fi-duo { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .fi-duo > .fi-chart:first-child { padding-right: 0; }
+  .fi-duo > .fi-chart + .fi-chart { padding-left: 0; border-left: 0; padding-top: 28px; border-top: 1px solid var(--rule); }
+  .fi-lead .v { font-size: 28px; }
   .fi-table th:first-child { width: auto; }
   .fi-bar-col { display: none; }
   .fi-ob { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 18px 0; }
