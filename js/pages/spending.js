@@ -29,6 +29,82 @@ SW.pages = SW.pages || {};
     return out;
   }
 
+  let catsAll = false, notesAll = false;   // progressive disclosure
+  const CATS_SHOWN = 7, NOTES_SHOWN = 3;
+
+  /** "₹6,200 (13%) more than September": the one change line under the headline figure */
+  function changeLine(total, prevTotal, prevKey) {
+    const d = total - prevTotal;
+    if (Math.abs(d / prevTotal) < 0.01) return `<span class="sa-chg flat">About the same as ${S.monthName(prevKey, true)}</span>`;
+    return `<span class="sa-chg ${d > 0 ? 'up' : 'down'}">${I(d > 0 ? 'arrowUp' : 'arrowDown', 14)}${F.inr(Math.abs(d))} (${F.pct(Math.abs(d / prevTotal))}) ${d > 0 ? 'more' : 'less'} than ${S.monthName(prevKey, true)}</span>`;
+  }
+
+  function leadHTML({ month, prev, total, prevTotal, partial, split, mover }) {
+    const mLong = S.monthName(month, true);
+    const change = !prev || !prevTotal ? `<span class="sa-chg flat">No earlier month to compare with</span>`
+      : partial ? `<span class="sa-chg flat">Month in progress. ${S.monthName(prev, true)} came to ${F.inr(prevTotal)}.</span>`
+      : changeLine(total, prevTotal, prev);
+    const pe = prev ? S.essentialSplit(prev) : null;
+    let note = '';
+    if (pe) {
+      const dn = split.nonEssential - pe.nonEssential;
+      note = partial ? `So far this month. Last month, non-essentials were ${F.inr(pe.nonEssential)} in total.`
+        : Math.abs(dn) < 300 ? `Non-essentials were about the same as in ${S.monthName(prev, true)}.`
+        : `Non-essentials were <b>${F.inr(Math.abs(dn))} ${dn > 0 ? 'higher' : 'lower'}</b> than in ${S.monthName(prev, true)}, while essentials ${Math.abs(split.essential - pe.essential) < 500 ? 'stayed about the same' : `changed by ${F.inr(split.essential - pe.essential)}`}.`;
+    }
+    const share = v => F.pct(split.total ? v / split.total : 0);
+    return `<section class="sa-lead" aria-labelledby="sa-lead-h">
+      <div class="sa-total">
+        <h2 class="sa-eyebrow" id="sa-lead-h">${partial ? `Spent so far in ${mLong}` : `Spent in ${mLong}`}</h2>
+        <div class="sa-big num">${F.inr(total)}</div>
+        ${change}
+      </div>
+      <div class="sa-split">
+        <h3 class="sa-eyebrow">Essentials and the rest</h3>
+        <div class="sa-splitbar" role="img" aria-label="Essentials ${F.inr(split.essential)}, non-essentials ${F.inr(split.nonEssential)}">
+          <span class="e" style="flex:${split.essential || 0.0001}"></span><span class="n" style="flex:${split.nonEssential || 0.0001}"></span>
+        </div>
+        <dl class="sa-splitfigs">
+          <div><dt><i class="e"></i>Essentials</dt><dd class="num">${F.inr(split.essential)}</dd><dd class="s">${share(split.essential)} · rent, bills, groceries, transport</dd></div>
+          <div><dt><i class="n"></i>Non-essentials</dt><dd class="num">${F.inr(split.nonEssential)}</dd><dd class="s">${share(split.nonEssential)} · eating out, shopping, fun</dd></div>
+        </dl>
+        ${note ? `<p class="sa-note">${note}</p>` : ''}
+      </div>
+    </section>`;
+  }
+
+  function categoriesHTML(cats, prev, month) {
+    const max = Math.max(1, ...cats.map(x => Math.max(x.v, x.p)));
+    const shown = catsAll ? cats : cats.slice(0, CATS_SHOWN);
+    return `<div class="sa-cats">
+      <div class="sa-cats-head"><h3 class="sa-sub-title">By category</h3>
+        ${prev ? `<span class="sa-key"><i class="bar"></i>${S.monthName(month, true)}<i class="tick"></i>${S.monthName(prev, true)}</span>` : ''}</div>
+      <ol class="sa-catlist">${shown.map(x => {
+        const d = x.v - x.p, ess = S.cat(x.c).essential;
+        const flag = prev && x.p && d > 0 && d / x.p > 0.25 && d >= 100 && !ess;
+        const dTxt = !prev ? '' : !x.p ? 'New' : Math.abs(d) < 100 ? 'Steady' : `${d > 0 ? '+' : '−'}${F.inr(Math.abs(d))}`;
+        const cls = flag ? 'flag' : prev && d < -100 ? 'down' : '';
+        return `<li class="sa-cat">
+          <span class="sa-cname"><i class="ess${ess ? '' : ' no'}"></i><span>${F.esc(x.c)}</span><span class="sr-only">${ess ? ', essential' : ', non-essential'}</span></span>
+          <span class="sa-track" aria-hidden="true"><b class="${flag ? 'flag' : ''}" style="width:${(x.v / max) * 100}%"></b>${prev && x.p ? `<u style="left:${(x.p / max) * 100}%"></u>` : ''}</span>
+          <span class="sa-amt num">${F.inr(x.v)}</span>
+          ${prev ? `<span class="sa-d num ${cls}">${dTxt}</span>` : ''}
+        </li>`;
+      }).join('')}</ol>
+      <div class="sa-foot"><p class="sa-key"><i class="ess"></i>Essential <i class="ess no"></i>Non-essential</p>
+        ${cats.length > CATS_SHOWN ? `<button type="button" class="link sa-more" data-cats-more aria-expanded="${catsAll}">${catsAll ? 'Show fewer' : `Show all ${cats.length} categories`}</button>` : ''}</div>
+    </div>`;
+  }
+
+  function notesHTML(notes) {
+    const shown = notesAll ? notes : notes.slice(0, NOTES_SHOWN);
+    return `<div class="sa-notes">
+      <h3 class="sa-sub-title">Worth a look</h3>
+      <ul class="sa-notelist">${shown.map(p => `<li class="${p.tone || ''}"><div class="k">${p.k}</div><div class="t">${F.esc(p.t)}</div><div class="d">${p.d}</div></li>`).join('')}</ul>
+      ${notes.length > NOTES_SHOWN ? `<button type="button" class="link sa-more" data-notes-more aria-expanded="${notesAll}">${notesAll ? 'Show fewer' : `Show ${notes.length - NOTES_SHOWN} more`}</button>` : ''}
+    </div>`;
+  }
+
   function render() {
     const months = S.months().filter(k => S.inMonth(k, 'expense').length);
     if (!months.length) {
@@ -42,74 +118,43 @@ SW.pages = SW.pages || {};
     const cur = S.byCategory(month), was = prev ? S.byCategory(prev) : {};
     const total = S.spent(month), prevTotal = prev ? S.spent(prev) : 0;
     const cats = Object.keys(Object.assign({}, cur, was)).map(c => ({ c, v: cur[c] || 0, p: was[c] || 0 })).filter(x => x.v || x.p).sort((a, b) => b.v - a.v);
-    const max = Math.max(1, ...cats.map(x => Math.max(x.v, x.p)));
     const mover = cats.slice().sort((a, b) => (b.v - b.p) - (a.v - a.p))[0];
     const split = S.essentialSplit(month);
     const partial = month === S.CUR_MONTH;
 
-    let sub = `You spent <b>${F.inr(total)}</b> in ${monthLabel(month)}.`;
-    if (prev && !partial && prevTotal) {
-      const d = total / prevTotal - 1;
-      sub = `You spent <b>${F.inr(total)}</b> in ${S.monthName(month, true)}, ${Math.abs(d) < 0.01 ? 'about the same as' : `${F.pct(Math.abs(d))} ${d > 0 ? 'more' : 'less'} than`} ${S.monthName(prev, true)}.`;
-      if (mover && mover.v - mover.p > 500) sub += ` The biggest change was ${mover.c.toLowerCase()} (+${F.inr(mover.v - mover.p)}).`;
+    // What to look at: the biggest rise first (complete months only), then the patterns in the transactions
+    const notes = patterns(month);
+    if (prev && !partial && prevTotal && mover && mover.v - mover.p > 500) {
+      notes.unshift({ k: 'Biggest rise', tone: 'attention', t: `${mover.c}, +${F.inr(mover.v - mover.p)}`, d: `${F.inr(mover.v)} in ${S.monthName(month, true)}, up from ${F.inr(mover.p)} in ${S.monthName(prev, true)}.` });
     }
     const segMonths = months.slice(-5);
 
     return `
-      ${ui.pageHeader({ title: 'Spending Analysis', sub, actions: ui.segmented('smonth', segMonths.map(k => ({ value: k, label: S.monthName(k) + (k === S.CUR_MONTH ? ' (so far)' : '') })), month, 'Month') })}
+      ${ui.pageHeader({ title: 'Spending Analysis', sub: `Where your money went in ${monthLabel(month)}${prev ? ` and what changed since ${S.monthName(prev, true)}` : ''}.` })}
 
-      <div class="grid grid-main">
-        <section class="panel" aria-labelledby="cat-h">
-          <div class="panel-head"><div><h2 class="panel-title" id="cat-h">Where it went</h2><div class="panel-desc">By category, ${monthLabel(month)}${prev ? ` against ${S.monthName(prev, true)}` : ''}</div></div>
-            <div class="panel-figure">${F.inr(total)}</div></div>
-          <div class="panel-body">
-            ${prev ? `<div class="legend" style="margin-bottom:18px"><span><i style="background:var(--data);height:6px;border-radius:99px"></i>${S.monthName(month, true)}</span><span><i style="background:var(--data-prev);height:3px;border-radius:99px"></i>${S.monthName(prev, true)}</span><span><i style="background:var(--ess);border-radius:99px;width:7px;height:7px"></i>Essential</span></div>` : ''}
-            <div class="cat-list">${cats.map(x => {
-              const d = x.v - x.p;
-              const dTxt = !prev ? '' : !x.p ? 'new' : Math.abs(d) < 100 ? 'about the same' : `${d > 0 ? '+' : '−'}${F.inr(Math.abs(d))}`;
-              // More spending is shown in lilac only for non-essentials that rose by more than 25%
-              const cls = prev && x.p && d > 0 && d / x.p > 0.25 && !S.cat(x.c).essential ? 'up' : prev && d < -100 ? 'down' : '';
-              return `<div class="cat-row">
-                <div class="name"><i class="ess${S.cat(x.c).essential ? '' : ' no'}" aria-label="${S.cat(x.c).essential ? 'Essential' : 'Non-essential'}"></i><span>${F.esc(x.c)}</span></div>
-                <div class="cat-track"><b style="width:${(x.v / max) * 100}%"></b>${prev ? `<b class="prev" style="width:${(x.p / max) * 100}%"></b>` : ''}</div>
-                <div class="fig"><div class="v">${F.inr(x.v)}</div>${prev ? `<div class="d ${cls}">${dTxt}</div>` : ''}</div>
-              </div>`;
-            }).join('')}</div>
-          </div>
-        </section>
-
-        <div class="stack">
-          <section class="panel tone-lavender" aria-labelledby="ess-h">
-            <div class="panel-head"><div><h2 class="panel-title" id="ess-h">Essentials vs non-essentials</h2><div class="panel-desc">${monthLabel(month)}</div></div></div>
-            <div class="panel-body">
-              <div class="money-bar" aria-hidden="true" style="height:20px">
-                <span class="seg seg-bills" style="flex:${split.essential || 0.0001}"></span><span class="seg seg-goals" style="flex:${split.nonEssential || 0.0001};border-radius:0 8px 8px 0"></span>
-              </div>
-              <div class="before-after" style="grid-template-columns:1fr 1fr">
-                <div><div class="k"><span class="legend"><span><i class="key-bills"></i>Essentials</span></span></div><div class="v num">${F.inr(split.essential)}</div><div class="s">${F.pct(split.total ? split.essential / split.total : 0)} · rent, bills, groceries, transport</div></div>
-                <div><div class="k"><span class="legend"><span><i class="key-goals"></i>Non-essentials</span></span></div><div class="v num">${F.inr(split.nonEssential)}</div><div class="s">${F.pct(split.total ? split.nonEssential / split.total : 0)} · eating out, shopping, fun</div></div>
-              </div>
-              ${prev ? (() => {
-                const ps = S.essentialSplit(prev);
-                const dn = split.nonEssential - ps.nonEssential;
-                return `<p class="callout" style="margin-top:18px">${I('info', 16)}<span>${partial ? `So far this month. Last month, non-essentials were ${F.inr(ps.nonEssential)} in total.` : Math.abs(dn) < 300 ? `Non-essential spending was about the same as in ${S.monthName(prev, true)}.` : `Non-essentials were <b>${F.inr(Math.abs(dn))} ${dn > 0 ? 'higher' : 'lower'}</b> than in ${S.monthName(prev, true)}, while essentials ${Math.abs(split.essential - ps.essential) < 500 ? 'stayed about the same' : `changed by ${F.inr(split.essential - ps.essential)}`}.`}</span></p>`;
-              })() : ''}
-            </div>
-          </section>
-
-          <section class="panel" aria-labelledby="pat-h">
-            <div class="panel-head"><div><h2 class="panel-title" id="pat-h">Patterns</h2><div class="panel-desc">What stands out in ${monthLabel(month)}</div></div></div>
-            <ul class="list">${patterns(month).map(p => `<li class="list-item" style="align-items:flex-start"><div class="grow">
-              <div class="li-sub">${p.k}</div><div class="li-title" style="margin-top:2px">${F.esc(p.t)}</div><div class="li-sub" style="margin-top:2px">${p.d}</div></div></li>`).join('')}</ul>
-          </section>
-        </div>
+      <div class="sa-bar">
+        ${ui.segmented('smonth', segMonths.map(k => ({ value: k, label: S.monthName(k) + (k === S.CUR_MONTH ? ' (so far)' : '') })), month, 'Month')}
+        <span class="sa-vs">${prev ? `Compared with ${S.monthName(prev, true)}` : 'First month on record'}</span>
       </div>
 
-      <section class="panel section" aria-labelledby="mm-h">
-        <div class="panel-head"><div><h2 class="panel-title" id="mm-h">Month by month</h2><div class="panel-desc">Essential and non-essential spending for complete months</div></div>
-          <div class="legend" style="margin-top:6px"><span><i style="background:var(--chart-1)"></i>Essentials</span><span><i style="background:var(--chart-2)"></i>Non-essentials</span></div></div>
-        <div class="panel-body"><div id="mm-chart"></div></div>
-      </section>`;
+      ${leadHTML({ month, prev, total, prevTotal, partial, split, mover })}
+
+      <div class="fi-board sa-board">
+        <section class="fi-band" aria-labelledby="cat-h">
+          <h2 class="fi-sec-title" id="cat-h">Where it went</h2>
+          <p class="fi-sec-desc">${F.inr(total)} across ${cats.filter(x => x.v).length} categories${prev ? `. Lilac bars are non-essentials that rose by more than a quarter.` : '.'}</p>
+          <div class="fi-duo sa-duo">
+            <div class="fi-chart">${categoriesHTML(cats, prev, month)}</div>
+            <div class="fi-chart">${notesHTML(notes)}</div>
+          </div>
+        </section>
+        <section class="fi-band" aria-labelledby="mm-h">
+          <div class="sa-sec-row"><div><h2 class="fi-sec-title" id="mm-h">Month by month</h2>
+            <p class="fi-sec-desc">Essential and non-essential spending for complete months</p></div>
+            <div class="legend"><span><i style="background:var(--chart-1)"></i>Essentials</span><span><i style="background:var(--chart-2)"></i>Non-essentials</span></div></div>
+          <div id="mm-chart" class="sa-chart"></div>
+        </section>
+      </div>`;
   }
 
   function draw(root) {
@@ -134,7 +179,9 @@ SW.pages = SW.pages || {};
 
   function mount(root) {
     draw(root);
-    ui.on(root, 'click', '[data-seg="smonth"] button', (e, b) => { month = b.dataset.value; SW.refresh(); });
+    ui.on(root, 'click', '[data-seg="smonth"] button', (e, b) => { month = b.dataset.value; catsAll = notesAll = false; SW.refresh(); });
+    ui.on(root, 'click', '[data-cats-more]', () => { catsAll = !catsAll; SW.refresh(); });
+    ui.on(root, 'click', '[data-notes-more]', () => { notesAll = !notesAll; SW.refresh(); });
   }
 
   SW.pages.spending = { render, mount };
