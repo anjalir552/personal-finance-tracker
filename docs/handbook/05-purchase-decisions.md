@@ -16,11 +16,11 @@ This is the heart of Scopewise. On screen the page title is **Can I afford it?**
 
 ## 2. Page layout
 
-The page is a decision workspace: you describe the purchase on the left, and the right answers from your own numbers in four parts, redrawing as you type.
+The page is a decision workspace: you describe the purchase in a band at the top, and the sections below answer from your own numbers, redrawing as you type. Nothing on the page scrolls inside itself; it simply grows, and the browser scrolls the page.
 
 1. **Header:** "Purchase Decisions" and a short explanation
-2. **The purchase** (left, stays in view as you scroll): *What are you buying?*, *Category*, *Price*, *When would you like it?* and **Try a what-if**
-3. **The answer** (top right): verdict tag, a short headline, one sentence of reasons including how the price compares with what you usually spend in that category, and the big figure **Left until payday if you buy it today** (lilac when it falls below your cushion)
+2. **The purchase** (top band, three columns): *What are you buying?* and *Category*; *Price*; *When would you like it?* with its shortcuts (**Today**, **Payday**, **In 2 months**). **Try a what-if** is a quiet row beneath that opens in place
+3. **The answer** (below the form): verdict tag, a short headline, one sentence of reasons including how the price compares with what you usually spend in that category, a **Choose how to buy it** button (it scrolls to the options, and names the best fit), and the big figure **Left until payday if you buy it today** (lilac when it falls below your cushion)
 4. **Available to spend:** Current balance − Committed before payday = Available to spend, then the purchase, with the money bar underneath
 5. **Financial impact:** a waterfall chart (Balance − Bills − Essentials − Savings = Available − Purchase = Left, with your safety cushion as a dashed line) beside the impact table and **Why this answer**
 6. **Alternative plans:** buy now, delay or save first as three columns (the chosen one has a periwinkle rule), a chart of your projected balance for each plan, and the buttons that save your decision
@@ -31,8 +31,7 @@ The page is a decision workspace: you describe the purchase on the left, and the
 
 ### 3.1 Item and price
 - **What it does:** describes the purchase. It starts with an example: *Noise-cancelling headphones, ₹14,990*.
-- **How to use it:** type the name, then type the price in the large box or drag the slider under it. The slider goes up to ₹50,000, or further if you type a bigger price.
-- **Good to know:** the hint says to include delivery, fees or anything you'd pay with it.
+- **How to use it:** type the name, pick a category, then type the price in the box. Include delivery, fees or anything you'd pay with it.
 
 ### 3.2 The running sum
 The whole check reads as one sum, left to right:

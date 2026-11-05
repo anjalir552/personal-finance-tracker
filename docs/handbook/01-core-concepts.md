@@ -6,7 +6,7 @@ Read this chapter first. It explains the parts that every page shares.
 
 | Area | What it is |
 |---|---|
-| **Sidebar** (left) | The Scopewise logo, which links to Overview, plus all pages in three groups, your name and life stage at the bottom |
+| **Sidebar** (left) | The Scopewise logo, which links to Overview, a button to collapse it, plus all pages in three groups, your name and life stage at the bottom. Collapsed, it becomes a narrow icon rail with a tooltip for each item, and the page uses the freed width. Your choice is remembered; tablets start collapsed |
 | **Top bar** (phones and small screens) | A ☰ menu button that opens the sidebar as a drawer. Tap outside it or press `Esc` to close it |
 | **Main area** | The page you're on |
 | **Pop-up windows** | Forms such as Add transaction or New goal, and "Are you sure?" confirmations. Close them with ✕, **Cancel**, `Esc` or by clicking outside |
@@ -106,7 +106,7 @@ One palette is used on every page.
 | **Lavender** `#B8C0FF` | Secondary accents: comparisons (such as last month's bars in Spending Analysis), the savings layer of the money bar, avatars and selected text |
 | **Lilac** `#E7C6FF` | Used sparingly: the purchase you're weighing on Purchase Decisions, and anything that needs attention (overdue, due within 3 days, behind plan, past the deadline, a plan that's short, a big rise in a non-essential category). Marks use `#9C45AA` and lilac text uses `#7B2C88` |
 | **White** `#FFFFFF` | Cards, panels and pop-up windows |
-| **Cool off-white** `#F6F7FA` | The page background and the sidebar |
+| **Pale periwinkle** `#E3EAFF` | The page background. The sidebar and the frame around the page use periwinkle `#C4D6FF` |
 
 In the money bar, committed money is shown in navy steps: bills in dark navy and everyday essentials in a mid navy-grey. Savings are lavender and free to spend is periwinkle.
 

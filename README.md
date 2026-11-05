@@ -42,7 +42,8 @@ Scopewise shows what you can spend once the money already promised elsewhere is 
 
 Also included:
 - **Private by design**: all data is stored in your browser's `localStorage`. Nothing is sent to a server, and there's no sign-in.
-- **Responsive layout**: a collapsible sidebar and stacked layouts for smaller screens.
+- **Collapsible sidebar**: collapse the navigation to an icon rail (with tooltips) or expand it again. The choice is remembered in your browser, tablets get the rail automatically, and on phones it becomes a drawer opened from the top bar.
+- **Responsive layout**: page content uses the width beside the sidebar, and layouts stack on smaller screens.
 - **Accessibility**: a skip link, ARIA labels and live regions, keyboard-focusable controls, and `prefers-reduced-motion` support.
 - **Indian Rupee formatting**: amounts use the `en-IN` locale (for example ₹1,50,000).
 
@@ -59,6 +60,8 @@ All screenshots are from the running application with its built-in example data.
 | ![Spending Analysis](docs/screenshots/spending.png) | ![Transactions](docs/screenshots/transactions.png) |
 | **Overview** | **Settings** |
 | ![Overview](docs/screenshots/overview.png) | ![Settings](docs/screenshots/settings.png) |
+| **Collapsed sidebar** | |
+| ![Savings Goals with the sidebar collapsed to an icon rail](docs/screenshots/sidebar-collapsed.png) | |
 
 ## Tech stack
 
@@ -149,7 +152,7 @@ The project doesn't have an automated test suite yet. Before each release it's c
 for f in js/*.js js/pages/*.js; do node --check "$f"; done
 ```
 
-Each of the eight pages was also loaded in a headless browser to confirm that it renders without console errors.
+Each of the eight pages was also loaded in a headless browser at desktop, tablet and phone widths to confirm that it renders without console errors, horizontal overflow or scroll areas inside the page. Sidebar collapse and expand, and the Purchase Decisions inputs, what-if and plan options, were exercised there too.
 
 ## Using the app
 

@@ -66,7 +66,7 @@ SW.pages = SW.pages || {};
   }
 
   /* ---------- The answer ---------- */
-  function answerHTML(r) {
+  function answerHTML(r, P) {
     const avg = S.categoryAverage(inp.category);
     const catLine = r.price && avg > 0 ? `You usually spend ${F.inr(avg)} a month on ${inp.category.toLowerCase()}; this is ${r.price >= avg * 1.95 ? `${(r.price / avg).toFixed(1).replace(/\.0$/, '')}× that` : F.pct(r.price / avg) + ' of it'}.`
       : r.price ? `You haven’t spent on ${inp.category.toLowerCase()} in the last three months${S.cat(inp.category).essential ? ', and it counts as essential' : ''}.` : '';
@@ -78,6 +78,7 @@ SW.pages = SW.pages || {};
         <span class="verdict-tag ${r.tone}">${I(TAG_ICON[r.tone], 15)}${r.label}</span>
         <h2 class="pd-verdict-title" id="ans-h">${TITLE[r.key](r)}</h2>
         <p class="pd-verdict-sub">${r.reasons[0]}${catLine ? ` ${catLine}` : ''}</p>
+        <div class="pd-answer-cta"><button type="button" class="btn btn-primary" data-jump="cmp-h">Choose how to buy it</button><span class="pd-answer-best">Best fit: <b>${P.names[P.rec]}</b></span></div>
       </div>
       <div class="pd-answer-fig${short ? ' short' : ''}">
         <span class="k">Left until payday if you buy it today</span>
@@ -234,32 +235,23 @@ SW.pages = SW.pages || {};
   }
 
   function formHTML() {
-    const sliderMax = Math.max(50000, Math.ceil((inp.price || 0) * 1.5 / 1000) * 1000);
     const payday = S.nextPayday();
     const cats = SEED.CATEGORIES.map(c => c.id);
     return `<form class="pd-form" data-form autocomplete="off" onsubmit="return false" aria-labelledby="form-h">
       <h2 class="pd-form-title" id="form-h">The purchase</h2>
       <div class="pd-form-grid">
-        <div class="pd-col">
-          <label class="field"><span class="field-label">What are you buying?</span><input class="input" name="name" value="${F.esc(inp.name)}" placeholder="e.g. Concert tickets…" /></label>
-          <label class="field"><span class="field-label">Category</span><select class="select" name="category">${cats.map(c => `<option ${c === inp.category ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
-        </div>
-        <div class="pd-col">
-          <label class="field"><span class="field-label">Price</span>
-            <div class="input-affix has-pre price-input"><span class="affix pre">₹</span><input class="input num" name="price" inputmode="numeric" value="${inp.price ? F.num(inp.price) : ''}" placeholder="0" data-money aria-describedby="price-hint" /></div>
-            <input type="range" class="pd-range" min="0" max="${sliderMax}" step="100" value="${Math.min(inp.price || 0, sliderMax)}" style="--p:${fill(Math.min(inp.price || 0, sliderMax), 0, sliderMax)}" data-price-range aria-label="Price" aria-valuetext="${F.inr(inp.price || 0)}" />
-            <span class="field-hint" id="price-hint">Include delivery, fees or anything you’d pay with it.</span></label>
-        </div>
-        <div class="pd-col">
-          <div class="field"><label class="field-label" for="pd-date">When would you like it?</label>
-            <input class="input" type="date" id="pd-date" name="date" value="${inp.date}" min="${S.TODAY}" aria-describedby="date-hint" />
-            <div class="pd-quick" role="group" aria-label="Quick dates">
-              <button type="button" class="pd-chip" data-date="${S.TODAY}" aria-pressed="${inp.date === S.TODAY}">Today</button>
-              <button type="button" class="pd-chip" data-date="${payday}" aria-pressed="${inp.date === payday}">Payday, ${F.short(payday)}</button>
-              <button type="button" class="pd-chip" data-date="${F.addDays(S.TODAY, 60)}" aria-pressed="${inp.date === F.addDays(S.TODAY, 60)}">In 2 months</button>
-            </div>
-            <span class="field-hint" id="date-hint">A later date shapes the “Wait” plan.</span></div>
-        </div>
+        <label class="field pd-name"><span class="field-label">What are you buying?</span><input class="input" name="name" value="${F.esc(inp.name)}" placeholder="e.g. Concert tickets…" /></label>
+        <label class="field pd-cat"><span class="field-label">Category</span><select class="select" name="category">${cats.map(c => `<option ${c === inp.category ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
+        <label class="field pd-price"><span class="field-label">Price</span>
+          <div class="input-affix has-pre price-input"><span class="affix pre">₹</span><input class="input num" name="price" inputmode="numeric" value="${inp.price ? F.num(inp.price) : ''}" placeholder="0" data-money /></div></label>
+        <div class="field pd-date"><label class="field-label" for="pd-date">When would you like it?</label>
+          <input class="input" type="date" id="pd-date" name="date" value="${inp.date}" min="${S.TODAY}" aria-describedby="date-hint" />
+          <div class="pd-quick" role="group" aria-label="Quick dates">
+            <button type="button" class="pd-chip" data-date="${S.TODAY}" aria-pressed="${inp.date === S.TODAY}">Today</button>
+            <button type="button" class="pd-chip" data-date="${payday}" aria-pressed="${inp.date === payday}">Payday, ${F.short(payday)}</button>
+            <button type="button" class="pd-chip" data-date="${F.addDays(S.TODAY, 60)}" aria-pressed="${inp.date === F.addDays(S.TODAY, 60)}">In 2 months</button>
+          </div>
+          <span class="field-hint" id="date-hint">A later date shapes the “Wait” plan.</span></div>
       </div>
       <details class="disclosure pd-adjust" ${changed() ? 'open' : ''}>
         <summary><span>Try a what-if<span class="sum-sub">Balance, bills, savings</span></span>${I('chevronDown', 18)}</summary>
@@ -312,7 +304,7 @@ SW.pages = SW.pages || {};
       <div class="pd">
         <aside class="pd-side">${formHTML()}</aside>
         <div class="pd-main">
-          <section class="pd-answer ${r.tone || ''}" data-answer aria-live="polite" aria-labelledby="ans-h">${answerHTML(r)}</section>
+          <section class="pd-answer ${r.tone || ''}" data-answer aria-live="polite" aria-labelledby="ans-h">${answerHTML(r, P)}</section>
           <section class="pd-fit" aria-labelledby="snap-h">
             <div class="pd-sec-head"><h2 class="pd-sec-title" id="snap-h">How it fits</h2><p class="pd-sec-desc">Your balance, less what’s already promised before payday${r.price ? ', and what buying it changes' : ''}</p></div>
             <div data-snap>${barHTML(r)}</div>
@@ -340,7 +332,7 @@ SW.pages = SW.pages || {};
     const P = plans(r);
     const ans = root.querySelector('[data-answer]');
     ans.className = `pd-answer ${r.price ? r.tone : ''}`;
-    ans.innerHTML = answerHTML(r);
+    ans.innerHTML = answerHTML(r, P);
     root.querySelector('[data-snap]').innerHTML = barHTML(r);
     root.querySelector('[data-ledger]').innerHTML = ledgerHTML(r);
     root.querySelector('[data-break]').hidden = !r.price;
@@ -365,20 +357,15 @@ SW.pages = SW.pages || {};
     if (r.price) { drawWaterfall(r); drawProjection(r, plans(r)); }
     form.addEventListener('input', e => {
       const t = e.target;
-      if (t.matches('[data-price-range]')) {
-        inp.price = +t.value;
-        form.price.value = inp.price ? F.num(inp.price) : '';
-        t.setAttribute('aria-valuetext', F.inr(inp.price));
-        t.style.setProperty('--p', fill(+t.value, +t.min, +t.max));
-      } else if (t.name === 'date') {
+      if (t.name === 'date') {
         inp.date = t.value && t.value >= S.TODAY ? t.value : S.TODAY;
         plan = null;
       } else if (t.name) {
         if (!['name', 'price', 'category'].includes(t.name)) ov[t.name] = true;
         inp[t.name] = t.name === 'name' || t.name === 'category' ? t.value : t.name === 'daysLeft' ? Math.max(1, +t.value || 1) : ui.money(t.value);
-        if (t.name === 'price') { const rg = form.querySelector('[data-price-range]'); if (+rg.max < inp.price) rg.max = Math.ceil(inp.price * 1.5 / 1000) * 1000; rg.value = inp.price; rg.style.setProperty('--p', fill(+rg.value, +rg.min, +rg.max)); }
+       
       }
-      if (t.name === 'price' || t.matches('[data-price-range]')) saveMonthly = null;
+      if (t.name === 'price') saveMonthly = null;
       update();
     });
     form.addEventListener('change', e => { if (e.target.name === 'category') { inp.category = e.target.value; update(); } });
@@ -389,6 +376,7 @@ SW.pages = SW.pages || {};
       plan = 'save';
       update();
     });
+    ui.on(root, 'click', '[data-jump]', (e, b) => { const t = root.querySelector('#' + b.dataset.jump); if (t) t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); });
     ui.on(root, 'click', '[data-pick]', (e, b) => { plan = b.dataset.pick; update(plan); });
     ui.on(root, 'click', '.pd-plan', (e, t) => {
       if (e.target.closest('input, label, button')) return;

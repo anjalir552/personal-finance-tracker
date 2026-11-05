@@ -79,14 +79,28 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
    - Radii: sheet 20, tiles 12, controls 10, chips 8. Structure comes from tone and space; hairlines
      only between sections and table rows.
    ========================================================================== */
-.pd-sheet { background: var(--surface); border-radius: var(--r-card); overflow: hidden; font-variant-numeric: tabular-nums; }
+.pd-sheet { background: var(--surface); border-radius: var(--r-card); font-variant-numeric: tabular-nums; }
 
 /* The purchase: a compact band. Three columns (what and which kind, how much, when), then the what-if row */
-.pd-side { background: var(--raised); padding: 26px 44px 0; min-width: 0; container-type: inline-size; }
-.pd-form { display: flex; flex-direction: column; gap: 18px; }
-.pd-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 36px; align-items: start; }
-.pd-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-@container (max-width: 700px) { .pd-form-grid { grid-template-columns: minmax(0, 1fr); } }
+.pd-side { background: var(--raised); border-radius: var(--r-card) var(--r-card) 0 0; padding: 22px 44px 0; min-width: 0; container-type: inline-size; }
+.pd-form { display: flex; flex-direction: column; gap: 16px; }
+/* Three columns on two aligned rows: name, price and date share the first line; category sits under the name,
+   and the date's shortcuts and hint sit under the date, so the outer columns end at the same height.
+   Label to input is 8px everywhere; rows are 16px apart. */
+.pd-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 32px; align-items: start; }
+.pd-name { grid-column: 1; grid-row: 1; }
+.pd-price { grid-column: 2; grid-row: 1; }
+.pd-date { grid-column: 3; grid-row: 1 / span 2; }
+.pd-cat { grid-column: 1; grid-row: 2; }
+@container (max-width: 700px) {
+  .pd-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pd-name { grid-column: 1; grid-row: 1; } .pd-cat { grid-column: 2; grid-row: 1; }
+  .pd-price { grid-column: 1; grid-row: 2; } .pd-date { grid-column: 2; grid-row: 2 / span 2; }
+}
+@container (max-width: 440px) {
+  .pd-form-grid { grid-template-columns: minmax(0, 1fr); }
+  :is(.pd-name, .pd-cat, .pd-price, .pd-date) { grid-column: 1; grid-row: auto; }
+}
 .pd-form-title, .pd-sec-title { font-family: var(--font); font-size: 17px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.3; color: var(--text); }
 .pd-form .field-label { font-size: 13px; font-weight: 650; }
 .pd-form .input, .pd-form .select { height: 40px; border-radius: var(--r-control); border: 1px solid var(--border); background-color: var(--surface); font-size: 15px; font-weight: 500; padding-left: 13px; }
@@ -96,7 +110,7 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .price-input .input { height: 40px; font-family: var(--font); font-size: 17px; font-weight: 650; letter-spacing: -0.015em; }
 .price-input .affix.pre { font-size: 15px; font-weight: 600; left: 13px; color: var(--text-3); }
 .price-input.has-pre .input { padding-left: 28px; }
-.pd-form .field-hint { font-size: 12.5px; }
+.pd-form .field-hint { font-size: 12px; color: var(--text-3); line-height: 1.4; }
 
 /* Sliders: a thin track with its filled part, a navy handle */
 .pd-range, .pd-slider input { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; margin: 4px 0 0; background: transparent; cursor: pointer; touch-action: manipulation; }
@@ -108,26 +122,33 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 :is(.pd-range, .pd-slider input):focus-visible { outline: none; }
 :is(.pd-range, .pd-slider input):focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 1px var(--navy), 0 0 0 5px rgba(90, 103, 219, 0.35); }
 
-.pd-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+/* Date shortcuts: plain text options that sit under the date they set, one quiet selected state */
+.pd-quick { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 0 0 -2px -8px; }
 .pd-chip {
-  height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
-  font-size: 13px; font-weight: 550; color: var(--text-2); touch-action: manipulation;
-  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+  height: 28px; padding: 0 8px; border-radius: 8px; border: 0; background: transparent;
+  font-size: 13px; font-weight: 550; color: var(--accent-ink); touch-action: manipulation;
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
-.pd-chip:hover { border-color: var(--control); color: var(--text); }
-.pd-chip[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
-.pd-adjust { border-top: 1px solid var(--border); }
-.pd-adjust > summary { font-size: 13.5px; font-weight: 650; padding: 13px 0; }
-.pd-adjust .disc-body { padding-bottom: 20px; }
+.pd-chip:hover { background: var(--peri-100); }
+.pd-chip[aria-pressed="true"] { background: var(--peri-150); color: var(--navy); font-weight: 650; }
+.pd-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* The what-if: a quiet row that opens in place; no rule above it */
+.pd-adjust { border-top: 0; }
+.pd-adjust > summary { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 650; padding: 12px 0 14px; color: var(--accent-ink); }
+.pd-adjust > summary > span { display: inline-flex; align-items: baseline; gap: 8px; }
+.pd-adjust .sum-sub { margin-left: 0; color: var(--text-3); }
+.pd-adjust > summary > svg { margin-left: auto; }
+.pd-adjust .disc-body { padding: 2px 0 20px; }
 .pd-adjust .form-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px 20px; }
 .pd-adjust .input { height: 38px; font-size: 14px; }
 .pd-reset { margin-top: 14px; font-size: 13px; color: var(--accent-ink); }
 
 /* The results column: sections divided by one rule, nothing boxed */
-.pd-main { display: flex; flex-direction: column; min-width: 0; padding: 36px 44px 44px; }
+.pd-main { display: flex; flex-direction: column; min-width: 0; padding: 32px 44px 40px; }
 .pd-main > section { container-type: inline-size; }
-.pd-main > section + section { margin-top: 36px; padding-top: 36px; border-top: 1px solid var(--rule); }
-.pd-main > section[hidden] + section { margin-top: 36px; }
+.pd-main > section + section { margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--rule); }
+.pd-main > section[hidden] + section { margin-top: 32px; }
 .pd-sec-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 20px; margin-bottom: 20px; }
 .pd-sec-desc { font-size: 13.5px; color: var(--text-3); margin: 0; max-width: none; line-height: 1.5; }
 
@@ -140,6 +161,10 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .pd-answer .verdict-tag.caution, .pd-answer .verdict-tag.alert { background: var(--lilac-100); color: var(--lilac-700); }
 .pd-verdict-title { font-family: var(--font-display); font-size: 34px; font-weight: 500; letter-spacing: -0.022em; line-height: 1.12; margin-top: 14px; max-width: 24ch; text-wrap: balance; color: var(--navy); }
 .pd-verdict-sub { font-size: 15px; color: var(--text-2); margin-top: 10px; max-width: 62ch; line-height: 1.6; text-wrap: pretty; }
+.pd-answer-cta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; }
+.pd-answer-cta .btn { height: 40px; padding: 0 18px; border-radius: var(--r-control); }
+.pd-answer-best { font-size: 13.5px; color: var(--text-2); }
+.pd-answer-best b { color: var(--text); font-weight: 650; }
 .pd-answer-fig { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
 .pd-answer-fig .k { font-size: 13px; font-weight: 550; color: var(--text-2); line-height: 1.4; }
 .pd-answer-fig .v { font-family: var(--font-display); font-size: 52px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.05; margin-top: 8px; white-space: nowrap; color: var(--navy); }
@@ -255,6 +280,14 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .pd-hist .table th:last-child, .pd-hist .table td:last-child { padding-right: 0; }
 .pd-hist .cell-title { font-size: 14px; font-weight: 600; }
 .pd-hist .cell-sub { display: block; font-weight: 450; font-size: 12px; color: var(--text-3); margin-top: 2px; }
+/* Past decisions fits the card instead of scrolling inside it: long names wrap, columns share the width */
+.pd-hist { overflow: visible; }
+.pd-hist .table { width: 100%; table-layout: auto; }
+.pd-hist .table tbody th, .pd-hist .table td { white-space: normal; overflow-wrap: anywhere; }
+.pd-hist .table td.r, .pd-hist .table th.r, .pd-hist .table td:has(.badge) { white-space: nowrap; overflow-wrap: normal; }
+.pd-hist .table thead th { white-space: normal; }
+@media (min-width: 761px) { .pd-hist .cell-title { width: 36%; } }
+@media (min-width: 761px) and (max-width: 900px) { .pd-hist .table th, .pd-hist .table td { padding-left: 8px; padding-right: 8px; } }
 .pd-hist-empty .empty { padding: 24px 0; text-align: left; }
 .pd-hist-empty .empty-icon { margin: 0 0 12px; }
 .pd-hist-empty .empty-text { margin-left: 0; }
