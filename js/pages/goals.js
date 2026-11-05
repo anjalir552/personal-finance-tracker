@@ -121,15 +121,33 @@ SW.pages = SW.pages || {};
   }
 
   /* ---------- Monthly planner: one row per goal ---------- */
+  /* Remaining budget: what a typical month leaves, and how the plan plus your usual spending compare with it */
   function plannerTotals(active) {
     const room = S.savingsRoom();
     const planned = active.reduce((a, g) => a + (draft[g.id] != null ? draft[g.id] : g.monthly), 0);
+    const flex = room.flexible;
     const left = room.room - planned;
-    const share = room.room > 0 ? Math.max(0, Math.min(1, planned / room.room)) : 1;
-    const tight = left < room.flexible;
-    return `<div class="sg-left"><span class="k">Left for everything else</span><b class="num${tight ? ' warn' : ''}">${F.inr(left)}</b><span class="s">of ${F.inr(room.room)} a typical month after bills and essentials</span></div>
-      <div class="sg-split" aria-hidden="true"><span style="width:${share * 100}%"></span></div>
-      <p class="sg-pt-note">${tight ? `You usually spend ${F.inr(room.flexible)} on eating out, shopping and plans, so this plan needs about <b>${F.inr(room.flexible - left)} a month less</b> of that.` : `Enough to cover your usual ${F.inr(room.flexible)} of eating out, shopping and plans.`}</p>`;
+    const short = Math.max(0, flex - left);
+    const scale = Math.max(room.room, planned + flex, 1);
+    const w = v => `${Math.max(0, v) / scale * 100}%`;
+    const flexIn = Math.max(0, Math.min(flex, room.room - planned));
+    return `<span class="k">Left for everything else</span>
+      <b class="sg-left-v num${short ? ' warn' : ''}">${F.inr(left)}</b>
+      <div class="sg-bar" role="img" aria-label="Goals ${F.inr(planned)} and usual spending ${F.inr(flex)} against ${F.inr(room.room)} available">
+        <span class="g" style="width:${w(planned)}"></span><span class="f" style="width:${w(flexIn)}"></span><span class="o" style="width:${w(flex - flexIn)}"></span>
+        <i style="left:${w(room.room)}"></i></div>
+      <dl class="sg-bar-key">
+        <div><dt>Available in a typical month</dt><dd class="num">${F.inr(room.room)}</dd></div>
+        <div><dt><s class="g"></s>Into goals</dt><dd class="num">${F.inr(planned)}</dd></div>
+        <div><dt><s class="f"></s>Your usual spending</dt><dd class="num">${F.inr(flex)}</dd></div>
+      </dl>
+      <p class="sg-pt-note${short ? ' warn' : ''}">${short ? `Over by <b>${F.inr(short)} a month</b>. Spend that much less on eating out, shopping and plans.` : `Your usual spending fits, with <b>${F.inr(left - flex)}</b> to spare.`}</p>`;
+  }
+
+  function planTotalRow(active) {
+    const planned = active.reduce((a, g) => a + (draft[g.id] != null ? draft[g.id] : g.monthly), 0);
+    const needed = active.reduce((a, g) => a + round100(S.goalStatus(g).suggested), 0);
+    return `<span>Into goals each month</span><b class="num">${F.inr(planned)}</b><span class="sg-plan-need num">${needed > planned ? `${F.inr(needed)} needed for every deadline` : 'Covers every deadline'}</span>`;
   }
 
   function planRowSub(g, m) {
@@ -147,20 +165,23 @@ SW.pages = SW.pages || {};
           <button type="button" class="btn btn-ghost btn-sm" data-action="plan-reset" ${dirty ? '' : 'disabled'}>Reset</button>
           <button type="button" class="btn btn-primary btn-sm" data-action="plan-save" ${dirty ? '' : 'disabled'}>Save plan</button>
         </div></div>
-      <div class="sg-plan-grid">
+      <div class="sg-ws">
         <div class="sg-plan">${active.map(g => {
           const s = S.goalStatus(g);
           const m = draft[g.id] != null ? draft[g.id] : g.monthly;
           return `<div class="sg-plan-row">
             <div class="sg-plan-name"><label for="pm-${g.id}">${F.esc(g.name)}</label>
               <span class="sg-plan-sub" data-finish="${g.id}">${planRowSub(g, m)}</span></div>
-            <span class="sg-plan-need num">needs ${F.inr(round100(s.suggested))}</span>
-            <div class="input-affix has-pre sg-plan-in"><span class="affix pre">₹</span><input class="input num" id="pm-${g.id}" name="plan-${g.id}" data-plan="${g.id}" inputmode="numeric" autocomplete="off" value="${m ? F.num(m) : ''}" placeholder="0" data-money /></div>
+            <div class="sg-plan-edit"><div class="input-affix has-pre sg-plan-in"><span class="affix pre">₹</span><input class="input num" id="pm-${g.id}" name="plan-${g.id}" data-plan="${g.id}" inputmode="numeric" autocomplete="off" value="${m ? F.num(m) : ''}" placeholder="0" data-money /></div>
+              <span class="sg-plan-need num">needs ${F.inr(round100(s.suggested))}</span></div>
           </div>`;
         }).join('')}
-          <div class="sg-plan-totals" data-totals aria-live="polite">${plannerTotals(active)}</div>
+          <div class="sg-plan-sum" data-plansum>${planTotalRow(active)}</div>
         </div>
-        <aside class="sg-side"><section class="sg-milestones" aria-labelledby="ms-h">${milestonesHTML(active)}</section></aside>
+        <aside class="sg-side">
+          <div class="sg-left" data-totals aria-live="polite">${plannerTotals(active)}</div>
+          <section class="sg-milestones" aria-labelledby="ms-h">${milestonesHTML(active)}</section>
+        </aside>
       </div>`;
   }
 
@@ -323,6 +344,7 @@ SW.pages = SW.pages || {};
         draft[g.id] = m;
         planner.querySelector(`[data-finish="${g.id}"]`).innerHTML = planRowSub(g, m);
         planner.querySelector('[data-totals]').innerHTML = plannerTotals(active());
+        planner.querySelector('[data-plansum]').innerHTML = planTotalRow(active());
         const dirty = active().some(x => draft[x.id] != null && draft[x.id] !== x.monthly);
         planner.querySelectorAll('[data-action^="plan-"]').forEach(b => (b.disabled = !dirty));
       });
