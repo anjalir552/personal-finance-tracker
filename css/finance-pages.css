@@ -68,74 +68,103 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 @media (hover: none) { .cal-rec-act, .pd-hist .icon-btn { opacity: 1; } }
 
 /* ==========================================================================
-   Purchase Decisions: a workspace. Inputs on the left; on the right three parts in
-   reading order, divided by space alone: the verdict, how it fits (the money bar and what
-   changes), and your options (three plans, the decision, the balance path behind a toggle).
+   Purchase Decisions: one working sheet.
+   - The page is a single white sheet on the periwinkle frame. Its left column (the purchase) sits one
+     tone step down, in periwinkle-50; the right column holds the verdict, how it fits, your options and,
+     across the foot, past decisions. Form and results are parts of one surface.
+   - Colour has jobs. Navy is ink and the one action. Periwinkle is selection, focus and "fits". Lilac
+     is attention only: the caution chip, the purchase, a figure that falls short of the cushion.
+   - Type: Fraunces only for the verdict headline and its one figure. Everything else is Figtree,
+     tabular, in two weights (450 text, 650 headings and figures).
+   - Radii: sheet 20, tiles 12, controls 10, chips 8. Structure comes from tone and space; hairlines
+     only between sections and table rows.
    ========================================================================== */
-.pd { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 56px; align-items: start; }
-.pd-side { position: sticky; top: 24px; }
-.pd-form { display: flex; flex-direction: column; gap: 22px; padding: 26px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; }
-.pd-form-title { font-family: var(--font-display); font-size: 22px; font-weight: 500; letter-spacing: -0.015em; }
-.price-input .input { height: 64px; font-family: var(--font-display); font-size: 30px; font-weight: 500; letter-spacing: -0.02em; }
-.price-input .affix.pre { font-size: 22px; font-weight: 500; left: 15px; color: var(--text-3); }
-.price-input.has-pre .input { padding-left: 36px; }
-.pd-range, .pd-slider input { width: 100%; margin: 2px 0 0; accent-color: var(--accent); height: 28px; cursor: pointer; touch-action: manipulation; }
-.pd-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.pd-sheet { background: var(--surface); border-radius: var(--r-card); overflow: hidden; font-variant-numeric: tabular-nums; }
+.pd { display: grid; grid-template-columns: 344px minmax(0, 1fr); align-items: stretch; }
+
+/* The purchase: a quiet tinted column */
+.pd-side { background: var(--raised); padding: 32px 28px 36px; min-width: 0; }
+.pd-form { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 20px; }
+.pd-form-title, .pd-sec-title { font-family: var(--font); font-size: 17px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.3; color: var(--text); }
+.pd-form .field-label { font-size: 13px; font-weight: 650; }
+.pd-form .input, .pd-form .select { height: 42px; border-radius: var(--r-control); border: 1px solid var(--border); background-color: var(--surface); font-size: 15px; font-weight: 500; padding-left: 13px; }
+.pd-form .input:hover, .pd-form .select:hover { border-color: var(--control); }
+.pd-form .input:focus, .pd-form .select:focus { border-color: var(--accent); }
+.pd-form .select { background-position: right 12px center; }
+.price-input .input { height: 54px; font-family: var(--font); font-size: 22px; font-weight: 650; letter-spacing: -0.015em; }
+.price-input .affix.pre { font-size: 18px; font-weight: 600; left: 15px; color: var(--text-3); }
+.price-input.has-pre .input { padding-left: 34px; }
+.pd-form .field-hint { font-size: 12.5px; }
+
+/* Sliders: a thin track with its filled part, a navy handle */
+.pd-range, .pd-slider input { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; margin: 4px 0 0; background: transparent; cursor: pointer; touch-action: manipulation; }
+:is(.pd-range, .pd-slider input)::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--accent) var(--p, 0%), var(--peri-200) var(--p, 0%)); }
+:is(.pd-range, .pd-slider input)::-moz-range-track { height: 4px; border-radius: 2px; background: var(--peri-200); }
+:is(.pd-range, .pd-slider input)::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--accent); }
+:is(.pd-range, .pd-slider input)::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%; background: var(--navy); border: 3px solid #fff; box-shadow: 0 0 0 1px var(--navy); }
+:is(.pd-range, .pd-slider input)::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--navy); border: 3px solid #fff; box-shadow: 0 0 0 1px var(--navy); }
+:is(.pd-range, .pd-slider input):focus-visible { outline: none; }
+:is(.pd-range, .pd-slider input):focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 1px var(--navy), 0 0 0 5px rgba(90, 103, 219, 0.35); }
+
+.pd-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
 .pd-chip {
-  height: 32px; padding: 0 11px; border-radius: var(--r-small); border: 1px solid var(--control); background: var(--surface);
+  height: 30px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
   font-size: 13px; font-weight: 550; color: var(--text-2); touch-action: manipulation;
   transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
-.pd-chip:hover { border-color: var(--gray-400); color: var(--text); }
+.pd-chip:hover { border-color: var(--control); color: var(--text); }
 .pd-chip[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
-.pd-adjust { border-top: 1px solid var(--rule); margin: 0 -26px -26px; padding: 0 26px 6px; }
+.pd-adjust { border-top: 1px solid var(--border); margin-top: 2px; }
+.pd-adjust > summary { font-size: 13.5px; font-weight: 650; }
 .pd-adjust .form-grid { gap: 14px 12px; }
 .pd-adjust .input { height: 38px; font-size: 14px; }
 .pd-reset { margin-top: 14px; font-size: 13px; color: var(--accent-ink); }
 
-.pd-main { display: flex; flex-direction: column; min-width: 0; }
-.pd-main > section + section { margin-top: 72px; }
-.pd-main > section[hidden] + section { margin-top: 72px; }
+/* The results column: sections divided by one rule, nothing boxed */
+.pd-main { display: flex; flex-direction: column; min-width: 0; padding: 36px 44px 44px; }
+.pd-main { container-type: inline-size; }
+.pd-main > section + section { margin-top: 36px; padding-top: 36px; border-top: 1px solid var(--rule); }
+.pd-main > section[hidden] + section { margin-top: 36px; }
+.pd-sec-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 20px; margin-bottom: 20px; }
+.pd-sec-desc { font-size: 13.5px; color: var(--text-3); margin: 0; max-width: none; line-height: 1.5; }
 
-/* The verdict: the page's lead block. Lavender when the purchase fits, lilac when it is a caution.
-   The figure answers "what's left?" */
-.pd-answer {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px 48px; align-items: end;
-  padding: 36px 40px; border-radius: 24px; background: var(--block); color: var(--block-ink);
-  --text: var(--block-ink); --text-2: var(--block-ink-2); --text-3: var(--block-ink-2); --rule: var(--block-line);
-}
-.pd-answer.caution, .pd-answer.alert { background: var(--block-alert); }
-.pd-answer .verdict-tag { display: inline-flex; align-items: center; gap: 6px; height: auto; padding: 0; background: none; font-size: 14px; font-weight: 700; color: var(--navy); }
-.pd-answer .verdict-tag svg { width: 16px; height: 16px; }
-.pd-answer.caution .verdict-tag, .pd-answer.alert .verdict-tag { color: var(--lilac-700); }
-.pd-verdict-title { font-family: var(--font-display); font-size: 36px; font-weight: 500; letter-spacing: -0.025em; line-height: 1.12; margin-top: 12px; max-width: 24ch; text-wrap: balance; color: var(--navy); }
-.pd-verdict-sub { font-size: 16px; color: var(--block-ink-2); margin-top: 14px; max-width: 58ch; line-height: 1.55; }
-.pd-answer-fig { display: flex; flex-direction: column; align-items: flex-end; text-align: right; min-width: 0; padding-left: 40px; border-left: 1px solid var(--block-line); }
-.pd-answer-fig .k { max-width: 22ch; color: var(--block-ink-2); }
-.pd-answer-fig .v { font-family: var(--font-display); font-size: 56px; font-weight: 500; letter-spacing: -0.035em; line-height: 1; margin-top: 8px; white-space: nowrap; color: var(--navy); }
-.pd-answer-fig .s { font-size: 13px; color: var(--block-ink-2); margin-top: 8px; }
+/* The verdict. Status as a chip, the answer as a sentence, what is left as one figure.
+   Lilac appears only when the purchase is a caution. */
+.pd-answer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px 36px; align-items: stretch; }
+.pd-answer-text { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+.pd-answer .verdict-tag { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px 0 10px; border-radius: var(--r-pill); background: var(--peri-150); color: var(--peri-700); font-size: 13px; font-weight: 650; }
+.pd-answer .verdict-tag svg { width: 15px; height: 15px; }
+.pd-answer .verdict-tag.caution, .pd-answer .verdict-tag.alert { background: var(--lilac-100); color: var(--lilac-700); }
+.pd-verdict-title { font-family: var(--font-display); font-size: 32px; font-weight: 500; letter-spacing: -0.022em; line-height: 1.15; margin-top: 14px; max-width: 20ch; text-wrap: balance; color: var(--navy); }
+.pd-verdict-sub { font-size: 15px; color: var(--text-2); margin-top: 12px; max-width: 54ch; line-height: 1.6; }
+.pd-answer-fig { display: flex; flex-direction: column; justify-content: center; min-width: 244px; padding: 22px 26px; border-radius: 14px; background: var(--raised); }
+.pd-answer-fig .k { font-size: 13px; font-weight: 550; color: var(--text-2); max-width: 22ch; line-height: 1.4; }
+.pd-answer-fig .v { font-family: var(--font-display); font-size: 46px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.05; margin-top: 10px; white-space: nowrap; color: var(--navy); }
+.pd-answer-fig .s { font-size: 13px; color: var(--text-3); margin-top: 8px; }
+.pd-answer-fig.short { background: var(--lilac-50); }
 .pd-answer-fig.short .v { color: var(--lilac-700); }
 
-/* Available to spend: an equation across the width */
-.pd-snap-figs { display: grid; grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr) 24px minmax(0, 1fr) minmax(0, 1fr); align-items: start; margin-bottom: 20px; }
-.pd-op { font-size: 20px; color: var(--gray-400); padding-top: 22px; text-align: center; }
+/* How it fits: the sum, one bar, what changes */
+.pd-snap-figs { display: grid; grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr) 20px minmax(0, 1fr) minmax(0, 1fr); align-items: start; margin-bottom: 20px; }
+.pd-op { font-size: 18px; font-weight: 450; color: var(--gray-400); padding-top: 26px; text-align: center; }
 .pd-snap-fig { display: flex; flex-direction: column; min-width: 0; }
-.pd-snap-fig .k { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pd-snap-fig .v { font-family: var(--font-display); font-size: 28px; font-weight: 500; letter-spacing: -0.02em; margin-top: 4px; line-height: 1.2; white-space: nowrap; }
-.pd-snap-fig .s { font-size: 12px; color: var(--text-3); margin-top: 4px; line-height: 1.4; }
-.pd-snap-fig.free .v { color: var(--pos); }
-.pd-snap-fig.buy { padding-left: 24px; margin-left: 16px; border-left: 1px solid var(--rule); }
-.pd-snap-fig.buy .k { color: var(--text); font-weight: 600; }
-.pd-snap-fig.buy .k::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--buy); margin-right: 7px; vertical-align: 1px; }
-.pd-snap .money-bar { height: 10px; }
-.pd-snap .seg-purchase { background: var(--buy); }
-.pd-snap .key-purchase { background: var(--buy); }
-.pd-legend { margin-top: 12px; gap: 6px 20px; }
+.pd-snap-fig .k { font-size: 12.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pd-snap-fig .v { font-size: 24px; font-weight: 650; letter-spacing: -0.015em; margin-top: 4px; line-height: 1.25; white-space: nowrap; }
+.pd-snap-fig .s { font-size: 12px; color: var(--text-3); margin-top: 3px; line-height: 1.4; }
+.pd-snap-fig.free .v { color: var(--peri-700); }
+.pd-snap-fig.buy { padding-left: 8px; }
+.pd-snap-fig.buy .k { color: var(--text); font-weight: 600; white-space: normal; overflow: visible; line-height: 1.35; }
+.pd-snap-fig.buy .k::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--buy); margin-right: 7px; vertical-align: 0; }
+.pd-fit .money-bar { height: 12px; gap: 2px; border-radius: 6px; }
+/* lilac is reserved for the purchase here; savings are lavender, available money is the data blue */
+.pd-fit { --seg-goals: var(--lav-300); --seg-everyday: var(--navy-400); }
+.pd-fit .seg-purchase { background: var(--buy); }
+.pd-fit .key-purchase { background: var(--buy); }
+.pd-legend { margin-top: 12px; gap: 6px 20px; font-size: 12.5px; }
 .pd-legend b { color: var(--text); font-weight: 650; margin-left: 2px; }
-.pd-fit [data-impact] { margin-top: 36px; }
-
-/* Impact: the waterfall beside the table it explains */
-.pd-break-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+.pd-fit [data-impact] { margin-top: 28px; }
+.pd-wf-note { font-size: 12px; color: var(--text-3); margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+.pd-wf-note i { width: 16px; border-top: 1px dashed var(--ink); opacity: 0.6; }
 .chart .wf-bar.start { fill: var(--ink); }
 .chart .wf-bar.bills { fill: var(--seg-bills); }
 .chart .wf-bar.everyday { fill: var(--seg-everyday); }
@@ -148,60 +177,77 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .chart .wf-val { fill: var(--text-2); font-size: 12px; font-weight: 550; font-family: var(--font); font-variant-numeric: tabular-nums; }
 .chart .wf-val.strong { fill: var(--text); font-weight: 700; }
 .chart .wf-buy-label { fill: var(--buy-ink); font-weight: 600; }
-.pd-wf-note { font-size: 12px; color: var(--text-3); margin-top: 8px; display: flex; align-items: center; gap: 8px; }
-.pd-wf-note i { width: 16px; border-top: 1px dashed var(--ink); opacity: 0.6; }
 .pd-impact { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
 .pd-impact th:first-child { width: 46%; }
-.pd-impact th, .pd-impact td { padding: 12px 0; border-bottom: 1px solid var(--rule); text-align: left; font-weight: 450; vertical-align: top; }
-.pd-impact thead th { font-size: 12px; color: var(--text-3); padding-top: 0; border-bottom-color: var(--border); }
+.pd-impact th, .pd-impact td { padding: 11px 0; border-bottom: 1px solid var(--rule); text-align: left; font-weight: 450; }
+.pd-impact thead th { font-size: 12px; font-weight: 600; color: var(--text-3); padding-top: 0; padding-bottom: 10px; border-bottom-color: var(--border); }
 .pd-impact .r { text-align: right; padding-left: 16px; white-space: nowrap; }
 .pd-impact tbody td:last-child { font-weight: 650; }
 .pd-impact tbody th { color: var(--text-2); }
+.pd-sheet .disclosure > summary, .pd-more > summary { font-size: 13.5px; font-weight: 650; }
+.pd-sheet .disclosure { border-top-color: var(--rule); }
 .pd-why { margin-top: 4px; border-top: 0; }
 .pd-why .reasons { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--text-2); line-height: 1.5; }
 .pd-why .reasons li { display: flex; gap: 10px; }
 .pd-why .reasons li::before { content: ""; width: 5px; height: 5px; border-radius: 99px; background: var(--gray-400); margin-top: 9px; flex: none; }
+.pd-steps { margin-top: 0; }
 
-/* Alternative plans: three open columns, the chosen one marked by a periwinkle rule */
-.pd-plan-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, auto); gap: 0 16px; }
+/* Your options: three tiles in one radio group; the chosen one is outlined and white */
+.pd-plan-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, auto); gap: 0 14px; }
 /* the tiles share their rows, so a title that wraps doesn't push one plan's figures below its neighbours' */
 @supports (grid-template-rows: subgrid) { .pd-plan { display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 0; align-content: start; } }
-.pd-plan { padding: 18px 20px 20px; border: 1px solid var(--border); border-radius: 16px; min-width: 0; cursor: pointer; transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
-.pd-plan:hover { border-color: var(--control); }
+.pd-plan { padding: 16px 18px 18px; border: 1px solid transparent; border-radius: var(--r-inner); background: var(--raised); min-width: 0; cursor: pointer; transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+.pd-plan:hover { border-color: var(--border); }
 .pd-plan.on { background: var(--surface); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); cursor: default; }
-.pd-plan-pick { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 32px; font-size: 15px; font-weight: 650; color: var(--text); text-align: left; border-radius: var(--r-small); touch-action: manipulation; }
+.pd-plan-pick { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 30px; font-size: 14.5px; font-weight: 650; color: var(--text); text-align: left; border-radius: var(--r-small); touch-action: manipulation; }
 .pd-plan-pick:hover .pd-radio { border-color: var(--ink); }
-.pd-radio { width: 18px; height: 18px; border-radius: 99px; border: 1.5px solid var(--gray-400); flex: none; display: grid; place-items: center; transition: border-color var(--dur) var(--ease); }
+.pd-radio { width: 18px; height: 18px; border-radius: 99px; border: 1.5px solid var(--gray-400); background: var(--surface); flex: none; display: grid; place-items: center; transition: border-color var(--dur) var(--ease); }
 .pd-plan.on .pd-radio { border-color: var(--accent); }
 .pd-plan.on .pd-radio::after { content: ""; width: 8px; height: 8px; border-radius: 99px; background: var(--accent); }
-.pd-best { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--pos); white-space: nowrap; }
-.pd-when { display: flex; flex-direction: column; margin-top: 14px; }
-.pd-when .num { font-family: var(--font-display); font-size: 26px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.2; }
+.pd-best { margin-left: auto; padding: 2px 8px; border-radius: var(--r-pill); background: var(--peri-150); font-size: 11.5px; font-weight: 650; color: var(--peri-700); white-space: nowrap; }
+.pd-when { display: flex; flex-direction: column; margin-top: 12px; }
+.pd-when .num { font-size: 22px; font-weight: 650; letter-spacing: -0.015em; line-height: 1.25; }
 .pd-when .s { font-size: 13px; color: var(--text-3); margin-top: 2px; }
-.pd-lines { margin: 14px 0 0; }
-.pd-lines > div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--rule); font-size: 13px; }
+.pd-lines { margin: 12px 0 0; }
+.pd-lines > div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid rgba(40, 46, 66, 0.08); font-size: 13px; }
 .pd-lines dt { color: var(--text-2); }
 .pd-lines dd { margin: 0; font-weight: 650; text-align: right; white-space: nowrap; }
 .pd-slider { display: block; margin-top: 12px; }
 .pd-slider-k { font-size: 12px; color: var(--text-3); }
 .pd-slider-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-3); }
-.pd-proj { margin-top: 36px; }
-.pd-proj-desc { font-size: 15px; color: var(--text-2); max-width: 66ch; line-height: 1.55; }
+/* three tiles need about 620px; below that the plans stack, whatever the window width */
+@container (max-width: 620px) {
+  .pd-plan-row { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 12px; }
+  .pd-plan { display: block; grid-row: auto; }
+  .pd-snap-figs { grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr) 20px minmax(0, 1fr); row-gap: 20px; }
+  .pd-snap-fig.buy { grid-column: 1 / -1; padding-left: 0; }
+  .pd-answer { grid-template-columns: minmax(0, 1fr); }
+  .pd-answer-fig { min-width: 0; }
+}
+.pd-commit { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+.pd-commit .btn { height: 42px; padding: 0 18px; border-radius: var(--r-control); }
+.pd-commit-note { margin-left: auto; font-size: 13px; color: var(--text-3); }
+.pd-proj { margin-top: 28px; }
+.pd-proj-desc { font-size: 14.5px; color: var(--text-2); max-width: 68ch; line-height: 1.6; }
+.pd-proj-desc b.warn { font-weight: 650; }
 .pd-more { margin-top: 12px; border-top: 1px solid var(--rule); }
-.pd-more > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--text-2); border-radius: 8px; }
+.pd-more > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; cursor: pointer; list-style: none; color: var(--text-2); border-radius: 8px; }
 .pd-more > summary::-webkit-details-marker { display: none; }
 .pd-more > summary svg { transition: transform var(--dur) var(--ease); }
 .pd-more[open] > summary svg { transform: rotate(180deg); }
 .pd-more > summary:hover { color: var(--text); }
 .pd-more > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .pd-proj-legend { margin: 2px 0 12px; }
-.pd-steps { margin-top: 0; }
-.pd-proj-desc b.warn { font-weight: 600; }
-.pd-commit { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
-.pd-commit-note { margin-left: auto; font-size: 13px; color: var(--text-3); }
-.pd-history { margin-top: 96px; }
+
+/* Past decisions: the foot of the same sheet */
+.pd-history { padding: 32px 44px 24px; border-top: 1px solid var(--rule); }
+.pd-history .pd-sec-head { margin-bottom: 8px; }
+.pd-hist .table td { height: 52px; }
+.pd-hist .table th:first-child, .pd-hist .table td:first-child { padding-left: 0; }
+.pd-hist .table th:last-child, .pd-hist .table td:last-child { padding-right: 0; }
+.pd-hist .cell-title { font-size: 14px; font-weight: 600; }
 .pd-hist .cell-sub { display: block; font-weight: 450; font-size: 12px; color: var(--text-3); margin-top: 2px; }
-.pd-hist-empty .empty { padding: 32px 0; text-align: left; }
+.pd-hist-empty .empty { padding: 24px 0; text-align: left; }
 .pd-hist-empty .empty-icon { margin: 0 0 12px; }
 .pd-hist-empty .empty-text { margin-left: 0; }
 
@@ -656,10 +702,11 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
   .page-upcoming { --cal-row: 104px; }
   .cal-day { padding: 10px 8px 8px 12px; }
   .cal-head span, .cal-pad { padding-left: 12px; }
-  .pd { grid-template-columns: 300px minmax(0, 1fr); gap: 40px; }
-  .pd-break-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
-  .pd-snap-figs { grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr) 24px minmax(0, 1fr); row-gap: 20px; }
-  .pd-snap-fig.buy { grid-column: 1 / -1; padding-left: 0; margin-left: 0; border-left: 0; padding-top: 16px; border-top: 1px solid var(--rule); }
+  .pd { grid-template-columns: 308px minmax(0, 1fr); }
+  .pd-main { padding: 32px 32px 36px; }
+  .pd-history { padding: 28px 32px 20px; }
+  .pd-snap-figs { grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr) 20px minmax(0, 1fr); row-gap: 20px; }
+  .pd-snap-fig.buy { grid-column: 1 / -1; padding-left: 0; }
 }
 @media (max-width: 1080px) {
   .cal-figs { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 0; }
@@ -672,6 +719,9 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
   .cal-next-row { grid-template-columns: 44px minmax(0, 1fr) minmax(0, 0.8fr) auto; }
   .cal-next-rep { display: none; }
   .pd { grid-template-columns: minmax(0, 1fr); }
+  .pd-side { padding: 28px 32px; }
+  .pd-form { position: static; }
+  .pd-form > .field:first-of-type, .pd-form > .field:nth-of-type(2) { max-width: 520px; }
   .pd-side { position: static; }
   .sg-summary { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .sg-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -715,15 +765,15 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
   :is(.page-decisions, .page-goals, .page-upcoming, .page-insights) .page-header { margin-bottom: 28px; }
 
 
-  .pd-form { padding: 18px; }
-  .pd-adjust { margin: 0 -18px -18px; padding: 0 18px 6px; }
-  .pd-main > section + section { margin-top: 48px; }
+  .pd-side { padding: 24px 20px; }
+  .pd-main { padding: 28px 20px 32px; }
+  .pd-main > section + section { margin-top: 32px; padding-top: 32px; }
   .pd-impact { table-layout: auto; }
   .pd-impact th:first-child { width: auto; }
   .pd-answer { grid-template-columns: minmax(0, 1fr); gap: 18px; }
-  .pd-answer-fig { align-items: flex-start; text-align: left; padding: 16px 0 0; border-left: 0; border-top: 1px solid var(--rule); }
-  .pd-answer-fig .v { font-size: 44px; }
-  .pd-verdict-title { font-size: 27px; }
+  .pd-answer-fig { min-width: 0; padding: 18px 20px; }
+  .pd-answer-fig .v { font-size: 40px; }
+  .pd-verdict-title { font-size: 26px; }
   .pd-snap-figs { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
   .pd-op { display: none; }
   .pd-snap-fig, .pd-snap-fig.buy { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: baseline; padding: 10px 0; margin: 0; border-left: 0; border-top: 1px solid var(--rule); }
@@ -734,7 +784,10 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
   .pd-plan { grid-row: auto; display: block; }
   .pd-commit .btn { flex: 1 1 auto; }
   .pd-commit-note { margin-left: 0; width: 100%; }
-  .pd-history { margin-top: 56px; }
+  .pd-history { padding: 24px 20px 16px; }
+  .pd-hist .table th, .pd-hist .table td { padding-left: 8px; padding-right: 8px; }
+  .pd-hist .cell-title { white-space: normal; min-width: 0; }
+  .pd-hist .table td { height: 48px; }
 
   .sg-summary { padding: 24px 22px; border-radius: 22px; }
   .sg-sum-lead .v { font-size: 42px; }

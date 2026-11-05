@@ -39,6 +39,7 @@ SW.pages = SW.pages || {};
   const evaluate = () => S.evaluatePurchase(Object.assign({}, inp, { flexibleAvg: S.typicalMonth().flexible }));
   const cap = s => s.replace(/^./, c => c.toUpperCase());
   const days = n => `${n} day${n === 1 ? '' : 's'}`;
+  const fill = (v, min, max) => `${Math.max(0, Math.min(100, ((v - min) / ((max - min) || 1)) * 100)).toFixed(1)}%`;   // the filled part of a slider track
   const ordinal = n => n + ([11, 12, 13].includes(n % 100) ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th'));
 
   /* ---------- The three plans, with their balance paths ---------- */
@@ -180,7 +181,7 @@ SW.pages = SW.pages || {};
           ['Fits a typical month', p.save.fits ? 'Yes' : `${F.inr(p.save.monthly - Math.max(0, r.surplus))} less spending`, !p.save.fits],
           ['Savings goals', 'Untouched', false]
         ], `<label class="pd-slider"><span class="pd-slider-k">Amount each month</span>
-            <input type="range" min="500" max="${maxMonthly}" step="100" value="${Math.min(maxMonthly, p.save.monthly)}" data-monthly aria-label="Monthly amount to save" aria-valuetext="${F.inr(p.save.monthly)} a month" />
+            <input type="range" min="500" max="${maxMonthly}" step="100" value="${Math.min(maxMonthly, p.save.monthly)}" style="--p:${fill(Math.min(maxMonthly, p.save.monthly), 500, maxMonthly)}" data-monthly aria-label="Monthly amount to save" aria-valuetext="${F.inr(p.save.monthly)} a month" />
             <span class="pd-slider-ends num"><span>₹500</span><span>${F.inrc(maxMonthly)}</span></span></label>`)}
       </div>
       <div class="pd-commit">
@@ -242,7 +243,7 @@ SW.pages = SW.pages || {};
       <label class="field"><span class="field-label">Category</span><select class="select" name="category">${cats.map(c => `<option ${c === inp.category ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
       <label class="field"><span class="field-label">Price</span>
         <div class="input-affix has-pre price-input"><span class="affix pre">₹</span><input class="input num" name="price" inputmode="numeric" value="${inp.price ? F.num(inp.price) : ''}" placeholder="0" data-money aria-describedby="price-hint" /></div>
-        <input type="range" class="pd-range" min="0" max="${sliderMax}" step="100" value="${Math.min(inp.price || 0, sliderMax)}" data-price-range aria-label="Price" aria-valuetext="${F.inr(inp.price || 0)}" />
+        <input type="range" class="pd-range" min="0" max="${sliderMax}" step="100" value="${Math.min(inp.price || 0, sliderMax)}" style="--p:${fill(Math.min(inp.price || 0, sliderMax), 0, sliderMax)}" data-price-range aria-label="Price" aria-valuetext="${F.inr(inp.price || 0)}" />
         <span class="field-hint" id="price-hint">Include delivery, fees or anything you’d pay with it.</span></label>
       <div class="field"><label class="field-label" for="pd-date">When would you like it?</label>
         <input class="input" type="date" id="pd-date" name="date" value="${inp.date}" min="${S.TODAY}" aria-describedby="date-hint" />
@@ -299,6 +300,7 @@ SW.pages = SW.pages || {};
     return `
       ${ui.pageHeader({ title: 'Purchase Decisions', sub: 'Check a purchase against the money already promised to bills, essentials and savings, before you buy.' })}
       ${noData ? `<p class="callout" style="margin-bottom:20px">${I('info', 16)}<span>You haven’t added your balance yet, so the numbers start at zero. <a class="link" href="#/settings">Add your balance</a> for a real answer, or type your own numbers to try it out.</span></p>` : ''}
+      <div class="pd-sheet">
       <div class="pd">
         <aside class="pd-side">${formHTML()}</aside>
         <div class="pd-main">
@@ -319,6 +321,7 @@ SW.pages = SW.pages || {};
         </div>
       </div>
       <section class="pd-history" aria-labelledby="h-h" data-history>${historyHTML()}</section>
+      </div>
       <p class="hero-note">${I('shield', 15)}<span>An estimate from the numbers above, not financial advice. Money is used in this order: free money, then this month’s savings, then essentials, then bills. Income isn’t counted until it arrives.</span></p>`;
   }
 
@@ -356,13 +359,14 @@ SW.pages = SW.pages || {};
         inp.price = +t.value;
         form.price.value = inp.price ? F.num(inp.price) : '';
         t.setAttribute('aria-valuetext', F.inr(inp.price));
+        t.style.setProperty('--p', fill(+t.value, +t.min, +t.max));
       } else if (t.name === 'date') {
         inp.date = t.value && t.value >= S.TODAY ? t.value : S.TODAY;
         plan = null;
       } else if (t.name) {
         if (!['name', 'price', 'category'].includes(t.name)) ov[t.name] = true;
         inp[t.name] = t.name === 'name' || t.name === 'category' ? t.value : t.name === 'daysLeft' ? Math.max(1, +t.value || 1) : ui.money(t.value);
-        if (t.name === 'price') { const rg = form.querySelector('[data-price-range]'); if (+rg.max < inp.price) rg.max = Math.ceil(inp.price * 1.5 / 1000) * 1000; rg.value = inp.price; }
+        if (t.name === 'price') { const rg = form.querySelector('[data-price-range]'); if (+rg.max < inp.price) rg.max = Math.ceil(inp.price * 1.5 / 1000) * 1000; rg.value = inp.price; rg.style.setProperty('--p', fill(+rg.value, +rg.min, +rg.max)); }
       }
       if (t.name === 'price' || t.matches('[data-price-range]')) saveMonthly = null;
       update();
