@@ -69,9 +69,9 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 
 /* ==========================================================================
    Purchase Decisions: one working sheet.
-   - The page is a single white sheet on the periwinkle frame. Its left column (the purchase) sits one
-     tone step down, in periwinkle-50; the right column holds the verdict, how it fits, your options and,
-     across the foot, past decisions. Form and results are parts of one surface.
+   - The page is a single white sheet on the periwinkle frame, read top to bottom: the purchase (a compact
+     band one tone step down, so the verdict beneath it updates in view), the verdict, how it fits,
+     your options, past decisions. Everything shares one 44px gutter and one column width.
    - Colour has jobs. Navy is ink and the one action. Periwinkle is selection, focus and "fits". Lilac
      is attention only: the caution chip, the purchase, a figure that falls short of the cushion.
    - Type: Fraunces only for the verdict headline and its one figure. Everything else is Figtree,
@@ -80,20 +80,22 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
      only between sections and table rows.
    ========================================================================== */
 .pd-sheet { background: var(--surface); border-radius: var(--r-card); overflow: hidden; font-variant-numeric: tabular-nums; }
-.pd { display: grid; grid-template-columns: 344px minmax(0, 1fr); align-items: stretch; }
 
-/* The purchase: a quiet tinted column */
-.pd-side { background: var(--raised); padding: 32px 28px 36px; min-width: 0; }
-.pd-form { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 20px; }
+/* The purchase: a compact band. Three columns (what and which kind, how much, when), then the what-if row */
+.pd-side { background: var(--raised); padding: 26px 44px 0; min-width: 0; container-type: inline-size; }
+.pd-form { display: flex; flex-direction: column; gap: 18px; }
+.pd-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 36px; align-items: start; }
+.pd-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+@container (max-width: 700px) { .pd-form-grid { grid-template-columns: minmax(0, 1fr); } }
 .pd-form-title, .pd-sec-title { font-family: var(--font); font-size: 17px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.3; color: var(--text); }
 .pd-form .field-label { font-size: 13px; font-weight: 650; }
-.pd-form .input, .pd-form .select { height: 42px; border-radius: var(--r-control); border: 1px solid var(--border); background-color: var(--surface); font-size: 15px; font-weight: 500; padding-left: 13px; }
+.pd-form .input, .pd-form .select { height: 40px; border-radius: var(--r-control); border: 1px solid var(--border); background-color: var(--surface); font-size: 15px; font-weight: 500; padding-left: 13px; }
 .pd-form .input:hover, .pd-form .select:hover { border-color: var(--control); }
 .pd-form .input:focus, .pd-form .select:focus { border-color: var(--accent); }
 .pd-form .select { background-position: right 12px center; }
-.price-input .input { height: 54px; font-family: var(--font); font-size: 22px; font-weight: 650; letter-spacing: -0.015em; }
-.price-input .affix.pre { font-size: 18px; font-weight: 600; left: 15px; color: var(--text-3); }
-.price-input.has-pre .input { padding-left: 34px; }
+.price-input .input { height: 40px; font-family: var(--font); font-size: 17px; font-weight: 650; letter-spacing: -0.015em; }
+.price-input .affix.pre { font-size: 15px; font-weight: 600; left: 13px; color: var(--text-3); }
+.price-input.has-pre .input { padding-left: 28px; }
 .pd-form .field-hint { font-size: 12.5px; }
 
 /* Sliders: a thin track with its filled part, a navy handle */
@@ -114,15 +116,16 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 }
 .pd-chip:hover { border-color: var(--control); color: var(--text); }
 .pd-chip[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
-.pd-adjust { border-top: 1px solid var(--border); margin-top: 2px; }
-.pd-adjust > summary { font-size: 13.5px; font-weight: 650; }
-.pd-adjust .form-grid { gap: 14px 12px; }
+.pd-adjust { border-top: 1px solid var(--border); }
+.pd-adjust > summary { font-size: 13.5px; font-weight: 650; padding: 13px 0; }
+.pd-adjust .disc-body { padding-bottom: 20px; }
+.pd-adjust .form-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px 20px; }
 .pd-adjust .input { height: 38px; font-size: 14px; }
 .pd-reset { margin-top: 14px; font-size: 13px; color: var(--accent-ink); }
 
 /* The results column: sections divided by one rule, nothing boxed */
 .pd-main { display: flex; flex-direction: column; min-width: 0; padding: 36px 44px 44px; }
-.pd-main { container-type: inline-size; }
+.pd-main > section { container-type: inline-size; }
 .pd-main > section + section { margin-top: 36px; padding-top: 36px; border-top: 1px solid var(--rule); }
 .pd-main > section[hidden] + section { margin-top: 36px; }
 .pd-sec-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 20px; margin-bottom: 20px; }
@@ -130,39 +133,47 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 
 /* The verdict. Status as a chip, the answer as a sentence, what is left as one figure.
    Lilac appears only when the purchase is a caution. */
-.pd-answer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px 36px; align-items: stretch; }
+.pd-answer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 24px 64px; align-items: center; }
 .pd-answer-text { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
 .pd-answer .verdict-tag { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px 0 10px; border-radius: var(--r-pill); background: var(--peri-150); color: var(--peri-700); font-size: 13px; font-weight: 650; }
 .pd-answer .verdict-tag svg { width: 15px; height: 15px; }
 .pd-answer .verdict-tag.caution, .pd-answer .verdict-tag.alert { background: var(--lilac-100); color: var(--lilac-700); }
-.pd-verdict-title { font-family: var(--font-display); font-size: 32px; font-weight: 500; letter-spacing: -0.022em; line-height: 1.15; margin-top: 14px; max-width: 20ch; text-wrap: balance; color: var(--navy); }
-.pd-verdict-sub { font-size: 15px; color: var(--text-2); margin-top: 12px; max-width: 54ch; line-height: 1.6; }
-.pd-answer-fig { display: flex; flex-direction: column; justify-content: center; min-width: 244px; padding: 22px 26px; border-radius: 14px; background: var(--raised); }
-.pd-answer-fig .k { font-size: 13px; font-weight: 550; color: var(--text-2); max-width: 22ch; line-height: 1.4; }
-.pd-answer-fig .v { font-family: var(--font-display); font-size: 46px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.05; margin-top: 10px; white-space: nowrap; color: var(--navy); }
+.pd-verdict-title { font-family: var(--font-display); font-size: 34px; font-weight: 500; letter-spacing: -0.022em; line-height: 1.12; margin-top: 14px; max-width: 24ch; text-wrap: balance; color: var(--navy); }
+.pd-verdict-sub { font-size: 15px; color: var(--text-2); margin-top: 10px; max-width: 62ch; line-height: 1.6; text-wrap: pretty; }
+.pd-answer-fig { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.pd-answer-fig .k { font-size: 13px; font-weight: 550; color: var(--text-2); line-height: 1.4; }
+.pd-answer-fig .v { font-family: var(--font-display); font-size: 52px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.05; margin-top: 8px; white-space: nowrap; color: var(--navy); }
 .pd-answer-fig .s { font-size: 13px; color: var(--text-3); margin-top: 8px; }
-.pd-answer-fig.short { background: var(--lilac-50); }
 .pd-answer-fig.short .v { color: var(--lilac-700); }
+/* the verdict is its own container, so it stacks by window width rather than by a container query */
+@media (max-width: 1000px) { .pd-answer { grid-template-columns: minmax(0, 1fr); gap: 20px; } .pd-answer-fig .v { font-size: 44px; } .pd-verdict-title { font-size: 30px; } }
+@media (max-width: 760px) { .pd-answer-fig .v { font-size: 40px; } .pd-verdict-title { font-size: 26px; } }
 
 /* How it fits: the sum, one bar, what changes */
-.pd-snap-figs { display: grid; grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr) 20px minmax(0, 1fr) minmax(0, 1fr); align-items: start; margin-bottom: 20px; }
-.pd-op { font-size: 18px; font-weight: 450; color: var(--gray-400); padding-top: 26px; text-align: center; }
-.pd-snap-fig { display: flex; flex-direction: column; min-width: 0; }
-.pd-snap-fig .k { font-size: 12.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pd-snap-fig .v { font-size: 24px; font-weight: 650; letter-spacing: -0.015em; margin-top: 4px; line-height: 1.25; white-space: nowrap; }
-.pd-snap-fig .s { font-size: 12px; color: var(--text-3); margin-top: 3px; line-height: 1.4; }
-.pd-snap-fig.free .v { color: var(--peri-700); }
-.pd-snap-fig.buy { padding-left: 8px; }
-.pd-snap-fig.buy .k { color: var(--text); font-weight: 600; white-space: normal; overflow: visible; line-height: 1.35; }
-.pd-snap-fig.buy .k::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--buy); margin-right: 7px; vertical-align: 0; }
-.pd-fit .money-bar { height: 12px; gap: 2px; border-radius: 6px; }
+.pd-fit .money-bar { height: 14px; gap: 2px; border-radius: 7px; }
 /* lilac is reserved for the purchase here; savings are lavender, available money is the data blue */
 .pd-fit { --seg-goals: var(--lav-300); --seg-everyday: var(--navy-400); }
 .pd-fit .seg-purchase { background: var(--buy); }
-.pd-fit .key-purchase { background: var(--buy); }
-.pd-legend { margin-top: 12px; gap: 6px 20px; font-size: 12.5px; }
-.pd-legend b { color: var(--text); font-weight: 650; margin-left: 2px; }
-.pd-fit [data-impact] { margin-top: 28px; }
+.pd-fit-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 20px 64px; align-items: start; margin-top: 28px; }
+@container (max-width: 760px) { .pd-fit-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+
+/* The ledger: the sum, written out in the bar's own colours */
+.pd-ledger { margin: 0; }
+.pd-ledger > div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.pd-ledger dt { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 8px; min-width: 0; }
+.pd-ledger dd { margin: 0; white-space: nowrap; }
+.pd-ledger i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; align-self: center; flex: none; }
+.pd-ledger .s { flex-basis: 100%; font-size: 12.5px; font-weight: 450; color: var(--text-3); margin-top: 1px; }
+.pd-ledger i.sp { background: none; }
+.lg-row { padding: 11px 0; font-size: 15px; font-weight: 600; }
+.lg-row dd { font-weight: 650; }
+.lg-sub { padding: 3px 0 3px 16px; font-size: 13.5px; color: var(--text-2); }
+.lg-sub dt i { margin-right: 2px; }
+.lg-sub dd { color: var(--text-2); font-weight: 550; }
+.lg-total { margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--border); }
+.lg-total dd { font-size: 22px; letter-spacing: -0.015em; color: var(--peri-700); }
+.lg-buy { margin-top: 2px; }
+.lg-buy dd { font-size: 17px; }
 .pd-wf-note { font-size: 12px; color: var(--text-3); margin-top: 8px; display: flex; align-items: center; gap: 8px; }
 .pd-wf-note i { width: 16px; border-top: 1px dashed var(--ink); opacity: 0.6; }
 .chart .wf-bar.start { fill: var(--ink); }
@@ -193,10 +204,10 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .pd-steps { margin-top: 0; }
 
 /* Your options: three tiles in one radio group; the chosen one is outlined and white */
-.pd-plan-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, auto); gap: 0 14px; }
+.pd-plan-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, auto); gap: 0 16px; }
 /* the tiles share their rows, so a title that wraps doesn't push one plan's figures below its neighbours' */
-@supports (grid-template-rows: subgrid) { .pd-plan { display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 0; align-content: start; } }
-.pd-plan { padding: 16px 18px 18px; border: 1px solid transparent; border-radius: var(--r-inner); background: var(--raised); min-width: 0; cursor: pointer; transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+@supports (grid-template-rows: subgrid) { .pd-plan { display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 0; align-content: start; } }
+.pd-plan { padding: 18px 20px 14px; border: 1px solid transparent; border-radius: var(--r-inner); background: var(--raised); min-width: 0; cursor: pointer; transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
 .pd-plan:hover { border-color: var(--border); }
 .pd-plan.on { background: var(--surface); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); cursor: default; }
 .pd-plan-pick { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 30px; font-size: 14.5px; font-weight: 650; color: var(--text); text-align: left; border-radius: var(--r-small); touch-action: manipulation; }
@@ -208,21 +219,18 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
 .pd-when { display: flex; flex-direction: column; margin-top: 12px; }
 .pd-when .num { font-size: 22px; font-weight: 650; letter-spacing: -0.015em; line-height: 1.25; }
 .pd-when .s { font-size: 13px; color: var(--text-3); margin-top: 2px; }
-.pd-lines { margin: 12px 0 0; }
-.pd-lines > div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid rgba(40, 46, 66, 0.08); font-size: 13px; }
+.pd-lines { margin: 14px 0 0; }
+.pd-lines > div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(40, 46, 66, 0.08); font-size: 13px; }
 .pd-lines dt { color: var(--text-2); }
 .pd-lines dd { margin: 0; font-weight: 650; text-align: right; white-space: nowrap; }
-.pd-slider { display: block; margin-top: 12px; }
-.pd-slider-k { font-size: 12px; color: var(--text-3); }
-.pd-slider-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-3); }
+.pd-slider { display: block; width: 260px; margin-right: 12px; }
+.pd-slider-k { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-3); }
+.pd-slider-k b { color: var(--text); font-weight: 650; }
+.pd-slider-ends { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-3); }
 /* three tiles need about 620px; below that the plans stack, whatever the window width */
-@container (max-width: 620px) {
+@container (max-width: 700px) {
   .pd-plan-row { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 12px; }
   .pd-plan { display: block; grid-row: auto; }
-  .pd-snap-figs { grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr) 20px minmax(0, 1fr); row-gap: 20px; }
-  .pd-snap-fig.buy { grid-column: 1 / -1; padding-left: 0; }
-  .pd-answer { grid-template-columns: minmax(0, 1fr); }
-  .pd-answer-fig { min-width: 0; }
 }
 .pd-commit { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
 .pd-commit .btn { height: 42px; padding: 0 18px; border-radius: var(--r-control); }
@@ -702,11 +710,9 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
   .page-upcoming { --cal-row: 104px; }
   .cal-day { padding: 10px 8px 8px 12px; }
   .cal-head span, .cal-pad { padding-left: 12px; }
-  .pd { grid-template-columns: 308px minmax(0, 1fr); }
+  .pd-side { padding: 22px 32px 0; }
   .pd-main { padding: 32px 32px 36px; }
   .pd-history { padding: 28px 32px 20px; }
-  .pd-snap-figs { grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr) 20px minmax(0, 1fr); row-gap: 20px; }
-  .pd-snap-fig.buy { grid-column: 1 / -1; padding-left: 0; }
 }
 @media (max-width: 1080px) {
   .cal-figs { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 0; }
@@ -718,11 +724,6 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
   .cal-tools { margin-left: auto; }
   .cal-next-row { grid-template-columns: 44px minmax(0, 1fr) minmax(0, 0.8fr) auto; }
   .cal-next-rep { display: none; }
-  .pd { grid-template-columns: minmax(0, 1fr); }
-  .pd-side { padding: 28px 32px; }
-  .pd-form { position: static; }
-  .pd-form > .field:first-of-type, .pd-form > .field:nth-of-type(2) { max-width: 520px; }
-  .pd-side { position: static; }
   .sg-summary { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .sg-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sg-ws { grid-template-columns: minmax(0, 1fr); }
@@ -770,16 +771,6 @@ fieldset.field legend { padding: 0; margin-bottom: 8px; }
   .pd-main > section + section { margin-top: 32px; padding-top: 32px; }
   .pd-impact { table-layout: auto; }
   .pd-impact th:first-child { width: auto; }
-  .pd-answer { grid-template-columns: minmax(0, 1fr); gap: 18px; }
-  .pd-answer-fig { min-width: 0; padding: 18px 20px; }
-  .pd-answer-fig .v { font-size: 40px; }
-  .pd-verdict-title { font-size: 26px; }
-  .pd-snap-figs { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
-  .pd-op { display: none; }
-  .pd-snap-fig, .pd-snap-fig.buy { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: baseline; padding: 10px 0; margin: 0; border-left: 0; border-top: 1px solid var(--rule); }
-  .pd-snap-fig:first-child { border-top: 0; padding-top: 0; }
-  .pd-snap-fig .v { margin: 0; font-size: 18px; grid-row: 1 / span 2; grid-column: 2; align-self: center; }
-  .pd-snap-fig .s { grid-column: 1; }
   .pd-plan-row { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 16px; }
   .pd-plan { grid-row: auto; display: block; }
   .pd-commit .btn { flex: 1 1 auto; }

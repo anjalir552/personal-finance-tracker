@@ -86,20 +86,20 @@ SW.pages = SW.pages || {};
       </div>`;
   }
 
-  /* ---------- Snapshot: balance, committed, available ---------- */
-  function snapHTML(r) {
+  /* ---------- How it fits: one bar, and the sum written out beneath it ---------- */
+  function barHTML(r) {
+    return ui.moneyBar({ balance: r.balance, bills: r.bills, everyday: r.everyday, goals: r.goals, free: r.free }, r.price);
+  }
+  function ledgerHTML(r) {
     const committed = r.bills + r.everyday + r.goals;
-    const fig = (k, v, s, cls = '') => `<div class="pd-snap-fig ${cls}"><span class="k">${k}</span><span class="v num">${F.inr(v)}</span><span class="s">${s}</span></div>`;
-    return `<div class="pd-snap-figs">
-        ${fig('Current balance', r.balance, ov.balance ? 'Your what-if figure' : 'In your account today')}
-        <span class="pd-op" aria-hidden="true">−</span>
-        ${fig('Committed before payday', committed, 'Bills, essentials and savings')}
-        <span class="pd-op" aria-hidden="true">=</span>
-        ${fig('Available to spend', r.free, `Until payday on ${F.short(S.nextPayday())}`, 'free')}
-        ${fig(F.esc(inp.name.trim() || 'This purchase'), r.price, r.price && r.free > 0 ? `${r.share >= 10 ? '10×+' : F.pct(r.share)} of what’s available` : r.price ? 'Nothing is free until payday' : 'Enter a price', 'buy')}
-      </div>
-      ${ui.moneyBar({ balance: r.balance, bills: r.bills, everyday: r.everyday, goals: r.goals, free: r.free }, r.price)}
-      <div class="legend pd-legend" aria-hidden="true"><span><i class="key-bills"></i>Bills <b class="num">${F.inrc(r.bills)}</b></span><span><i class="key-everyday"></i>Essentials <b class="num">${F.inrc(r.everyday)}</b></span><span><i class="key-goals"></i>Savings <b class="num">${F.inrc(r.goals)}</b></span><span><i class="key-free"></i>Available <b class="num">${F.inrc(r.free)}</b></span>${r.price ? `<span><i class="key-purchase"></i>This purchase <b class="num">${F.inrc(r.price)}</b></span>` : ''}</div>`;
+    const sub = (cls, k, v) => `<div class="lg-sub"><dt><i class="${cls}"></i>${k}</dt><dd class="num">${F.inr(v)}</dd></div>`;
+    return `<dl class="pd-ledger">
+        <div class="lg-row"><dt><i class="sp"></i>Current balance${ov.balance ? '<span class="s">Your what-if figure</span>' : ''}</dt><dd class="num">${F.inr(r.balance)}</dd></div>
+        <div class="lg-row"><dt><i class="sp"></i>Committed before payday</dt><dd class="num"><span aria-hidden="true">−</span><span class="sr-only">minus </span>${F.inr(committed)}</dd></div>
+        ${sub('key-bills', 'Bills', r.bills)}${sub('key-everyday', 'Essentials', r.everyday)}${sub('key-goals', 'Savings this month', r.goals)}
+        <div class="lg-row lg-total"><dt><i class="key-free"></i>Available to spend<span class="s">Until payday on ${F.short(S.nextPayday())}</span></dt><dd class="num">${F.inr(r.free)}</dd></div>
+        <div class="lg-row lg-buy"><dt><i class="key-purchase"></i>${F.esc(inp.name.trim() || 'This purchase')}<span class="s">${r.price && r.free > 0 ? `${r.share >= 10 ? '10×+' : F.pct(r.share)} of what’s available` : r.price ? 'Nothing is free until payday' : 'Enter a price'}</span></dt><dd class="num">${F.inr(r.price)}</dd></div>
+      </dl>`;
   }
 
   /* ---------- What changes until payday ---------- */
@@ -153,38 +153,38 @@ SW.pages = SW.pages || {};
     const saveReady = path.save.readyOn || (p.save.when + '-01');
     const maxMonthly = Math.max(1000, Math.ceil(r.price / 100) * 100);
     const low = pp => lowBefore(pp);
-    const col = (id, title, when, whenSub, lines, extra = '') => `<div class="pd-plan${cur === id ? ' on' : ''}">
+    const col = (id, title, when, whenSub, lines) => `<div class="pd-plan${cur === id ? ' on' : ''}">
       <button type="button" class="pd-plan-pick" role="radio" aria-checked="${cur === id}" tabindex="${cur === id ? 0 : -1}" data-pick="${id}">
         <span class="pd-radio" aria-hidden="true"></span><span>${title}</span>${rec === id ? '<span class="pd-best">Best fit</span>' : ''}</button>
       <div class="pd-when"><span class="num">${when}</span><span class="s">${whenSub}</span></div>
       <dl class="pd-lines">${lines.map(([k, v, bad]) => `<div><dt>${k}</dt><dd class="num${bad ? ' warn' : ''}">${v}</dd></div>`).join('')}</dl>
-      ${extra}
     </div>`;
     const sel = path[cur];
     const below = sel.values.findIndex(x => x < r.cushion);
     const commitLabel = { now: 'I’ll buy it now', later: laterOn === payday ? `I’ll wait until ${F.short(payday)}` : `I’ll buy it on ${F.short(laterOn)}`, save: `I’ll save ${F.inr(p.save.monthly)} a month` }[cur];
+    const needs = p.now.fromGoals + p.now.fromNeeds;
+    const slider = `<label class="pd-slider"><span class="pd-slider-k">Amount each month <b class="num">${F.inr(p.save.monthly)}</b></span>
+        <input type="range" min="500" max="${maxMonthly}" step="100" value="${Math.min(maxMonthly, p.save.monthly)}" style="--p:${fill(Math.min(maxMonthly, p.save.monthly), 500, maxMonthly)}" data-monthly aria-label="Monthly amount to save" aria-valuetext="${F.inr(p.save.monthly)} a month" />
+        <span class="pd-slider-ends num"><span>₹500</span><span>${F.inrc(maxMonthly)}</span></span></label>`;
     return `<div class="pd-plan-row" role="radiogroup" aria-labelledby="cmp-h">
         ${col('now', 'Buy now', 'Today', `${days(r.daysLeft)} to payday`, [
           ['Lowest before payday', F.inr(low(path.now)), low(path.now) < r.cushion],
           ['Free money left', F.inr(p.now.left), p.now.left < r.cushion],
-          ['Taken from savings', F.inr(p.now.fromGoals), p.now.fromGoals > 0],
-          ['Taken from bills and essentials', F.inr(p.now.fromNeeds), p.now.fromNeeds > 0]
+          ['Taken from savings and bills', F.inr(needs), needs > 0]
         ])}
         ${col('later', laterLabel, F.date(laterOn, false), `in ${days(F.daysBetween(S.TODAY, laterOn))}${later ? ', after payday' : ''}`, [
           ['Lowest before payday', F.inr(low(path.later)), low(path.later) < r.cushion],
-          ['Share of a typical month', isFinite(p.wait.share) ? (p.wait.share >= 10 ? '10×+' : F.pct(p.wait.share)) : '—', p.wait.share > 0.8],
           ['Left that month', F.inr(p.wait.left), !p.wait.ok],
-          ['Savings goals', p.wait.left >= 0 ? 'Untouched' : 'At risk', p.wait.left < 0]
+          ['Share of a typical month', isFinite(p.wait.share) ? (p.wait.share >= 10 ? '10×+' : F.pct(p.wait.share)) : '—', p.wait.share > 0.8]
         ])}
         ${col('save', 'Save first', F.date(saveReady, true).replace(/^\d+ /, ''), `${p.save.months} payday${p.save.months === 1 ? '' : 's'} of saving`, [
+          ['Lowest before payday', F.inr(low(path.save)), low(path.save) < r.cushion],
           ['Put aside each payday', F.inr(p.save.monthly), !p.save.fits],
-          ['Fits a typical month', p.save.fits ? 'Yes' : `${F.inr(p.save.monthly - Math.max(0, r.surplus))} less spending`, !p.save.fits],
-          ['Savings goals', 'Untouched', false]
-        ], `<label class="pd-slider"><span class="pd-slider-k">Amount each month</span>
-            <input type="range" min="500" max="${maxMonthly}" step="100" value="${Math.min(maxMonthly, p.save.monthly)}" style="--p:${fill(Math.min(maxMonthly, p.save.monthly), 500, maxMonthly)}" data-monthly aria-label="Monthly amount to save" aria-valuetext="${F.inr(p.save.monthly)} a month" />
-            <span class="pd-slider-ends num"><span>₹500</span><span>${F.inrc(maxMonthly)}</span></span></label>`)}
+          ['Fits a typical month', p.save.fits ? 'Yes' : `${F.inr(p.save.monthly - Math.max(0, r.surplus))} less spending`, !p.save.fits]
+        ])}
       </div>
       <div class="pd-commit">
+        ${cur === 'save' ? slider : ''}
         <button type="button" class="btn btn-primary" data-save="${{ now: 'bought', later: 'waiting', save: 'saving' }[cur]}">${commitLabel}</button>
         ${cur === 'save' ? `<button type="button" class="btn btn-secondary" data-action="goal">${I('goals', 15)}Make it a savings goal</button>` : ''}
         <button type="button" class="btn btn-ghost" data-save="skipped">Skip it</button>
@@ -239,20 +239,28 @@ SW.pages = SW.pages || {};
     const cats = SEED.CATEGORIES.map(c => c.id);
     return `<form class="pd-form" data-form autocomplete="off" onsubmit="return false" aria-labelledby="form-h">
       <h2 class="pd-form-title" id="form-h">The purchase</h2>
-      <label class="field"><span class="field-label">What are you buying?</span><input class="input" name="name" value="${F.esc(inp.name)}" placeholder="e.g. Concert tickets…" /></label>
-      <label class="field"><span class="field-label">Category</span><select class="select" name="category">${cats.map(c => `<option ${c === inp.category ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
-      <label class="field"><span class="field-label">Price</span>
-        <div class="input-affix has-pre price-input"><span class="affix pre">₹</span><input class="input num" name="price" inputmode="numeric" value="${inp.price ? F.num(inp.price) : ''}" placeholder="0" data-money aria-describedby="price-hint" /></div>
-        <input type="range" class="pd-range" min="0" max="${sliderMax}" step="100" value="${Math.min(inp.price || 0, sliderMax)}" style="--p:${fill(Math.min(inp.price || 0, sliderMax), 0, sliderMax)}" data-price-range aria-label="Price" aria-valuetext="${F.inr(inp.price || 0)}" />
-        <span class="field-hint" id="price-hint">Include delivery, fees or anything you’d pay with it.</span></label>
-      <div class="field"><label class="field-label" for="pd-date">When would you like it?</label>
-        <input class="input" type="date" id="pd-date" name="date" value="${inp.date}" min="${S.TODAY}" aria-describedby="date-hint" />
-        <div class="pd-quick" role="group" aria-label="Quick dates">
-          <button type="button" class="pd-chip" data-date="${S.TODAY}" aria-pressed="${inp.date === S.TODAY}">Today</button>
-          <button type="button" class="pd-chip" data-date="${payday}" aria-pressed="${inp.date === payday}">Payday, ${F.short(payday)}</button>
-          <button type="button" class="pd-chip" data-date="${F.addDays(S.TODAY, 60)}" aria-pressed="${inp.date === F.addDays(S.TODAY, 60)}">In 2 months</button>
+      <div class="pd-form-grid">
+        <div class="pd-col">
+          <label class="field"><span class="field-label">What are you buying?</span><input class="input" name="name" value="${F.esc(inp.name)}" placeholder="e.g. Concert tickets…" /></label>
+          <label class="field"><span class="field-label">Category</span><select class="select" name="category">${cats.map(c => `<option ${c === inp.category ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
         </div>
-        <span class="field-hint" id="date-hint">A later date shapes the “Delay” plan.</span></div>
+        <div class="pd-col">
+          <label class="field"><span class="field-label">Price</span>
+            <div class="input-affix has-pre price-input"><span class="affix pre">₹</span><input class="input num" name="price" inputmode="numeric" value="${inp.price ? F.num(inp.price) : ''}" placeholder="0" data-money aria-describedby="price-hint" /></div>
+            <input type="range" class="pd-range" min="0" max="${sliderMax}" step="100" value="${Math.min(inp.price || 0, sliderMax)}" style="--p:${fill(Math.min(inp.price || 0, sliderMax), 0, sliderMax)}" data-price-range aria-label="Price" aria-valuetext="${F.inr(inp.price || 0)}" />
+            <span class="field-hint" id="price-hint">Include delivery, fees or anything you’d pay with it.</span></label>
+        </div>
+        <div class="pd-col">
+          <div class="field"><label class="field-label" for="pd-date">When would you like it?</label>
+            <input class="input" type="date" id="pd-date" name="date" value="${inp.date}" min="${S.TODAY}" aria-describedby="date-hint" />
+            <div class="pd-quick" role="group" aria-label="Quick dates">
+              <button type="button" class="pd-chip" data-date="${S.TODAY}" aria-pressed="${inp.date === S.TODAY}">Today</button>
+              <button type="button" class="pd-chip" data-date="${payday}" aria-pressed="${inp.date === payday}">Payday, ${F.short(payday)}</button>
+              <button type="button" class="pd-chip" data-date="${F.addDays(S.TODAY, 60)}" aria-pressed="${inp.date === F.addDays(S.TODAY, 60)}">In 2 months</button>
+            </div>
+            <span class="field-hint" id="date-hint">A later date shapes the “Wait” plan.</span></div>
+        </div>
+      </div>
       <details class="disclosure pd-adjust" ${changed() ? 'open' : ''}>
         <summary><span>Try a what-if<span class="sum-sub">Balance, bills, savings</span></span>${I('chevronDown', 18)}</summary>
         <div class="disc-body">
@@ -306,12 +314,13 @@ SW.pages = SW.pages || {};
         <div class="pd-main">
           <section class="pd-answer ${r.tone || ''}" data-answer aria-live="polite" aria-labelledby="ans-h">${answerHTML(r)}</section>
           <section class="pd-fit" aria-labelledby="snap-h">
-            <div class="pd-sec-head"><h2 class="pd-sec-title" id="snap-h">How it fits</h2><p class="pd-sec-desc">Your balance, minus what’s already promised before payday${r.price ? ', and what buying it changes' : ''}</p></div>
-            <div data-snap>${snapHTML(r)}</div>
-            <div data-break ${r.price ? '' : 'hidden'}>
-              <div data-impact>${impactHTML(r)}</div>
+            <div class="pd-sec-head"><h2 class="pd-sec-title" id="snap-h">How it fits</h2><p class="pd-sec-desc">Your balance, less what’s already promised before payday${r.price ? ', and what buying it changes' : ''}</p></div>
+            <div data-snap>${barHTML(r)}</div>
+            <div class="pd-fit-grid">
+              <div data-ledger>${ledgerHTML(r)}</div>
+              <div data-break ${r.price ? '' : 'hidden'}><div data-impact>${impactHTML(r)}</div>
               <details class="disclosure pd-steps"><summary><span>Step by step</span>${I('chevronDown', 18)}</summary>
-                <div class="disc-body"><div class="pd-wf" data-waterfall></div><p class="pd-wf-note"><i aria-hidden="true"></i><span data-wf-note>Your safety cushion</span></p></div></details>
+                <div class="disc-body"><div class="pd-wf" data-waterfall></div><p class="pd-wf-note"><i aria-hidden="true"></i><span data-wf-note>Your safety cushion</span></p></div></details></div>
             </div>
           </section>
           <section class="pd-compare" aria-labelledby="cmp-h" data-compare-wrap ${r.price ? '' : 'hidden'}>
@@ -332,7 +341,8 @@ SW.pages = SW.pages || {};
     const ans = root.querySelector('[data-answer]');
     ans.className = `pd-answer ${r.price ? r.tone : ''}`;
     ans.innerHTML = answerHTML(r);
-    root.querySelector('[data-snap]').innerHTML = snapHTML(r);
+    root.querySelector('[data-snap]').innerHTML = barHTML(r);
+    root.querySelector('[data-ledger]').innerHTML = ledgerHTML(r);
     root.querySelector('[data-break]').hidden = !r.price;
     root.querySelector('[data-compare-wrap]').hidden = !r.price;
     root.querySelector('[data-impact]').innerHTML = impactHTML(r);
