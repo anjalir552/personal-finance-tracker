@@ -53,24 +53,23 @@ SW.pages = SW.pages || {};
         : `Non-essentials were <b>${F.inr(Math.abs(dn))} ${dn > 0 ? 'higher' : 'lower'}</b> than in ${S.monthName(prev, true)}, while essentials ${Math.abs(split.essential - pe.essential) < 500 ? 'stayed about the same' : `changed by ${F.inr(split.essential - pe.essential)}`}.`;
     }
     const share = v => F.pct(split.total ? v / split.total : 0);
+    const rows = [['e', 'Essentials', split.essential, 'Rent, bills, groceries, transport'], ['n', 'Non-essentials', split.nonEssential, 'Eating out, shopping, fun']];
     return `<section class="sa-lead" aria-labelledby="sa-lead-h">
-      <div class="sa-top">
+      <div class="sa-lead-main">
         <div class="sa-total">
           <h2 class="sa-eyebrow" id="sa-lead-h">${partial ? `Spent so far in ${mLong}` : `Spent in ${mLong}`}</h2>
           <div class="sa-big num">${F.inr(total)}</div>
+          ${change}
         </div>
-        ${change}
-      </div>
-      <div class="sa-split">
-        <div class="sa-splitbar" role="img" aria-label="Essentials ${F.inr(split.essential)}, non-essentials ${F.inr(split.nonEssential)}">
-          <span class="e" style="flex:${split.essential || 0.0001}"></span><span class="n" style="flex:${split.nonEssential || 0.0001}"></span>
+        <div class="sa-split">
+          <h3 class="sa-eyebrow">Essentials and the rest</h3>
+          <div class="sa-splitbar" role="img" aria-label="Essentials ${F.inr(split.essential)}, non-essentials ${F.inr(split.nonEssential)}">
+            <span class="e" style="flex:${split.essential || 0.0001}"></span><span class="n" style="flex:${split.nonEssential || 0.0001}"></span>
+          </div>
+          <dl class="sa-splitrows">${rows.map(([k, n, v, t]) => `<div title="${t}"><dt><i class="${k}"></i>${n}</dt><dd class="p num">${share(v)}</dd><dd class="a num">${F.inr(v)}</dd></div>`).join('')}</dl>
         </div>
-        <dl class="sa-splitfigs">
-          <div title="Rent, bills, groceries, transport"><dt><i class="e"></i>Essentials<span class="p">${share(split.essential)}</span></dt><dd class="num">${F.inr(split.essential)}</dd></div>
-          <div title="Eating out, shopping, fun"><dt><i class="n"></i>Non-essentials<span class="p">${share(split.nonEssential)}</span></dt><dd class="num">${F.inr(split.nonEssential)}</dd></div>
-        </dl>
       </div>
-      ${note ? `<p class="sa-note">${note}</p>` : ''}
+      ${note ? `<p class="sa-note">${I('info', 16)}<span>${note}</span></p>` : ''}
     </section>`;
   }
 
