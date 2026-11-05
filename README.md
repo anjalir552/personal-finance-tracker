@@ -57,6 +57,8 @@ All screenshots are from the running application with its built-in example data.
 | ![Savings Goals](docs/screenshots/goals.png) | ![Financial Insights](docs/screenshots/insights.png) |
 | **Spending Analysis** | **Transactions** |
 | ![Spending Analysis](docs/screenshots/spending.png) | ![Transactions](docs/screenshots/transactions.png) |
+| **Overview** | **Settings** |
+| ![Overview](docs/screenshots/overview.png) | ![Settings](docs/screenshots/settings.png) |
 
 ## Tech stack
 
