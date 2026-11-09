@@ -79,6 +79,7 @@ Scopewise is intentionally dependency-free: no framework, no bundler and no pack
 ```
 personal-finance-tracker/
 ├── index.html              # App shell: layout, font and script loading
+├── DESIGN.md               # Design system: visual rules, components, states and page layouts
 ├── css/
 │   ├── tokens.css          # Design tokens: colours, type scale, spacing, radii
 │   ├── styles.css          # Shared app styles and components
@@ -161,7 +162,7 @@ Each of the eight pages was also loaded in a headless browser at desktop, tablet
 3. To use your own numbers, go to **Settings → Your data → Clear all data**, then follow the three set-up steps on **Overview**.
 4. Use **Settings → Export everything** to download a JSON backup of your data at any time.
 
-The [product handbook](docs/handbook/README.md) explains every page, feature and calculation in detail.
+The [product handbook](docs/handbook/README.md) explains every page, feature and calculation in detail, and [DESIGN.md](DESIGN.md) sets out the visual design and UX rules every screen follows.
 
 > Scopewise gives estimates to help you think a decision through. It isn't financial advice.
 

@@ -101,14 +101,14 @@ One palette is used on every page.
 
 | Colour | Meaning |
 |---|---|
-| **Navy** `#282E42` | All text and money figures, important icons, the one primary button on a screen (navy with white text), today's date, switches that are on, and the count badge on Upcoming Expenses in the sidebar |
-| **Periwinkle** `#C4D6FF` | Selected states (the current page in the sidebar is a pale periwinkle pill with a navy label; the selected tab, month, plan or calendar day), focus rings, and the main data on each screen (free to spend, the current month's bars, goal progress, still to pay). Marks use the deeper `#4D73CF` and periwinkle text uses `#2D4789`. Positive figures, such as income `+₹60,000`, "on time" and **On track**, are deep periwinkle |
-| **Lavender** `#B8C0FF` | Secondary accents: comparisons (such as last month's bars in Spending Analysis), the savings layer of the money bar, avatars and selected text |
-| **Lilac** `#E7C6FF` | Used sparingly: the purchase you're weighing on Purchase Decisions, and anything that needs attention (overdue, due within 3 days, behind plan, past the deadline, a plan that's short, a big rise in a non-essential category). Marks use `#9C45AA` and lilac text uses `#7B2C88` |
-| **White** `#FFFFFF` | Cards, panels and pop-up windows |
-| **Pale periwinkle** `#E3EAFF` | The page background. The sidebar and the frame around the page use periwinkle `#C4D6FF` |
+| **Navy** `#282E42` | All text and money figures, important icons, and small solid marks: the one primary button on a screen (navy with white text), the marker on the current page in the sidebar, today's date, switches that are on, "paid" marks and the count badge on Upcoming Expenses |
+| **Periwinkle** `#C4D6FF` | The frame: the sidebar and the rim around the page. Its pale tint marks selected states (the selected tab, month, plan or calendar day) and focus rings. The current page in the sidebar is a white tile with a short navy bar. Positive figures, such as income `+₹60,000`, "on time" and **On track**, use deep periwinkle text `#2D4789` |
+| **Lavender** `#B8C0FF` | The one lead colour block on each page, which holds its headline figure or verdict (for example, free to spend on Overview and still to pay on Upcoming Expenses). Deepened to `#5A67DB`, it's the main data colour: free to spend, the current month's bars, goal progress and still to pay. Its light tint marks comparisons, such as last month's bars |
+| **Lilac** `#E7C6FF` | Savings and goals, the purchase you're weighing on Purchase Decisions, and the cautious verdict. Deepened, it marks anything that needs attention (overdue, due within 3 days, behind plan, past the deadline, a plan that's short, a big rise in a non-essential category). Marks use `#9440BE` and lilac text uses `#74278F` |
+| **White** `#FFFFFF` | Tables, the calendar, forms and pop-up windows |
+| **Pale periwinkle** `#E3EAFF` | The page background |
 
-In the money bar, committed money is shown in navy steps: bills in dark navy and everyday essentials in a mid navy-grey. Savings are lavender and free to spend is periwinkle.
+In the money bar, committed money is shown in navy steps: bills in dark navy and everyday essentials in a mid navy-grey. Savings are lilac and free to spend is deep lavender.
 
 There's no red and green. Positive news is deep periwinkle, and anything that needs attention is lilac. Meaning is always carried by words and shapes too, never by colour alone.
 
