@@ -148,15 +148,15 @@
     },
 
     /**
-     * The money map bar: bills | everyday | goals | free, with an optional purchase laid over it
+     * The money map bar: bills | everyday | goals | buffer | free, with an optional purchase laid over it
      * from the right (it uses free money first, then goals, everyday and bills).
      */
     moneyBar(m, purchase = 0) {
       const total = Math.max(m.balance, 1);
       const parts = [
-        ['bills', Math.max(0, m.bills)], ['everyday', Math.max(0, m.everyday)], ['goals', Math.max(0, m.goals)], ['free', Math.max(0, m.free)]
+        ['bills', Math.max(0, m.bills)], ['everyday', Math.max(0, m.everyday)], ['goals', Math.max(0, m.goals)], ['buffer', Math.max(0, m.buffer || 0)], ['free', Math.max(0, m.free)]
       ];
-      const committed = parts.slice(0, 3).reduce((a, p) => a + p[1], 0);
+      const committed = parts.slice(0, 4).reduce((a, p) => a + p[1], 0);
       const short = committed > m.balance;
       const scale = short ? committed : total;
       const p = Math.min(purchase, scale);
@@ -164,6 +164,29 @@
         ${parts.map(([k, v]) => v > 0 ? `<span class="seg seg-${k}" style="flex:${v / scale}"></span>` : '').join('')}
         ${purchase > 0 ? `<span class="seg-purchase${purchase > m.balance ? ' over' : ''}" style="width:${(p / scale) * 100}%"></span>` : ''}
       </div>`;
+    },
+
+    /**
+     * Budget against actual, one row per category: the bar is what's been spent, the tick is
+     * the budget, anything past the tick is lilac and the words say "over" as well.
+     */
+    budgetRows(rows, { scheduled = true } = {}) {
+      return `<ol class="bva">${rows.map(r => {
+        const scale = Math.max(r.budget, r.spent + (scheduled ? r.scheduled : 0), 1);
+        const w = v => (Math.max(0, v) / scale * 100).toFixed(2) + '%';
+        const inPlan = Math.min(r.spent, r.budget);
+        const over = r.spent - r.budget;
+        const state = over > 0 ? `<span class="bva-s over">${SW.icon('alert', 13)}${F.inr(over)} over</span>`
+          : scheduled && r.scheduled > 0 && r.remaining < 50 ? `<span class="bva-s">${F.inr(r.scheduled)} still due</span>`
+          : r.kind === 'bill' && !r.scheduled && r.spent >= r.budget ? `<span class="bva-s">${SW.icon('check', 13)}Paid</span>`
+          : `<span class="bva-s">${F.inr(Math.max(0, r.budget - r.spent - (scheduled ? r.scheduled : 0)))} left${scheduled && r.scheduled ? `, ${F.inr(r.scheduled)} due` : ''}</span>`;
+        return `<li class="bva-row${over > 0 ? ' is-over' : ''}">
+          <span class="bva-name"><i class="ess${r.essential ? '' : ' no'}" aria-hidden="true"></i><span>${F.esc(r.cat)}</span><span class="sr-only">${r.essential ? ', essential' : ', non-essential'}</span></span>
+          <span class="bva-track" aria-hidden="true"><b style="width:${w(inPlan)}"></b>${over > 0 ? `<b class="ov" style="left:${w(r.budget)};width:${w(over)}"></b>` : ''}${scheduled && r.scheduled ? `<b class="sch" style="left:${w(r.spent)};width:${w(r.scheduled)}"></b>` : ''}${r.budget ? `<u style="left:${w(r.budget)}"></u>` : ''}</span>
+          <span class="bva-fig num"><b>${F.inr(r.spent)}</b> <span>of ${F.inr(r.budget)}</span></span>
+          ${state}
+        </li>`;
+      }).join('')}</ol>`;
     },
 
     /** Read a form into a plain object */

@@ -1,0 +1,131 @@
+/* ==========================================================================
+   Features added for the connected prototype: Safe-to-Spend breakdown, budget against actual,
+   Smart Financial Recovery, Emergency Expense Manager, Adaptive Budgeting, Goal Impact Analyzer,
+   and the budget editor.
+   Same rules as the rest of the app: role tokens only (css/tokens.css), lavender leads, lilac is
+   attention, navy is ink and small solids; no red or green, and every state is also said in words.
+   ========================================================================== */
+:root {
+  --seg-buffer: var(--peri-300);
+}
+
+/* ---------- Money map: the fifth segment, the buffer ---------- */
+.seg-buffer { background: var(--seg-buffer); }
+.key-buffer { background: var(--seg-buffer); }
+.hero-card { --seg-buffer: var(--peri-200); }
+.pd-fit { --seg-buffer: var(--peri-300); }
+.money-keys.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.money-keys.five .money-key { padding: 0 16px; }
+.money-keys.five .money-key:first-child { padding-left: 0; }
+.money-keys.five .money-key .v { font-size: 24px; }
+.chart .wf-bar.buffer { fill: var(--seg-buffer); }
+
+/* "How Safe-to-Spend is worked out": the sum written out, on the lavender block */
+.hero-how { margin-top: 22px; border-top: 1px solid var(--block-line); }
+.hero-how > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 14px 0 0; font-size: 13.5px; font-weight: 650; color: var(--block-ink); border-radius: var(--r-small); }
+.hero-how > summary::-webkit-details-marker { display: none; }
+.hero-how > summary svg { transition: transform var(--dur) var(--ease); }
+.hero-how[open] > summary svg { transform: rotate(180deg); }
+.hero-how > summary:focus-visible { outline: none; box-shadow: var(--ring); }
+.hero-how-body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px 40px; padding-top: 16px; align-items: start; }
+.hero-how-body > p { font-size: 14px; line-height: 1.6; color: var(--block-ink-2); margin: 0; }
+.hero-how-body > p b { color: var(--navy); font-weight: 650; }
+.how-sum { margin: 0; }
+.how-sum > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; padding: 8px 0; border-top: 1px solid var(--block-line); font-size: 14px; }
+.how-sum > div:first-child { border-top: 0; padding-top: 0; }
+.how-sum dt { color: var(--block-ink); }
+.how-sum dt .s { display: block; font-size: 12px; color: var(--block-ink-2); margin-top: 2px; line-height: 1.45; }
+.how-sum dd { margin: 0; font-weight: 650; text-align: right; font-variant-numeric: tabular-nums; }
+.how-sum > div.tot { border-top: 1.5px solid var(--navy); font-weight: 700; }
+.how-sum > div.tot dt { font-weight: 700; }
+
+/* Overview month strip head */
+.ov-month .panel-head { align-items: center; }
+.goal-mini .top { display: flex; justify-content: space-between; gap: 12px; }
+
+/* ---------- Budget against actual (bullet rows) ---------- */
+.bva { list-style: none; margin: 0; padding: 0; }
+.bva-row { display: grid; grid-template-columns: minmax(120px, 190px) minmax(80px, 1fr) minmax(128px, auto) minmax(104px, auto); align-items: center; gap: 16px; min-height: 46px; border-top: 1px solid var(--rule); }
+.bva-row:first-child { border-top: 0; }
+.bva-name { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 14px; font-weight: 550; }
+.bva-name > span:not(.sr-only) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bva .ess, .bva-legend .ess { display: inline-block; width: 7px; height: 7px; border-radius: 99px; background: var(--ess); flex: none; }
+.bva .ess.no { background: transparent; box-shadow: inset 0 0 0 1.5px var(--gray-400); }
+.bva-track { position: relative; height: 10px; border-radius: 99px; background: var(--gray-100); }
+.bva-track b { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 99px; background: var(--data); transition: width 400ms var(--ease); }
+.bva-track b.ov { background: var(--alert); border-radius: 0 99px 99px 0; }
+.bva-track b.sch { background: repeating-linear-gradient(135deg, var(--data-soft) 0 3px, transparent 3px 6px); border-radius: 0 99px 99px 0; }
+.bva-track u { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--navy); border-radius: 1px; }
+.bva-fig { font-size: 14px; text-align: right; white-space: nowrap; }
+.bva-fig b { font-weight: 650; }
+.bva-fig span { color: var(--text-3); font-size: 13px; }
+.bva-s { font-size: 12.5px; color: var(--text-3); text-align: right; white-space: nowrap; display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; }
+.bva-s.over { color: var(--alert-ink); font-weight: 650; }
+.bva-legend { margin-top: 14px; }
+.bva-legend .lg-bar { background: var(--data); width: 14px; height: 6px; border-radius: 3px; }
+.bva-legend .lg-tick { background: var(--navy); width: 2px; height: 12px; border-radius: 1px; }
+.bva-legend .lg-over { background: var(--alert); width: 14px; height: 6px; border-radius: 3px; }
+.bva-legend .lg-sch { background: repeating-linear-gradient(135deg, var(--data-soft) 0 3px, transparent 3px 6px); width: 14px; height: 6px; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--data-soft); }
+
+/* Spending Analysis: the plan band */
+.sa-plan { margin-top: 20px; background: var(--surface); border-radius: 20px; }
+.sa-plan-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.sa-bva { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(220px, 1fr); gap: 28px 48px; margin-top: 24px; align-items: start; }
+.sa-bva-side { border-left: 1px solid var(--rule); padding-left: 32px; }
+.sa-commit { margin: 10px 0 0; }
+.sa-commit > div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); font-size: 14px; }
+.sa-commit > div:first-child { border-top: 0; }
+.sa-commit dd { margin: 0; text-align: right; font-weight: 650; }
+.sa-commit dd .s { display: block; font-size: 12px; color: var(--text-3); font-weight: 450; }
+.sa-commit.tot { margin-top: 14px; padding-top: 6px; border-top: 1.5px solid var(--navy); }
+.sa-notelist .tip { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--text); margin-top: 8px; line-height: 1.5; }
+.sa-notelist .tip svg { flex: none; color: var(--data); margin-top: 2px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1180px) {
+  .money-keys.five { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 20px; }
+  .money-keys.five .money-key:nth-child(4) { padding-left: 0; border-left: 0; }
+  .hero-how-body { grid-template-columns: minmax(0, 1fr); }
+  .sa-bva { grid-template-columns: minmax(0, 1fr); }
+  .sa-bva-side { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 20px; }
+  .em-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .em-cell.em-list { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--rule); }
+}
+@media (max-width: 760px) {
+  .money-keys.five { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .money-keys.five .money-key { padding: 0 12px; }
+  .money-keys.five .money-key:nth-child(odd) { padding-left: 0; border-left: 0; }
+  .money-keys.five .money-key:nth-child(4) { padding-left: 12px; border-left: 1px solid var(--block-line); }
+  .money-keys.five .money-key.free { grid-column: 1 / -1; padding-left: 0; border-left: 0; }
+  .bva-row { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; padding: 10px 0; }
+  .bva-track { grid-column: 1 / -1; grid-row: 2; }
+  .bva-fig { grid-column: 2; grid-row: 1; }
+  .bva-s { grid-column: 1 / -1; grid-row: 3; justify-content: flex-start; }
+  .rc-alert { flex-wrap: wrap; }
+  .rc-alert .btn { width: 100%; }
+  .rc-lever { grid-template-columns: auto minmax(0, 1fr); }
+  .rc-lever-amt { grid-column: 2; }
+  .rc-catch { margin-left: 0; }
+  .em-grid { grid-template-columns: minmax(0, 1fr); }
+  .em-preview { position: static; }
+  .em-board { grid-template-columns: minmax(0, 1fr); }
+  .em-cell { border-left: 0; border-top: 1px solid var(--rule); padding: 20px; }
+  .em-cell:first-child { border-top: 0; }
+  .fi-adapt { padding: 24px 20px; }
+  .fi-adapt-body { grid-template-columns: minmax(0, 1fr); }
+  .be-row { grid-template-columns: minmax(0, 1fr) 140px; }
+  .sg-change-list { padding: 4px 16px; }
+  .sa-plan { border-radius: 18px; }
+  .pd-gi-bar .segmented { width: 100%; }
+}
+
+/* Overview month strip: plain figures (the lavender block above already leads the page) */
+.plain-strip .stat-strip > .stat { background: transparent; }
+.plain-strip .stat-strip > .stat + .stat { border-left: 1px solid var(--rule); }
+/* Goal and recovery tables: the sub line sits under the name */
+.table th .cell-sub, .table td .cell-sub { display: block; font-weight: 450; }
+/* Row headers inside table bodies read as the row's first cell, not as a column header */
+:is(.rc-goals, .rc-rev, .ad-table) tbody th { border-bottom: 1px solid var(--rule); font-size: 14px; color: var(--text); white-space: normal; height: auto; padding-top: 11px; padding-bottom: 11px; }
+:is(.rc-goals, .rc-rev, .ad-table) tbody tr:last-child th { border-bottom: 0; }
+:is(.rc-goals, .rc-rev, .ad-table) td { height: auto; }
+
