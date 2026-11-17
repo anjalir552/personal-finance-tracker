@@ -14,29 +14,33 @@ SW.pages = SW.pages || {};
   let saveMonthly = null; // the save-first amount; null = suggested
   let lastSaved = null;
   let projOpen = false;   // balance-path chart toggle
+  let payFrom = 'spend';  // goal impact: 'spend' (the normal order) or 'savings' (pay it from savings)
   let root = null;
 
   const PLAN_NAMES = { now: 'Buy now', later: 'Delay', save: 'Save first' };
   const TITLE = {
     comfortable: () => `Yes, it fits comfortably.`,
     tight: () => `It fits, but it’s tight until payday.`,
-    goals: () => `Only by dipping into this month’s savings.`,
+    buffer: () => `Only by using your emergency buffer.`,
+    goals: () => `Only by cutting this month’s savings.`,
     everyday: () => `It cuts into money for essentials.`,
     bills: () => `It leaves you short for bills.`,
     over: () => `It’s more than your whole balance.`
   };
   const TAG_ICON = { good: 'checkCircle', caution: 'info', alert: 'alert' };
   const OUTCOME = { bought: 'Bought', waiting: 'Waiting', saving: 'Saving for it', skipped: 'Skipped' };
-  const VERDICT_SHORT = { comfortable: 'Fitted comfortably', tight: 'Fitted, but tight', goals: 'Needed savings', everyday: 'Cut into essentials', bills: 'Short for bills', over: 'Over balance' };
+  const PRIORITY = { '': 'Not set', need: 'Need', want: 'Want', nice: 'Nice to have' };
+  const VERDICT_SHORT = { comfortable: 'Fitted comfortably', tight: 'Fitted, but tight', buffer: 'Needed the buffer', goals: 'Needed savings', everyday: 'Cut into essentials', bills: 'Short for bills', over: 'Over balance' };
 
   function mine() {
     const m = S.moneyMap();
     const st = S.state.settings;
-    return { balance: m.balance, bills: m.bills, goals: m.goals, everyday: m.everyday, income: st.monthlyIncome, cushion: st.cushion, daysLeft: m.daysLeft };
+    return { balance: m.balance, bills: m.bills, goals: m.goals, everyday: m.everyday, income: st.monthlyIncome, cushion: m.buffer, daysLeft: m.daysLeft, flexRemaining: m.flexRemaining };
   }
-  const defaults = () => Object.assign({ name: 'Noise-cancelling headphones', category: 'Shopping', price: 14990, date: S.TODAY }, mine());
-  const changed = () => { const m = mine(); return Object.keys(m).some(k => +inp[k] !== +m[k]); };
-  const evaluate = () => S.evaluatePurchase(Object.assign({}, inp, { flexibleAvg: S.typicalMonth().flexible }));
+  const defaults = () => Object.assign({ name: 'Kurta set for a cousin’s wedding', category: 'Shopping & grooming', price: 3000, date: S.TODAY, priority: 'want' }, mine());
+  const changed = () => { const m = mine(); return ['balance', 'bills', 'goals', 'everyday', 'cushion', 'daysLeft'].some(k => +inp[k] !== +m[k]); };
+  const catRoom = () => { const r = S.monthBudget().find(x => x.cat === inp.category); return r && r.kind === 'flexible' ? r.left : 0; };
+  const evaluate = () => S.evaluatePurchase(Object.assign({}, inp, { catRoom: catRoom() }));
   const cap = s => s.replace(/^./, c => c.toUpperCase());
   const days = n => `${n} day${n === 1 ? '' : 's'}`;
   const fill = (v, min, max) => `${Math.max(0, Math.min(100, ((v - min) / ((max - min) || 1)) * 100)).toFixed(1)}%`;   // the filled part of a slider track
@@ -65,41 +69,48 @@ SW.pages = SW.pages || {};
     return { p, payday, laterOn, horizon, base, path, lowBefore, rec, names, cur: plan || rec };
   }
 
+  function priorityLine(r) {
+    if (inp.priority === 'nice' && r.key !== 'comfortable') return ' As a nice-to-have, waiting costs you nothing.';
+    if (inp.priority === 'need' && r.tone === 'alert') return ' If it’s a real need, the options below show the least painful way to pay for it.';
+    if (inp.priority === 'want' && r.key === 'tight') return ' It’s a want, so it’s worth asking whether it can wait until payday.';
+    return '';
+  }
+
   /* ---------- The answer ---------- */
   function answerHTML(r, P) {
     const avg = S.categoryAverage(inp.category);
     const catLine = r.price && avg > 0 ? `You usually spend ${F.inr(avg)} a month on ${inp.category.toLowerCase()}; this is ${r.price >= avg * 1.95 ? `${(r.price / avg).toFixed(1).replace(/\.0$/, '')}× that` : F.pct(r.price / avg) + ' of it'}.`
       : r.price ? `You haven’t spent on ${inp.category.toLowerCase()} in the last three months${S.cat(inp.category).essential ? ', and it counts as essential' : ''}.` : '';
     if (!r.price) return `<div class="pd-answer-text"><h2 class="pd-verdict-title" id="ans-h">Enter a price to see how it fits.</h2>
-        <p class="pd-verdict-sub">You have ${F.inr(r.free)} free until payday, after bills, essentials and this month’s savings.</p></div>
-      <div class="pd-answer-fig"><span class="k">Available to spend</span><span class="v num">${F.inr(r.free)}</span><span class="s">for ${days(r.daysLeft)}</span></div>`;
-    const short = r.after < r.cushion;
+        <p class="pd-verdict-sub">Your Safe-to-Spend is ${F.inr(r.free)} until payday, after commitments, essentials, this month’s savings and your buffer.</p></div>
+      <div class="pd-answer-fig"><span class="k">Safe to spend</span><span class="v num">${F.inr(r.free)}</span><span class="s">for ${days(r.daysLeft)}</span></div>`;
+    const short = r.after < 0;
     return `<div class="pd-answer-text">
         <span class="verdict-tag ${r.tone}">${I(TAG_ICON[r.tone], 15)}${r.label}</span>
         <h2 class="pd-verdict-title" id="ans-h">${TITLE[r.key](r)}</h2>
-        <p class="pd-verdict-sub">${r.reasons[0]}${catLine ? ` ${catLine}` : ''}</p>
+        <p class="pd-verdict-sub">${r.reasons[0]}${catLine ? ` ${catLine}` : ''}${priorityLine(r)}</p>
         <div class="pd-answer-cta"><button type="button" class="btn btn-primary" data-jump="cmp-h">Choose how to buy it</button><span class="pd-answer-best">Best fit: <b>${P.names[P.rec]}</b></span></div>
       </div>
       <div class="pd-answer-fig${short ? ' short' : ''}">
-        <span class="k">Left until payday if you buy it today</span>
+        <span class="k">Safe to spend after buying it today</span>
         <span class="v num">${F.inr(r.after)}</span>
-        <span class="s">${r.after > 0 ? `${F.inr(r.after / r.daysLeft)} a day for ${days(r.daysLeft)}` : 'Taken from money already committed'}</span>
+        <span class="s">${r.after > 0 ? `${F.inr(r.after / r.daysLeft)} a day for ${days(r.daysLeft)}` : 'Taken from money already set aside'}</span>
       </div>`;
   }
 
   /* ---------- How it fits: one bar, and the sum written out beneath it ---------- */
   function barHTML(r) {
-    return ui.moneyBar({ balance: r.balance, bills: r.bills, everyday: r.everyday, goals: r.goals, free: r.free }, r.price);
+    return ui.moneyBar({ balance: r.balance, bills: r.bills, everyday: r.everyday, goals: r.goals, buffer: r.cushion, free: r.free }, r.price);
   }
   function ledgerHTML(r) {
-    const committed = r.bills + r.everyday + r.goals;
+    const committed = r.bills + r.everyday + r.goals + r.cushion;
     const sub = (cls, k, v) => `<div class="lg-sub"><dt><i class="${cls}"></i>${k}</dt><dd class="num">${F.inr(v)}</dd></div>`;
     return `<dl class="pd-ledger">
         <div class="lg-row"><dt><i class="sp"></i>Current balance${ov.balance ? '<span class="s">Your what-if figure</span>' : ''}</dt><dd class="num">${F.inr(r.balance)}</dd></div>
         <div class="lg-row"><dt><i class="sp"></i>Committed before payday</dt><dd class="num"><span aria-hidden="true">−</span><span class="sr-only">minus </span>${F.inr(committed)}</dd></div>
-        ${sub('key-bills', 'Bills', r.bills)}${sub('key-everyday', 'Essentials', r.everyday)}${sub('key-goals', 'Savings this month', r.goals)}
-        <div class="lg-row lg-total"><dt><i class="key-free"></i>Available to spend<span class="s">Until payday on ${F.short(S.nextPayday())}</span></dt><dd class="num">${F.inr(r.free)}</dd></div>
-        <div class="lg-row lg-buy"><dt><i class="key-purchase"></i>${F.esc(inp.name.trim() || 'This purchase')}<span class="s">${r.price && r.free > 0 ? `${r.share >= 10 ? '10×+' : F.pct(r.share)} of what’s available` : r.price ? 'Nothing is free until payday' : 'Enter a price'}</span></dt><dd class="num">${F.inr(r.price)}</dd></div>
+        ${sub('key-bills', 'Commitments', r.bills)}${sub('key-everyday', 'Essentials still to buy', r.everyday)}${sub('key-goals', 'Savings still to move', r.goals)}${sub('key-buffer', 'Monthly buffer', r.cushion)}
+        <div class="lg-row lg-total"><dt><i class="key-free"></i>Safe to spend<span class="s">Until payday on ${F.short(S.nextPayday())}; ${F.inr(r.flexRemaining)} of it is already planned for food, shopping and plans</span></dt><dd class="num">${F.inr(r.free)}</dd></div>
+        <div class="lg-row lg-buy"><dt><i class="key-purchase"></i>${F.esc(inp.name.trim() || 'This purchase')}<span class="s">${r.price && r.free > 0 ? `${r.share >= 10 ? '10×+' : F.pct(r.share)} of your Safe-to-Spend` : r.price ? 'Nothing is safe to spend until payday' : 'Enter a price'}</span></dt><dd class="num">${F.inr(r.price)}</dd></div>
       </dl>`;
   }
 
@@ -107,13 +118,12 @@ SW.pages = SW.pages || {};
   function impactHTML(r) {
     if (!r.price) return '';
     const perBefore = r.free / r.daysLeft, perAfter = r.after / r.daysLeft;
-    const cushionLeft = r.after - r.cushion;
     const rows = [
-      ['Daily spending money', F.inr(perBefore), F.inr(perAfter), perAfter < perBefore * 0.5],
-      ['Safety cushion', F.inr(r.cushion), cushionLeft >= 0 ? `Kept, ${F.inr(cushionLeft)} above` : `${F.inr(-cushionLeft)} below`, cushionLeft < 0],
+      ['Daily spending money', F.inr(Math.max(0, perBefore)), F.inr(Math.max(0, perAfter)), perAfter < perBefore * 0.5],
+      ['Other planned spending', F.inr(r.flexibleUntil), r.after >= r.flexibleUntil ? 'Still covered' : `${F.inr(Math.max(0, r.after))} left for it`, r.after < r.flexibleUntil],
+      ['Monthly buffer', F.inr(r.cushion), r.usesBuffer ? F.inr(r.cushion - r.usesBuffer) : 'Untouched', r.usesBuffer > 0],
       ['Savings this month', F.inr(r.goals), r.usesGoals ? `${F.inr(r.goals - r.usesGoals)}` : 'Untouched', r.usesGoals > 0],
-      ['Essentials and bills', F.inr(r.everyday + r.bills), r.usesEveryday + r.usesBills ? `${F.inr(r.everyday + r.bills - r.usesEveryday - r.usesBills)}` : 'Untouched', r.usesEveryday + r.usesBills > 0],
-      ['Usual eating out and plans', F.inr(r.flexibleUntil), r.after >= r.flexibleUntil ? 'Still covered' : `${F.inr(Math.max(0, r.after))} left for it`, r.after < r.flexibleUntil]
+      ['Essentials and commitments', F.inr(r.everyday + r.bills), r.usesEveryday + r.usesBills ? `${F.inr(r.everyday + r.bills - r.usesEveryday - r.usesBills)}` : 'Untouched', r.usesEveryday + r.usesBills > 0]
     ];
     return `<table class="pd-impact">
         <caption class="sr-only">What changes until payday if you buy it today</caption>
@@ -128,21 +138,41 @@ SW.pages = SW.pages || {};
     const el = root.querySelector('[data-waterfall]');
     if (!el) return;
     const note = root.querySelector('[data-wf-note]');
-    if (note) note.textContent = `Dashed line: your ${F.inr(r.cushion)} safety cushion`;
+    if (note) note.textContent = 'Each step takes out money already spoken for';
     C.waterfall(el, {
       height: 230,
-      ariaLabel: `Balance ${F.inr(r.balance)}, minus bills ${F.inr(r.bills)}, essentials ${F.inr(r.everyday)} and savings ${F.inr(r.goals)}, leaves ${F.inr(r.free)} available; minus the purchase ${F.inr(r.price)} leaves ${F.inr(r.after)}. Cushion ${F.inr(r.cushion)}.`,
+      ariaLabel: `Balance ${F.inr(r.balance)}, minus commitments ${F.inr(r.bills)}, essentials ${F.inr(r.everyday)}, savings ${F.inr(r.goals)} and buffer ${F.inr(r.cushion)}, leaves ${F.inr(r.free)} safe to spend; minus the purchase ${F.inr(r.price)} leaves ${F.inr(r.after)}.`,
       steps: [
         { label: 'Balance', kind: 'start', value: r.balance, cls: 'start' },
-        { label: 'Bills', kind: 'minus', value: r.bills, cls: 'bills' },
+        { label: 'Due', kind: 'minus', value: r.bills, cls: 'bills' },
         { label: 'Essentials', short: 'Ess.', kind: 'minus', value: r.everyday, cls: 'everyday' },
         { label: 'Savings', short: 'Save', kind: 'minus', value: r.goals, cls: 'goals' },
-        { label: 'Available', short: 'Free', kind: 'total', cls: 'free' },
+        { label: 'Buffer', short: 'Buf.', kind: 'minus', value: r.cushion, cls: 'buffer' },
+        { label: 'Safe', short: 'Safe', kind: 'total', cls: 'free' },
         { label: 'Purchase', short: 'Buy', kind: 'minus', value: r.price, cls: 'buy' },
-        { label: 'Left', kind: 'total', cls: r.after < r.cushion ? 'left short' : 'left' }
+        { label: 'Left', kind: 'total', cls: r.after < 0 ? 'left short' : 'left' }
       ],
-      reference: r.cushion ? { value: r.cushion } : null
+      reference: null
     });
+  }
+
+  /* ---------- Goal Impact Analyzer ---------- */
+  function goalImpactHTML(r) {
+    if (!r.price) return '';
+    if (!S.activeGoals().length) return `<p class="pd-gi-none">${I('info', 16)}<span>You have no active savings goals, so nothing to protect here. <a class="link" href="#/goals">Create a goal</a></span></p>`;
+    const gi = S.goalImpact(r.price, payFrom, r.usesGoals);
+    const touched = gi.touched;
+    const late = touched.filter(x => x.lateAfter && !x.lateBefore);
+    const lead = payFrom === 'spend'
+      ? (r.usesGoals ? `Buying it today takes <b>${F.inr(r.usesGoals)}</b> from this month’s goal transfers. ${touched.map(x => `${F.esc(x.g.name)} moves ${x.delay === 0 ? 'no later' : x.delay === Infinity || x.delay == null ? 'out of reach' : `${x.delay} month${x.delay === 1 ? '' : 's'} later`}`).join('; ')}.`
+        : `Paid from your spending money, it leaves every goal where it is: this month’s ${F.inr(S.goalsThisCycle())} of transfers still goes in.${r.usesBuffer ? ` It does use ${F.inr(r.usesBuffer)} of your buffer.` : ''}`)
+      : `If you paid for it from savings instead, ${touched.map(x => `${F.inr(x.fromTransfer + x.fromSaved)} would come out of ${F.esc(x.g.name)}`).join(' and ')}${touched.length ? ', lowest priority first.' : '.'}${late.length ? ` <b class="warn">${late.map(x => F.esc(x.g.name)).join(' and ')} would miss ${late.length > 1 ? 'their deadlines' : 'its deadline'}.</b>` : ''}`;
+    return `<div class="pd-gi-bar">
+        <p class="pd-gi-lead">${lead}</p>
+        ${ui.segmented('payfrom', [{ value: 'spend', label: 'Pay from spending money' }, { value: 'savings', label: 'Pay from savings' }], payFrom, 'How it is paid for')}
+      </div>
+      ${SW.flows.goalTable(gi.rows, { showSaved: payFrom === 'savings' })}
+      ${gi.uncovered ? `<p class="pd-gi-none warn">${I('alert', 16)}<span>Your savings can’t cover ${F.inr(gi.uncovered)} of it.</span></p>` : ''}`;
   }
 
   /* ---------- Buy now, delay, save first ---------- */
@@ -170,7 +200,7 @@ SW.pages = SW.pages || {};
     return `<div class="pd-plan-row" role="radiogroup" aria-labelledby="cmp-h">
         ${col('now', 'Buy now', 'Today', `${days(r.daysLeft)} to payday`, [
           ['Lowest before payday', F.inr(low(path.now)), low(path.now) < r.cushion],
-          ['Free money left', F.inr(p.now.left), p.now.left < r.cushion],
+          ['Safe to spend left', F.inr(p.now.left), p.now.left < 0],
           ['Taken from savings and bills', F.inr(needs), needs > 0]
         ])}
         ${col('later', laterLabel, F.date(laterOn, false), `in ${days(F.daysBetween(S.TODAY, laterOn))}${later ? ', after payday' : ''}`, [
@@ -192,7 +222,7 @@ SW.pages = SW.pages || {};
         <span class="pd-commit-note">Saving a decision doesn’t record a transaction.</span>
       </div>
       <div class="pd-proj">
-        <p class="pd-proj-desc">If your usual spending carries on, scheduled bills land on their dates and pay arrives on the ${ordinal(F.d(payday).getDate())}. ${below >= 0 ? `<b class="warn">With this plan your balance drops below your ${F.inr(r.cushion)} cushion on ${F.date(sel.dates[below], false)}.</b>` : `With this plan your balance stays above your ${F.inr(r.cushion)} cushion; its lowest point is ${F.inr(sel.low.value)} on ${F.date(sel.low.date, false)}.`}</p>
+        <p class="pd-proj-desc">If your usual spending carries on, scheduled bills land on their dates and pay arrives on the ${ordinal(F.d(payday).getDate())}. ${below >= 0 ? `<b class="warn">With this plan your balance drops below your ${F.inr(r.cushion)} buffer on ${F.date(sel.dates[below], false)}.</b>` : `With this plan your balance stays above your ${F.inr(r.cushion)} buffer; its lowest point is ${F.inr(sel.low.value)} on ${F.date(sel.low.date, false)}.`}</p>
         <details class="pd-more" data-proj-more ${projOpen ? 'open' : ''}>
           <summary><span>Balance path, ${S.monthName(S.CUR_MONTH)} to ${S.monthName(P.base.dates[P.base.dates.length - 1].slice(0, 7))}</span>${I('chevronDown', 16)}</summary>
           <div class="legend pd-proj-legend"><span><i class="lg-sel"></i>${names[cur]}</span><span><i class="lg-other"></i>Other plans</span><span><i class="lg-base"></i>Without it</span></div>
@@ -214,7 +244,7 @@ SW.pages = SW.pages || {};
       labels: dates.map(d => F.date(d, false)),
       height: 220, zero: false,
       ariaLabel: `Projected balance for each plan over ${dates.length - 1} days`,
-      reference: r.cushion ? { value: r.cushion, label: `Cushion ${F.inrc(r.cushion)}`, align: 'start' } : null,
+      reference: r.cushion ? { value: r.cushion, label: `Buffer ${F.inrc(r.cushion)}`, align: 'start' } : null,
       markers: pays.slice(0, 4).map(pd => ({ index: dates.indexOf(pd), label: '', color: v('--gray-200') })).filter(m => m.index > 0),
       series: [
         { name: 'Without it', color: v('--gray-400'), values: base.values, dashed: true, width: 1.5 },
@@ -242,6 +272,7 @@ SW.pages = SW.pages || {};
       <div class="pd-form-grid">
         <label class="field pd-name"><span class="field-label">What are you buying?</span><input class="input" name="name" value="${F.esc(inp.name)}" placeholder="e.g. Concert tickets…" /></label>
         <label class="field pd-cat"><span class="field-label">Category</span><select class="select" name="category">${cats.map(c => `<option ${c === inp.category ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
+        <label class="field pd-prio"><span class="field-label">Priority <span class="opt">Optional</span></span><select class="select" name="priority">${Object.entries(PRIORITY).map(([v, l]) => `<option value="${v}" ${v === (inp.priority || '') ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <label class="field pd-price"><span class="field-label">Price</span>
           <div class="input-affix has-pre price-input"><span class="affix pre">₹</span><input class="input num" name="price" inputmode="numeric" value="${inp.price ? F.num(inp.price) : ''}" placeholder="0" data-money /></div></label>
         <div class="field pd-date"><label class="field-label" for="pd-date">When would you like it?</label>
@@ -254,14 +285,14 @@ SW.pages = SW.pages || {};
           <span class="field-hint" id="date-hint">A later date shapes the “Wait” plan.</span></div>
       </div>
       <details class="disclosure pd-adjust" ${changed() ? 'open' : ''}>
-        <summary><span>Try a what-if<span class="sum-sub">Balance, bills, savings</span></span>${I('chevronDown', 18)}</summary>
+        <summary><span>Try a what-if<span class="sum-sub">Balance, commitments, savings</span></span>${I('chevronDown', 18)}</summary>
         <div class="disc-body">
           <div class="form-grid">
             ${field('balance', 'Balance')}
-            ${field('bills', 'Bills before payday')}
-            ${field('goals', 'Savings this month')}
-            ${field('everyday', 'Essentials to payday')}
-            ${field('cushion', 'Safety cushion')}
+            ${field('bills', 'Commitments before payday')}
+            ${field('goals', 'Savings still to move')}
+            ${field('everyday', 'Essentials still to buy')}
+            ${field('cushion', 'Monthly buffer')}
             ${field('daysLeft', 'Days to payday', { days: true })}
           </div>
           <button type="button" class="link pd-reset" data-action="mine" ${changed() ? '' : 'hidden'}>${I('reset', 14)}Back to my numbers</button>
@@ -298,7 +329,7 @@ SW.pages = SW.pages || {};
     const r = evaluate();
     const P = plans(r);
     return `
-      ${ui.pageHeader({ title: 'Purchase Decisions', sub: 'Check a purchase against the money already promised to bills, essentials and savings, before you buy.' })}
+      ${ui.pageHeader({ title: 'Purchase Decisions', sub: 'Before you buy, see whether it fits your Safe-to-Spend, what it does to upcoming commitments, and how it moves your savings goals.' })}
       ${noData ? `<p class="callout" style="margin-bottom:20px">${I('info', 16)}<span>You haven’t added your balance yet, so the numbers start at zero. <a class="link" href="#/settings">Add your balance</a> for a real answer, or type your own numbers to try it out.</span></p>` : ''}
       <div class="pd-sheet">
       <div class="pd">
@@ -306,14 +337,18 @@ SW.pages = SW.pages || {};
         <div class="pd-main">
           <section class="pd-answer ${r.tone || ''}" data-answer aria-live="polite" aria-labelledby="ans-h">${answerHTML(r, P)}</section>
           <section class="pd-fit" aria-labelledby="snap-h">
-            <div class="pd-sec-head"><h2 class="pd-sec-title" id="snap-h">How it fits</h2><p class="pd-sec-desc">Your balance, less what’s already promised before payday${r.price ? ', and what buying it changes' : ''}</p></div>
+            <div class="pd-sec-head"><h2 class="pd-sec-title" id="snap-h">How it fits</h2><p class="pd-sec-desc">Your balance, less what’s already spoken for before payday${r.price ? ', and what buying it changes' : ''}</p></div>
             <div data-snap>${barHTML(r)}</div>
             <div class="pd-fit-grid">
               <div data-ledger>${ledgerHTML(r)}</div>
               <div data-break ${r.price ? '' : 'hidden'}><div data-impact>${impactHTML(r)}</div>
               <details class="disclosure pd-steps"><summary><span>Step by step</span>${I('chevronDown', 18)}</summary>
-                <div class="disc-body"><div class="pd-wf" data-waterfall></div><p class="pd-wf-note"><i aria-hidden="true"></i><span data-wf-note>Your safety cushion</span></p></div></details></div>
+                <div class="disc-body"><div class="pd-wf" data-waterfall></div><p class="pd-wf-note"><i aria-hidden="true"></i><span data-wf-note>Each step takes out money already spoken for</span></p></div></details></div>
             </div>
+          </section>
+          <section class="pd-goals" aria-labelledby="gi-h" data-gi-wrap ${r.price ? '' : 'hidden'}>
+            <div class="pd-sec-head"><h2 class="pd-sec-title" id="gi-h">Effect on your goals</h2><p class="pd-sec-desc">Goal progress, this month’s transfer and when each goal is reached, before and after</p></div>
+            <div data-gi>${goalImpactHTML(r)}</div>
           </section>
           <section class="pd-compare" aria-labelledby="cmp-h" data-compare-wrap ${r.price ? '' : 'hidden'}>
             <div class="pd-sec-head"><h2 class="pd-sec-title" id="cmp-h">Your options</h2><p class="pd-sec-desc">Buy now, wait, or save first. The one you pick is the one you can save.</p></div>
@@ -323,7 +358,7 @@ SW.pages = SW.pages || {};
       </div>
       <section class="pd-history" aria-labelledby="h-h" data-history>${historyHTML()}</section>
       </div>
-      <p class="hero-note">${I('shield', 15)}<span>An estimate from the numbers above, not financial advice. Money is used in this order: free money, then this month’s savings, then essentials, then bills. Income isn’t counted until it arrives.</span></p>`;
+      <p class="hero-note">${I('shield', 15)}<span>An estimate from the numbers above, not financial advice. Money is used in this order: Safe-to-Spend, then the monthly buffer, then this month’s savings, then essentials, then bills. Income isn’t counted until it arrives. Saving a decision doesn’t record a transaction.</span></p>`;
   }
 
   /* ---------- Live updates ---------- */
@@ -337,6 +372,8 @@ SW.pages = SW.pages || {};
     root.querySelector('[data-ledger]').innerHTML = ledgerHTML(r);
     root.querySelector('[data-break]').hidden = !r.price;
     root.querySelector('[data-compare-wrap]').hidden = !r.price;
+    root.querySelector('[data-gi-wrap]').hidden = !r.price;
+    root.querySelector('[data-gi]').innerHTML = goalImpactHTML(r);
     root.querySelector('[data-impact]').innerHTML = impactHTML(r);
     const cmp = root.querySelector('[data-compare]');
     const slider = document.activeElement && document.activeElement.matches('[data-monthly]');
@@ -361,14 +398,14 @@ SW.pages = SW.pages || {};
         inp.date = t.value && t.value >= S.TODAY ? t.value : S.TODAY;
         plan = null;
       } else if (t.name) {
-        if (!['name', 'price', 'category'].includes(t.name)) ov[t.name] = true;
-        inp[t.name] = t.name === 'name' || t.name === 'category' ? t.value : t.name === 'daysLeft' ? Math.max(1, +t.value || 1) : ui.money(t.value);
+        if (!['name', 'price', 'category', 'priority'].includes(t.name)) ov[t.name] = true;
+        inp[t.name] = ['name', 'category', 'priority'].includes(t.name) ? t.value : t.name === 'daysLeft' ? Math.max(1, +t.value || 1) : ui.money(t.value);
        
       }
       if (t.name === 'price') saveMonthly = null;
       update();
     });
-    form.addEventListener('change', e => { if (e.target.name === 'category') { inp.category = e.target.value; update(); } });
+    form.addEventListener('change', e => { if (['category', 'priority'].includes(e.target.name)) { inp[e.target.name] = e.target.value; update(); } });
     ui.on(root, 'click', '[data-date]', (e, b) => { inp.date = b.dataset.date; form.date.value = inp.date; plan = null; update(); });
     root.addEventListener('input', e => {
       if (!e.target.matches('[data-monthly]')) return;
@@ -378,6 +415,7 @@ SW.pages = SW.pages || {};
     });
     ui.on(root, 'click', '[data-jump]', (e, b) => { const t = root.querySelector('#' + b.dataset.jump); if (t) t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); });
     ui.on(root, 'click', '[data-pick]', (e, b) => { plan = b.dataset.pick; update(plan); });
+    ui.on(root, 'click', '[data-seg="payfrom"] button', (e, b) => { payFrom = b.dataset.value; update(); root.querySelector(`[data-seg="payfrom"] [data-value="${payFrom}"]`)?.focus(); });
     ui.on(root, 'click', '.pd-plan', (e, t) => {
       if (e.target.closest('input, label, button')) return;
       const b = t.querySelector('[data-pick]');
@@ -401,7 +439,7 @@ SW.pages = SW.pages || {};
       if (!r.price) { form.price.focus(); return; }
       if (lastSaved === key) { ui.toast('Already saved', 'info'); return; }
       lastSaved = key;
-      S.state.decisions.push({ id: 'd-' + Date.now(), date: S.TODAY, name: inp.name.trim() || 'Untitled purchase', category: inp.category, wanted: inp.date, price: r.price, verdict: r.key, outcome: b.dataset.save });
+      S.state.decisions.push({ id: 'd-' + Date.now(), date: S.TODAY, name: inp.name.trim() || 'Untitled purchase', category: inp.category, priority: inp.priority || '', wanted: inp.date, price: r.price, verdict: r.key, outcome: b.dataset.save });
       S.save();
       root.querySelector('[data-history]').innerHTML = historyHTML();
       ui.toast('Decision saved');

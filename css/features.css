@@ -228,6 +228,17 @@
 .badge + .badge, .li-title .badge { margin-left: 4px; vertical-align: 1px; }
 .li-amt.pos { color: var(--pos); }
 
+/* ---------- Purchase Decisions: priority and goal impact ---------- */
+.pd-form-grid .pd-prio { grid-column: 2; grid-row: 2; }
+@media (max-width: 1180px) { .pd-form-grid .pd-prio { grid-column: 1; grid-row: 3; } }
+@media (max-width: 640px) { .pd-form-grid .pd-prio { grid-column: 1; grid-row: auto; } }
+.pd-goals { margin-top: 56px; }
+.pd-gi-bar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px 32px; flex-wrap: wrap; margin-bottom: 14px; }
+.pd-gi-lead { font-size: 15px; line-height: 1.55; color: var(--text-2); margin: 0; max-width: 62ch; flex: 1 1 360px; }
+.pd-gi-lead b { color: var(--text); }
+.pd-gi-none { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: var(--text-2); margin: 12px 0 0; }
+.pd-gi-none.warn { color: var(--alert-ink); }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1180px) {
   .money-keys.five { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 20px; }
