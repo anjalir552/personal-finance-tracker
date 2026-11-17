@@ -10,6 +10,7 @@ SW.pages = SW.pages || {};
   const round100 = v => Math.ceil(v / 100) * 100;
   const monthYear = key => key ? `${S.monthName(key)} ${key.slice(0, 4)}` : '—';
   let draft = {};   // planner edits before they're saved: goalId -> monthly
+  const PRIO = { high: 'High priority', medium: 'Medium priority', low: 'Low priority' };
 
   const finishWords = (g, s, monthly) => {
     if (s.reached) return 'Reached';
@@ -35,14 +36,15 @@ SW.pages = SW.pages || {};
     const pct = Math.max(0, Math.min(1, s.pct));
     const left = s.reached ? '' : s.overdue ? 'Deadline passed' : `${s.monthsLeft} month${s.monthsLeft === 1 ? '' : 's'} left`;
     const line = s.reached ? `Reached ${F.inr(g.target)}.`
-      : `At ${F.inr(g.monthly)} a month it lands ${finishWords(g, s, g.monthly)}, ${late ? 'after' : 'before'} the ${F.date(g.deadline)} deadline.`;
+      : `At ${F.inr(g.monthly)} a month${s.monthlyNow !== g.monthly ? ` (${F.inr(s.monthlyNow)} this month, after an approved plan)` : ''} it lands ${finishWords(g, s, g.monthly)}, ${late ? 'after' : 'before'} the ${F.date(g.deadline)} deadline.`;
     return `<article class="sg-goal${late ? ' late' : ''}${s.reached ? ' done' : ''}" aria-labelledby="g-${g.id}">
-      <div class="sg-goal-head"><h3 id="g-${g.id}">${F.esc(g.name)}</h3><span class="sg-status ${wcls}">${word}</span></div>
+      <div class="sg-goal-head"><h3 id="g-${g.id}">${F.esc(g.name)}</h3><span class="sg-status ${wcls}">${word}</span>
+        <p class="sg-prio">${PRIO[g.priority] || PRIO.medium}${s.reached ? '' : ` · ${s.projected ? `reaches it ${monthYear(s.projected)}` : 'no finish date at this rate'}`}</p></div>
       <p class="sg-goal-amt"><b class="num">${F.inr(s.saved)}</b><span class="num">of ${F.inr(g.target)}</span></p>
       <div class="sg-prog" role="progressbar" aria-label="${F.esc(g.name)} progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct * 100)}"><span style="width:${pct * 100}%"></span></div>
       <dl class="sg-facts">
         <div><dt>Deadline</dt><dd>${F.date(g.deadline)}<span class="u">${left}</span></dd></div>
-        <div><dt>Monthly</dt><dd class="num">${g.monthly ? F.inr(g.monthly) : '—'}<span class="u">${s.reached ? '' : `${F.pct(s.pct)} saved`}</span></dd></div>
+        <div><dt>Monthly</dt><dd class="num">${g.monthly ? F.inr(g.monthly) : '—'}<span class="u">${s.reached ? '' : s.monthlyNow !== g.monthly ? `<span class="warn">${F.inr(s.monthlyNow)} this month</span>` : `${F.pct(s.pct)} saved`}</span></dd></div>
       </dl>
       <div class="sg-goal-foot">
         <details class="sg-more" data-more="${g.id}">
@@ -185,6 +187,23 @@ SW.pages = SW.pages || {};
       </div>`;
   }
 
+  /* ---------- Plan changes that touched goals or the budget, with undo ---------- */
+  function changesHTML() {
+    const log = (S.state.planLog || []).slice().reverse();
+    if (!log.length) return '';
+    const KIND = { recovery: 'Recovery plan', adaptive: 'Adaptive budget', manual: 'Budget edit' };
+    const ST = { approved: ['pos', 'Approved'], rejected: ['neutral', 'Declined'], undone: ['neutral', 'Undone'] };
+    return `<section class="sg-changes" aria-labelledby="ch-h">
+      <div class="sg-sec-head"><div><h2 class="sg-sec-title" id="ch-h">Plan changes</h2>
+        <p class="sg-sec-desc">Every change you approved or declined. Nothing changes your goals without your approval.</p></div></div>
+      <ul class="list sg-change-list">${log.map(p => `<li class="list-item">
+        <div class="grow"><div class="li-title">${F.esc(p.title)} <span class="badge ${ST[p.status][0]}">${ST[p.status][1]}</span></div>
+          <div class="li-sub">${KIND[p.kind] || 'Change'} · ${F.date(p.date)}${p.summary ? ` · ${F.esc(p.summary)}` : ''}</div></div>
+        ${p.status === 'approved' ? `<button type="button" class="btn btn-ghost btn-sm" data-undo="${p.id}">${I('reset', 14)}Undo</button>` : ''}
+      </li>`).join('')}</ul>
+    </section>`;
+  }
+
   /* ---------- Milestones ahead: the next three; the rest on request ---------- */
   function milestonesHTML(active) {
     const next = active.flatMap(g => S.goalMilestones(g).filter(m => !m.reached && m.eta).map(m => ({ g, m })))
@@ -219,12 +238,13 @@ SW.pages = SW.pages || {};
           <div class="disc-body"><div class="sg-list">${reached.map(goalHTML).join('')}</div></div></details>` : ''}
       </section>
       ${active.length ? `<section class="sg-planner" aria-labelledby="pl-h">${plannerHTML(active)}</section>` : ''}
-      ${active.length ? `<details class="sg-more sg-how"><summary><span>How these numbers are worked out</span>${I('chevronDown', 16)}</summary><p>“Needs” is what’s left divided by the months to the deadline, rounded up to the nearest ₹100. Money you add is recorded as a transfer, so your available balance goes down by the same amount.</p></details>` : ''}`;
+      ${changesHTML()}
+      ${active.length ? `<details class="sg-more sg-how"><summary><span>How these numbers are worked out</span>${I('chevronDown', 16)}</summary><p>“Needs” is what’s left divided by the months to the deadline (this month included), rounded up to the nearest ₹100. Finish dates are worked out month by month: this month gets whatever transfer is still due, later months their planned amount, including any change you approved in a recovery plan. Money you add is recorded as a transfer, so your balance and Safe-to-Spend go down by the same amount.</p></details>` : ''}`;
   }
 
   function openForm(existing) {
     const isEdit = existing && existing.id;
-    const g = Object.assign({ name: '', target: '', start: 0, deadline: F.addDays(S.TODAY, 180), monthly: '', note: '' }, existing || {});
+    const g = Object.assign({ name: '', target: '', start: 0, deadline: F.addDays(S.TODAY, 180), monthly: '', note: '', priority: 'medium' }, existing || {});
     ui.open({
       title: isEdit ? 'Edit goal' : 'New savings goal',
       desc: isEdit ? '' : 'Name it, set a target and a date. We’ll suggest a monthly amount.',
@@ -234,6 +254,7 @@ SW.pages = SW.pages || {};
         <label class="field"><span class="field-label">Target date</span><input class="input" type="date" name="deadline" value="${g.deadline}" min="${F.addDays(S.TODAY, 1)}" /></label>
         <label class="field"><span class="field-label">Already saved <span class="opt">Optional</span></span>${ui.moneyInput('start', isEdit ? S.goalSaved(g) : g.start, 'placeholder="0"')}<span class="field-hint">Money you’ve already put aside for it.</span></label>
         <label class="field"><span class="field-label">Plan to save each month</span>${ui.moneyInput('monthly', g.monthly, 'placeholder="0"')}</label>
+        <label class="field span-2"><span class="field-label">Priority</span><select class="select" name="priority">${Object.entries(PRIO).map(([v, l]) => `<option value="${v}" ${v === (g.priority || 'medium') ? 'selected' : ''}>${l}</option>`).join('')}</select><span class="field-hint">If money runs short, lower-priority goals are adjusted first, and only with your approval.</span></label>
         <p class="callout span-2" data-suggest></p>
         <label class="field span-2"><span class="field-label">Note <span class="opt">Optional</span></span><input class="input" name="note" value="${F.esc(g.note || '')}" placeholder="Why it matters, or what it covers" /></label>
       </form>`,
@@ -273,7 +294,7 @@ SW.pages = SW.pages || {};
           panel.querySelector('#e-name').hidden = !bad.name; form.name.classList.toggle('invalid', bad.name);
           panel.querySelector('#e-target').hidden = !bad.target; form.target.classList.toggle('invalid', bad.target);
           if (bad.name || bad.target) { (bad.name ? form.name : form.target).focus(); return; }
-          const row = { name: d.name.trim(), target, deadline: d.deadline || g.deadline, monthly: ui.money(d.monthly), note: d.note.trim() };
+          const row = { name: d.name.trim(), target, deadline: d.deadline || g.deadline, monthly: ui.money(d.monthly), note: d.note.trim(), priority: d.priority || 'medium' };
           if (isEdit) {
             const goal = S.state.goals.find(x => x.id === g.id);
             // "Already saved" edits the starting amount so transfers stay intact
@@ -357,6 +378,11 @@ SW.pages = SW.pages || {};
       ui.toast(`Plan saved for ${n} goal${n === 1 ? '' : 's'}`);
     });
     ui.on(root, 'click', '[data-action="new"]', () => openForm());
+    ui.on(root, 'click', '[data-undo]', async (e, b) => {
+      const ok = await ui.confirm({ title: 'Undo this change?', text: 'Its budget and savings changes will be removed from this month on. Money already moved stays in your transactions.', confirmLabel: 'Undo change' });
+      if (!ok) return;
+      S.undoPlan(b.dataset.undo); SW.refresh(); ui.toast('Change undone. Figures are updated.');
+    });
     ui.on(root, 'click', '[data-edit]', (e, b) => openForm(S.state.goals.find(g => g.id === b.dataset.edit)));
     ui.on(root, 'click', '[data-add]', (e, b) => openAdd(S.state.goals.find(g => g.id === b.dataset.add)));
     ui.on(root, 'click', '[data-del]', async (e, b) => {

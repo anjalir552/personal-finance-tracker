@@ -239,6 +239,12 @@
 .pd-gi-none { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: var(--text-2); margin: 12px 0 0; }
 .pd-gi-none.warn { color: var(--alert-ink); }
 
+/* ---------- Savings goals ---------- */
+.sg-prio { font-size: 12.5px; color: var(--text-3); margin: 2px 0 0; }
+.sg-changes { margin-top: 64px; }
+.sg-change-list { background: var(--surface); border-radius: 20px; margin-top: 16px; padding: 4px 24px; }
+.sg-change-list .list-item { padding: 14px 0; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1180px) {
   .money-keys.five { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 20px; }
@@ -286,4 +292,3 @@
 :is(.rc-goals, .rc-rev, .ad-table) tbody th { border-bottom: 1px solid var(--rule); font-size: 14px; color: var(--text); white-space: normal; height: auto; padding-top: 11px; padding-bottom: 11px; }
 :is(.rc-goals, .rc-rev, .ad-table) tbody tr:last-child th { border-bottom: 0; }
 :is(.rc-goals, .rc-rev, .ad-table) td { height: auto; }
-
