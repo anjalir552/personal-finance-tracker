@@ -160,6 +160,94 @@
   }
 
 
+  /* ==========================================================================
+     Emergency Expense Manager
+     ========================================================================== */
+  function openEmergency(preset = {}) {
+    const cats = SEED.CATEGORIES.map(c => c.id);
+    const t = Object.assign({ desc: '', amount: '', date: S.TODAY, category: 'Travel', emergency: true }, preset);
+    ui.open({
+      title: 'Record an unexpected expense',
+      desc: 'See what it does to the rest of the month before you save it.',
+      wide: true,
+      body: `<div class="em-grid">
+        <form class="form-grid" data-form autocomplete="off" novalidate>
+          <label class="field span-2"><span class="field-label">What was it for?</span><input class="input" name="desc" value="${F.esc(t.desc)}" placeholder="e.g. Urgent trip home, doctor visit" aria-describedby="e-desc" /><span class="field-error" id="e-desc" hidden></span></label>
+          <label class="field"><span class="field-label">Amount</span>${ui.moneyInput('amount', t.amount, 'placeholder="0" aria-describedby="e-amount"')}<span class="field-error" id="e-amount" hidden></span></label>
+          <label class="field"><span class="field-label">Date</span><input class="input" type="date" name="date" value="${t.date}" max="${S.TODAY}" aria-describedby="e-date" /><span class="field-error" id="e-date" hidden></span></label>
+          <label class="field span-2"><span class="field-label">Category</span><select class="select" name="category">${cats.map(c => `<option ${c === t.category ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
+          <fieldset class="field span-2 em-kind"><legend class="field-label">How should Scopewise treat it?</legend>
+            <label class="em-opt"><input type="radio" name="kind" value="emergency" ${t.emergency ? 'checked' : ''} /><span><b>Genuine emergency</b><span class="d">Health, family, urgent travel or repairs. Paid from your monthly buffer first, kept apart from lifestyle spending.</span></span></label>
+            <label class="em-opt"><input type="radio" name="kind" value="unplanned" ${t.emergency ? '' : 'checked'} /><span><b>Unplanned, but not an emergency</b><span class="d">Counts against its category’s budget like other spending.</span></span></label>
+          </fieldset>
+        </form>
+        <aside class="em-preview" data-preview aria-live="polite"></aside>
+      </div>`,
+      foot: `<button class="btn btn-secondary" data-close>Cancel</button><button class="btn btn-primary" data-ok>Record expense</button>`,
+      onMount: (panel, close) => {
+        const form = panel.querySelector('[data-form]');
+        const pv = panel.querySelector('[data-preview]');
+        ui.bindMoney(form);
+        const preview = () => {
+          const d = ui.formData(form);
+          const amount = ui.money(d.amount);
+          const em = d.kind === 'emergency';
+          const m = S.moneyMap();
+          if (!amount) {
+            pv.innerHTML = `<h3 class="em-h">Before you record it</h3>
+              <dl class="em-figs"><div><dt>Monthly buffer left</dt><dd class="num">${F.inr(m.buffer)}</dd></div><div><dt>Safe to spend now</dt><dd class="num">${F.inr(m.free)}</dd></div></dl>
+              <p class="em-note">Enter an amount to see how it would be covered.</p>`;
+            return;
+          }
+          const p = S.previewEmergency(amount, em);
+          let catLine = '';
+          if (!em) {
+            const r = S.monthBudget().find(x => x.cat === d.category);
+            const after = (r ? r.spent : 0) + amount;
+            const bud = r ? r.budget : 0;
+            catLine = `<p class="em-note${after > bud ? ' warn' : ''}">${F.esc(d.category)} would be at ${F.inr(after)} of its ${F.inr(bud)} budget${after > bud ? `, ${F.inr(after - bud)} over` : ''}.</p>`;
+          }
+          const due = m.billsList.slice(0, 3).map(u => `<li><span>${F.esc(short(u.name))}</span><span class="num">${F.short(u.due)} · ${F.inr(u.amount)}</span></li>`).join('');
+          pv.innerHTML = `<h3 class="em-h">What this does</h3>
+            <dl class="em-flow">
+              <div><dt>Expense</dt><dd class="num">${F.inr(amount)}</dd></div>
+              ${em ? `<div><dt>From your monthly buffer</dt><dd class="num">−${F.inr(p.fromBuffer)}</dd></div>` : ''}
+              <div class="tot"><dt>${em ? 'Left to cover' : 'From your spending money'}</dt><dd class="num">${F.inr(p.rest)}</dd></div>
+            </dl>
+            <dl class="em-figs">
+              <div><dt>Buffer left</dt><dd class="num">${F.inr(p.bufferAfter)}</dd></div>
+              <div><dt>Safe to spend after</dt><dd class="num ${p.free < 0 ? 'warn' : ''}">${F.inr(p.free)}</dd></div>
+            </dl>
+            ${catLine}
+            ${p.gap > 0 ? `<p class="em-note warn">${I('alert', 15)}<span>That leaves ${F.inr(p.gap)} of your planned spending uncovered. After you record it, Scopewise will suggest how to recover, and nothing changes until you approve.</span></p>` : `<p class="em-note">${I('checkCircle', 15)}<span>The rest of your month still fits. No changes needed.</span></p>`}
+            ${due ? `<h4 class="em-sub">Commitments still protected</h4><ul class="em-due">${due}</ul>` : ''}
+            ${p.balanceAfter < 0 ? `<p class="em-note warn">${I('alert', 15)}<span>This is more than your balance of ${F.inr(m.balance)}. If you paid by credit card, record it anyway: the plan will help you cover it.</span></p>` : ''}`;
+        };
+        form.addEventListener('input', preview);
+        form.addEventListener('change', preview);
+        preview();
+        const err = (name, msg) => { const el = panel.querySelector('#e-' + name); el.textContent = msg || ''; el.hidden = !msg; form[name].classList.toggle('invalid', !!msg); };
+        panel.querySelector('[data-ok]').addEventListener('click', async () => {
+          const d = ui.formData(form);
+          const row = { date: d.date, type: 'expense', desc: d.desc.trim(), category: d.category, amount: ui.money(d.amount), method: 'UPI', unplanned: true };
+          if (d.kind === 'emergency') row.emergency = true;
+          const errors = S.validateTx(row);
+          ['desc', 'amount', 'date'].forEach(k => err(k, errors[k]));
+          if (Object.keys(errors).length) { form[Object.keys(errors)[0]]?.focus(); return; }
+          const dup = S.findDuplicate(row);
+          if (dup && !(await ui.confirm({ title: 'This looks like a duplicate', text: `“${F.esc(dup.desc)}” for ${F.inr(dup.amount)} is already recorded on ${F.date(dup.date)}. Record it again?`, confirmLabel: 'Record again' }))) return;
+          S.addTransaction(row);
+          close();
+          const is = S.issues();
+          ui.toast(`${row.emergency ? 'Emergency' : 'Unplanned expense'} of ${F.inr(row.amount)} recorded`);
+          if (is.needsRecovery) setTimeout(() => openRecovery(row.emergency ? 'emergency' : undefined), 200);
+        });
+      },
+      onClose: () => SW.refresh()
+    });
+  }
+
+
   /* ---------- The alert shown on Overview, Transactions and Spending ---------- */
   function alertHTML(where) {
     const is = S.issues();
@@ -182,8 +270,9 @@
   // One delegated listener for every page
   document.addEventListener('click', e => {
     if (e.target.closest('[data-recover]')) openRecovery();
+    else if (e.target.closest('[data-emergency]')) openEmergency();
   });
 
 
-  SW.flows = { openRecovery, alertHTML, goalTable, delayText };
+  SW.flows = { openRecovery, openEmergency, alertHTML, goalTable, delayText };
 })();
