@@ -936,150 +936,174 @@
     },
 
     /* ==========================================================================
-       Insights: computed from the same rows, ranked by how much they need attention
+       Spending Behaviour Insights
+       Each one says what happened, how much, how it compares, why it matters and one
+       practical suggestion. Every figure is computed from the rows; nothing is invented.
+       key: the month read. The current month is compared at the same day of earlier months.
        ========================================================================== */
-    /**
-     * key: the month being read (default: the latest complete month). Comparisons use that
-     * month against up to three months before it. Observations about today (what's due, goals,
-     * subscriptions, the typical month) are only added when reading the latest complete month,
-     * so an old report never mixes in today's state.
-     */
-    insights(key) {
+    behaviour(key = CUR_MONTH) {
       const out = [];
-      const latest = S.fullMonths(1)[0];
-      key = key || latest;
-      if (!key || key >= CUR_MONTH) return out;
-      const hasData = k => state.transactions.some(t => monthOf(t.date) === k);
-      const full = [3, 2, 1, 0].map(i => addMonths(key, -i)).filter(hasData);
-      if (full.length < 2) return out;
-      const now = key === latest;
-      const last = full[full.length - 1];
-      const prev = full.slice(0, -1);
-      const lastName = S.monthName(last, true);
+      const partial = key === CUR_MONTH;
+      const day = partial ? F.d(TODAY).getDate() : 31;
+      const prior = [1, 2, 3].map(i => addMonths(key, -i)).filter(k => S.inMonth(k, 'expense').length);
+      if (!prior.length || !S.inMonth(key, 'expense').length) return out;
+      const mName = S.monthName(key, true);
+      const when = partial ? `so far in ${mName}` : `in ${mName}`;
+      const byDayAvg = filter => prior.reduce((a, k) => a + S.spentByDay(k, day, filter), 0) / prior.length;
+      const countBy = (k, filter) => S.inMonth(k, 'expense').filter(t => F.d(t.date).getDate() <= day && filter(t)).length;
+      const b = S.budgetFor(key);
+      const sameDay = partial ? ` by the ${day}${day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'}` : '';
 
-      // 1. Unusual increases in day-to-day categories
-      const cats = seed.CATEGORIES.filter(c => c.kind !== 'bill').map(c => c.id);
-      const jumps = cats.map(c => {
-        const now = sum(S.inMonth(last, 'expense').filter(t => t.category === c));
-        const usual = prev.reduce((a, k) => a + sum(S.inMonth(k, 'expense').filter(t => t.category === c)), 0) / prev.length;
-        const count = S.inMonth(last, 'expense').filter(t => t.category === c).length;
-        const usualCount = prev.reduce((a, k) => a + S.inMonth(k, 'expense').filter(t => t.category === c).length, 0) / prev.length;
-        return { c, now, usual, diff: now - usual, ratio: usual ? now / usual - 1 : 0, count, usualCount };
-      }).filter(j => j.diff > 1000 && j.ratio > 0.25).sort((a, b) => b.diff - a.diff);
-      jumps.slice(0, 2).forEach((j, idx) => {
-        const freq = j.count > j.usualCount + 1 ? ` You paid for ${j.c.toLowerCase()} ${j.count} times, against about ${Math.round(j.usualCount)} in a usual month.` : '';
-        const big = S.inMonth(last, 'expense').filter(t => t.category === j.c).sort((a, b) => b.amount - a.amount)[0];
+      // 1. Food delivery getting more frequent
+      const dn = countBy(key, isDelivery);
+      const dUsual = prior.reduce((a, k) => a + countBy(k, isDelivery), 0) / prior.length;
+      const dAmt = S.spentByDay(key, day, isDelivery);
+      if (dn >= 3 && dn >= dUsual * 1.3 && dn - dUsual >= 2) {
+        const avgOrder = dAmt / dn;
+        const food = S.spentByDay(key, day, t => t.category === 'Food & dining');
+        const cap = partial ? Math.ceil(day / 7) * 2 : 8;
+        const saving = Math.max(0, (dn - cap) * avgOrder);
         out.push({
-          id: 'jump-' + j.c, type: 'spending', tone: 'attention', rank: 10 - idx, figure: j.ratio >= 1 ? `${(j.ratio + 1).toFixed(1).replace(/\.0$/, '')}×` : '+' + F.pct(j.ratio), figureNote: `${j.c.toLowerCase()} vs usual`,
-          title: j.ratio >= 1 ? `${j.c} was about ${(j.ratio + 1).toFixed(1).replace(/\.0$/, '')}× your usual in ${lastName}` : `${j.c} was ${F.pct(j.ratio)} higher than usual in ${lastName}`,
-          text: `You spent ${F.inr(j.now)} on ${j.c.toLowerCase()}, about ${F.inr(j.diff)} more than your ${prev.length}-month average of ${F.inr(j.usual)}.${freq}`,
-          detail: big ? `Largest single payment: ${big.desc}, ${F.inr(big.amount)} on ${F.date(big.date, false)}.` : '',
-          link: ['#/spending', 'See spending by category']
+          id: 'delivery', type: 'spending', tone: 'attention', rank: 9, cat: 'Food & dining',
+          figure: `${dn}×`, figureNote: `food orders ${when}`,
+          title: `You ordered food delivery ${dn} times ${when}`,
+          text: `${F.inr(dAmt)} on Swiggy and Zomato, against about ${Math.round(dUsual)} orders${sameDay} in a usual month. Your average order is ${F.inr(avgOrder)}.`,
+          why: food > (b['Food & dining'] || 0) ? `Delivery is most of why Food & dining is at ${F.inr(food)} against its ${F.inr(b['Food & dining'] || 0)} budget.` : `At this pace, Food & dining will reach its ${F.inr(b['Food & dining'] || 0)} budget before the month ends.`,
+          tip: saving > 0 ? `Keeping delivery to about two orders a week would have saved roughly ${F.inr(saving)} ${when}.` : 'Cooking a couple more dinners a week keeps delivery for the days it really helps.',
+          link: ['#/spending', 'See food spending']
+        });
+      }
+
+      // 2. Weekend spending on flexible categories (this month and the two before, for a steady read)
+      const span = [key, ...prior.slice(0, 2)];
+      let we = 0, wd = 0, weDays = 0, wdDays = 0;
+      span.forEach(k => {
+        const n = k === CUR_MONTH ? F.d(TODAY).getDate() : S.daysInMonth(k);
+        for (let d = 1; d <= n; d++) { const w = F.d(`${k}-${String(d).padStart(2, '0')}`).getDay(); if (w === 0 || w === 6) weDays++; else wdDays++; }
+        S.inMonth(k, 'expense').filter(t => S.cat(t.category).kind === 'flexible' && !t.emergency).forEach(t => { if (isWeekend(t.date)) we += t.amount; else wd += t.amount; });
+      });
+      const ratio = weDays && wdDays && wd ? (we / weDays) / (wd / wdDays) : 0;
+      if (ratio > 1.4) {
+        out.push({
+          id: 'weekend', type: 'spending', tone: 'info', rank: 6,
+          figure: `${ratio.toFixed(1)}×`, figureNote: 'per weekend day',
+          title: `A weekend day costs you ${ratio.toFixed(1)}× a weekday`,
+          text: `On food, shopping and plans you spend about ${F.inr(we / weDays)} per Saturday or Sunday, against ${F.inr(wd / wdDays)} per weekday (${span.length} months).`,
+          why: `About ${F.pct(we / (we + wd))} of your flexible spending happens on just two days of the week, so a busy weekend can use up a week’s budget.`,
+          tip: `Decide on one weekend plan in advance, with a rough amount, before the weekend starts.`,
+          link: ['#/spending', 'See weekend spending']
+        });
+      }
+
+      // 3. Flexible categories above budget
+      S.monthBudget(key).filter(r => r.kind === 'flexible' && r.budget > 0 && r.spent > r.budget).sort((a, c) => c.over - a.over).slice(0, 2).forEach((r, idx) => {
+        const usual = byDayAvg(t => t.category === r.cat && !t.emergency);
+        out.push({
+          id: 'over-' + r.cat, type: 'budget', tone: 'attention', rank: 8.5 - idx * 0.2, cat: r.cat,
+          figure: '+' + F.inrc(r.over, 1), figureNote: 'over budget',
+          title: `${r.cat} is ${F.inr(r.over)} over budget ${when}`,
+          text: `${F.inr(r.spent)} spent against a ${F.inr(r.budget)} plan. In a usual month you’d have spent about ${F.inr(usual)}${sameDay}.`,
+          why: partial ? 'Every rupee over has to come from somewhere else this month: other spending, the buffer or savings.' : 'It came out of what was left over at the end of the month.',
+          tip: r.cat === 'Shopping & grooming' ? 'For planned purchases like festive clothes, a small monthly set-aside spreads the cost.' : `Pause new ${r.cat.toLowerCase()} spending for a few days, or let a recovery plan rebalance the month.`,
+          link: partial ? ['#/overview/recover', 'Review a recovery plan'] : ['#/spending', 'See budget against actual']
         });
       });
 
-      // 2. Upcoming pressure: the heaviest stretch before payday
-      const map = S.moneyMap();
-      const due = map.billsList.filter(u => u.due >= TODAY);
-      if (now && due.length) {
-        const week = F.addDays(TODAY, 7);
-        const firstWeek = sum(due.filter(u => u.due <= week));
-        const share = map.bills ? firstWeek / map.bills : 0;
-        if (share >= 0.5 && firstWeek > 0) {
+      // 4. Transport rising month after month
+      const tr = [...prior].reverse().concat(partial ? [] : [key]).map(k => ({ k, v: sum(S.inMonth(k, 'expense').filter(t => t.category === 'Transport')) }));
+      if (tr.length >= 3) {
+        const rising = tr.every((x, i) => i === 0 || x.v >= tr[i - 1].v);
+        const overAll = tr.every(x => x.v > (b.Transport || 0));
+        if (rising && tr[tr.length - 1].v > tr[0].v * 1.05) {
           out.push({
-            id: 'pressure', type: 'upcoming', tone: 'attention', rank: 9, figure: F.inrc(firstWeek, 1), figureNote: 'due in 7 days',
-            title: `${F.inr(firstWeek)} is due in the next 7 days`,
-            text: `That is ${F.pct(share)} of everything due before payday on ${F.date(map.payday, false)}. ${due.filter(u => u.due <= week).slice(0, 3).map(u => u.name.split(' · ')[0]).join(', ')} all land this week, so it is worth waiting until they’re paid before spending on extras.`,
-            detail: `Before payday you have ${due.length} expenses totalling ${F.inr(map.bills)}.`,
-            link: ['#/upcoming', 'View upcoming expenses']
+            id: 'transport', type: 'spending', tone: overAll ? 'attention' : 'info', rank: 7.5, cat: 'Transport',
+            figure: '+' + F.pct(tr[tr.length - 1].v / tr[0].v - 1), figureNote: `since ${S.monthName(tr[0].k)}`,
+            title: `Commuting has cost more every month since ${S.monthName(tr[0].k, true)}`,
+            text: `Transport went from ${F.inr(tr[0].v)} to ${F.inr(tr[tr.length - 1].v)} in ${S.monthName(tr[tr.length - 1].k, true)}${overAll ? `, above the ${F.inr(b.Transport || 0)} plan each month` : ''}.`,
+            why: 'Transport is an essential: you can’t simply stop. If the plan is too low, the gap quietly comes out of everything else.',
+            tip: overAll ? 'Raise the transport budget to match, and take the difference from a category with room. Adaptive Budgeting suggests how.' : 'Check whether a monthly metro pass or a shared ride works out cheaper.',
+            link: ['#/insights/adapt', 'See a budget suggestion']
           });
         }
       }
 
-      // 3. A typical month vs usual flexible spending
-      const tm = S.typicalMonth();
-      if (now && tm.income > 0 && tm.surplus < 0) {
-        const startBal = S.balance(F.iso(new Date(F.d(full[0] + '-01').getFullYear(), F.d(full[0] + '-01').getMonth(), 0)));
-        const endBal = S.balance(F.iso(new Date(F.d(last + '-01').getFullYear(), F.d(last + '-01').getMonth() + 1, 0)));
+      // 5. Savings opportunity: categories under budget every recent month
+      const keys3 = S.fullMonths(3);
+      if (keys3.length === 3) {
+        const under = Object.keys(b).filter(c => S.cat(c).kind !== 'bill' && b[c] > 0 && keys3.every(k => sum(S.inMonth(k, 'expense').filter(t => t.category === c && !t.emergency)) < b[c] * 0.97));
+        if (under.length) {
+          const spare = sum(under, c => b[c] - Math.max(...keys3.map(k => sum(S.inMonth(k, 'expense').filter(t => t.category === c)))));
+          if (spare >= 100) out.push({
+            id: 'spare', type: 'savings', tone: 'good', rank: 5,
+            figure: F.inrc(spare, 1), figureNote: 'a month to spare',
+            title: `${under.join(' and ')} ${under.length > 1 ? 'have' : 'has'} stayed under budget for three months`,
+            text: `Even in your highest month there was at least ${F.inr(spare)} unused across ${under.length > 1 ? 'them' : 'it'}.`,
+            why: 'Unused budget tends to drift into other spending unless it is given a job.',
+            tip: 'Move that amount into a goal or to a category that keeps running over.',
+            link: ['#/insights/adapt', 'See a budget suggestion']
+          });
+        }
+      }
+      return out.sort((a, c) => c.rank - a.rank);
+    },
+
+    /** Everything worth knowing now: behaviour first, then upcoming pressure and savings */
+    insights(key = CUR_MONTH) {
+      const out = S.behaviour(key);
+      if (key !== CUR_MONTH) return out;
+      const m = S.moneyMap();
+
+      // Emergency this month
+      const em = S.inMonth(CUR_MONTH, 'expense').filter(t => t.emergency);
+      if (em.length) {
+        const total = sum(em);
         out.push({
-          id: 'gap', type: 'spending', tone: 'attention', rank: 8, figure: F.inrc(tm.surplus, 1), figureNote: 'a month, from balance',
-          title: `Your usual flexible spending is ${F.inr(-tm.surplus)} more than a month allows`,
-          text: `After bills, goal savings and essentials, a typical month leaves ${F.inr(tm.free)} from your pay. You usually spend ${F.inr(tm.flexible)} on eating out, shopping and plans, so the difference comes from your balance.`,
-          detail: endBal < startBal ? `Your balance went from ${F.inr(startBal)} to ${F.inr(endBal)} between ${S.monthName(full[0], true)} and the end of ${lastName}.` : '',
-          link: ['#/decisions', 'Check a purchase before you buy']
+          id: 'emergency', type: 'upcoming', tone: 'attention', rank: 9.5,
+          figure: F.inrc(total, 1), figureNote: 'unexpected',
+          title: `An unexpected ${F.inr(total)} came up this month`,
+          text: `${em.map(t => t.desc).join(', ')}. Your ${F.inr(m.bufferPlan)} monthly buffer covered ${F.inr(m.bufferUsed)}${total > m.bufferPlan ? `, and ${F.inr(total - m.bufferPlan)} came from the rest of your money` : ''}.`,
+          why: 'Emergencies are exactly what the buffer is for. Anything beyond it reduces what is safe to spend for the rest of the month.',
+          tip: total > m.bufferPlan ? 'A recovery plan can spread the rest across this month without touching essentials.' : 'The buffer resets next month, so nothing else needs to change.',
+          link: total > m.bufferPlan ? ['#/upcoming/emergency', 'Open the emergency manager'] : ['#/upcoming', 'See your emergency fund']
         });
       }
 
-      // 4. Savings progress
-      const behind = !now ? [] : S.activeGoals().map(g => ({ g, s: S.goalStatus(g) })).filter(x => !x.s.onTrack).sort((a, b) => (b.s.suggested - b.g.monthly) - (a.s.suggested - a.g.monthly));
-      behind.slice(0, 1).forEach(({ g, s }) => out.push({
-        id: 'behind-' + g.id, type: 'savings', tone: 'attention', rank: 7, figure: '+' + F.inrc(Math.ceil((s.suggested - g.monthly) / 100) * 100, 1), figureNote: 'a month needed',
-        title: `${g.name} needs ${F.inr(Math.ceil((s.suggested - g.monthly) / 100) * 100)} more a month`,
-        text: `To reach ${F.inr(g.target)} by ${F.date(g.deadline)}, you’d need about ${F.inr(Math.ceil(s.suggested / 100) * 100)} a month. You’ve planned ${F.inr(g.monthly)}${s.projected ? `, which gets you there around ${S.monthName(s.projected, true)} ${s.projected.slice(0, 4)}` : ''}.`,
-        detail: `Saved so far: ${F.inr(s.saved)} of ${F.inr(g.target)} (${F.pct(s.pct)}).`,
+      // Upcoming pressure
+      const due = m.billsList.filter(u => u.due >= TODAY);
+      const week = F.addDays(TODAY, 7);
+      const firstWeek = sum(due.filter(u => u.due <= week));
+      if (firstWeek > 0) out.push({
+        id: 'pressure', type: 'upcoming', tone: 'info', rank: 4,
+        figure: F.inrc(firstWeek, 1), figureNote: 'due in 7 days',
+        title: `${F.inr(firstWeek)} is due in the next 7 days`,
+        text: `${due.filter(u => u.due <= week).map(u => u.name.split(' · ')[0].replace(/\s*\(.*\)$/, '')).join(', ')}. It is already kept aside, so it isn’t part of your Safe-to-Spend.`,
+        why: 'Commitments are taken out first, so a payment landing never surprises your spending money.',
+        tip: 'Nothing to do: Scopewise has reserved it.',
+        link: ['#/upcoming', 'View upcoming expenses']
+      });
+
+      // Savings
+      const goals = S.activeGoals().map(g => ({ g, s: S.goalStatus(g) }));
+      goals.filter(x => !x.s.onTrack).slice(0, 1).forEach(({ g, s }) => out.push({
+        id: 'behind-' + g.id, type: 'savings', tone: 'attention', rank: 7,
+        figure: s.projected ? S.monthName(s.projected) + ' ’' + s.projected.slice(2, 4) : '—', figureNote: 'new finish',
+        title: `${g.name} now lands after its deadline`,
+        text: `At the current plan it reaches ${F.inr(g.target)} in ${s.projected ? `${S.monthName(s.projected, true)} ${s.projected.slice(0, 4)}` : 'no set month'}, after ${F.date(g.deadline)}.`,
+        why: 'A missed transfer this month pushes every later month back.',
+        tip: `Adding about ${F.inr(ceil100(s.suggested) - S.goalMonthlyFor(g))} a month would bring it back on time.`,
         link: ['#/goals', 'Review savings goals']
       }));
-      const best = !now ? null : S.activeGoals().map(g => ({ g, s: S.goalStatus(g) })).filter(x => x.s.onTrack).sort((a, b) => b.s.pct - a.s.pct)[0];
+      const best = goals.filter(x => x.s.onTrack).sort((a, c) => c.s.pct - a.s.pct)[0];
       if (best) out.push({
-        id: 'progress-' + best.g.id, type: 'savings', tone: 'good', rank: 4, figure: F.pct(best.s.pct), figureNote: 'of the target',
+        id: 'progress-' + best.g.id, type: 'savings', tone: 'good', rank: 3,
+        figure: F.pct(best.s.pct), figureNote: 'of the target',
         title: `${best.g.name} is ${F.pct(best.s.pct)} of the way there`,
-        text: `${F.inr(best.s.saved)} saved towards ${F.inr(best.g.target)}. At ${F.inr(best.g.monthly)} a month you’re on track for ${F.date(best.g.deadline)}.`,
-        detail: '', link: ['#/goals', 'View goal']
+        text: `${F.inr(best.s.saved)} saved towards ${F.inr(best.g.target)}, on track for ${best.s.projected ? `${S.monthName(best.s.projected, true)} ${best.s.projected.slice(0, 4)}` : F.date(best.g.deadline)}.`,
+        why: 'Steady monthly amounts do the work; nothing extra is needed.',
+        tip: 'Keep the transfer automatic so it happens before spending does.',
+        link: ['#/goals', 'View goal']
       });
-
-      // 5. Weekend spending pattern on flexible categories
-      const flex = full.flatMap(k => S.inMonth(k, 'expense')).filter(t => S.cat(t.category).kind === 'flexible');
-      if (flex.length > 10) {
-        let we = 0, wd = 0, weDays = 0, wdDays = 0;
-        full.forEach(k => {
-          const [y, m] = k.split('-').map(Number);
-          const n = new Date(y, m, 0).getDate();
-          for (let dd = 1; dd <= n; dd++) { const w = new Date(y, m - 1, dd).getDay(); if (w === 0 || w === 6) weDays++; else wdDays++; }
-        });
-        flex.forEach(t => { const w = F.d(t.date).getDay(); if (w === 0 || w === 6) we += t.amount; else wd += t.amount; });
-        const ratio = (we / weDays) / (wd / wdDays);
-        if (ratio > 1.3) out.push({
-          id: 'weekend', type: 'spending', tone: 'info', rank: 5, figure: `${ratio.toFixed(1)}×`, figureNote: 'per weekend day',
-          title: `You spend ${ratio.toFixed(1)}× more per day at weekends`,
-          text: `On flexible spending, a weekend day costs you about ${F.inr(we / weDays)} against ${F.inr(wd / wdDays)} on a weekday. Planning one weekend treat ahead can stop it adding up.`,
-          detail: `Based on ${full.length} months of eating out, shopping and plans.`,
-          link: ['#/spending', 'See spending patterns']
-        });
-      }
-
-      // 6. Subscriptions and memberships
-      const subs = state.upcoming.filter(u => u.repeat === 'monthly' && ['Subscriptions', 'Fitness'].includes(u.category));
-      if (now && subs.length >= 2) out.push({
-        id: 'subs', type: 'upcoming', tone: 'info', rank: 3, figure: F.inrc(sum(subs) * 12, 1), figureNote: 'a year',
-        title: `${subs.length} subscriptions cost ${F.inr(sum(subs))} a month`,
-        text: `${subs.map(u => u.name.replace(' membership', '')).join(', ')}. That’s ${F.inr(sum(subs) * 12)} a year, worth a check that you still use each one.`,
-        detail: '', link: ['#/upcoming', 'View recurring expenses']
-      });
-
-      // 7. Essentials holding steady
-      const ess = full.map(k => S.essentialSplit(k).essential);
-      const usualEss = ess.slice(0, -1).reduce((a, b) => a + b, 0) / Math.max(1, ess.length - 1);
-      const essDiff = usualEss ? ess[ess.length - 1] / usualEss - 1 : 0;
-      if (Math.abs(essDiff) < 0.06) out.push({
-        id: 'steady', type: 'spending', tone: 'good', rank: 2, figure: (essDiff >= 0 ? '+' : '') + F.pct(essDiff), figureNote: 'essentials vs usual',
-        title: `Your essentials held steady in ${lastName}`,
-        text: `Rent, bills, groceries and transport came to ${F.inr(ess[ess.length - 1])}, within ${F.pct(Math.abs(essDiff))} of usual. The change in your spending came from non-essentials.`,
-        detail: '', link: ['#/spending', 'Compare essentials']
-      });
-
-      // 8. Savings rate against the months before (works for any month read)
-      const rate = k => { const i = S.income(k); return i ? S.saved(k) / i : 0; };
-      const r = rate(last), usualRate = prev.reduce((a, k) => a + rate(k), 0) / prev.length;
-      const rd = r - usualRate;
-      if (Math.abs(rd) >= 0.02) out.push({
-        id: 'rate', type: 'savings', tone: rd > 0 ? 'good' : 'attention', rank: rd > 0 ? 6 : 7.5,
-        figure: F.pct(r), figureNote: 'of income saved',
-        title: `You saved ${F.pct(r)} of income in ${lastName}, ${rd > 0 ? 'up' : 'down'} from ${F.pct(usualRate)}`,
-        text: `${F.inr(S.saved(last))} went to goals out of ${F.inr(S.income(last))} that came in. In the ${prev.length} month${prev.length > 1 ? 's' : ''} before, you saved ${F.pct(usualRate)} on average.${rd < 0 && S.income(last) > S.income(prev[prev.length - 1]) ? ' Income was higher, so the extra went to spending.' : ''}`,
-        detail: '', link: ['#/goals', 'Review savings goals']
-      });
-
-      return out.sort((a, b) => b.rank - a.rank);
+      return out.sort((a, c) => c.rank - a.rank);
     }
   };
 
