@@ -81,6 +81,68 @@
 .sa-notelist .tip { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--text); margin-top: 8px; line-height: 1.5; }
 .sa-notelist .tip svg { flex: none; color: var(--data); margin-top: 2px; }
 
+/* ---------- The "needs attention" strip on Overview, Transactions and Spending ---------- */
+.rc-alert { display: flex; align-items: center; gap: 14px; padding: 14px 18px; margin-bottom: 20px; border-radius: 16px; background: var(--alert-soft); color: var(--navy); font-size: 14px; line-height: 1.5; }
+.rc-alert > svg { flex: none; color: var(--alert-ink); }
+.rc-alert b { font-weight: 700; }
+.rc-alert .grow { flex: 1; min-width: 0; }
+.rc-alert .btn { flex: none; }
+.rc-alert.info { background: var(--surface); }
+.rc-alert.info > svg { color: var(--data); }
+.rc-alert.done { background: var(--surface); }
+.rc-alert.done > svg { color: var(--data); }
+.rc-alert .link { flex: none; font-size: 13px; }
+
+/* ---------- Smart Financial Recovery (dialog) ---------- */
+.modal.wide:has([data-rc]), .modal.wide:has([data-ad]), .modal.wide:has(.em-grid), .modal.wide:has(.be) { max-width: 880px; }
+.rc-intro { font-size: 15px; line-height: 1.55; color: var(--text-2); margin: 0 0 4px; max-width: 70ch; }
+.rc-step { padding: 22px 0 4px; border-top: 1px solid var(--rule); margin-top: 18px; }
+.rc-step:first-of-type { border-top: 0; margin-top: 8px; padding-top: 8px; }
+.rc-step-h { display: flex; align-items: center; gap: 10px; font-family: var(--font); font-size: 16px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 12px; }
+.rc-n { width: 24px; height: 24px; border-radius: 99px; background: var(--navy); color: #fff; font-size: 12.5px; font-weight: 700; display: inline-grid; place-items: center; flex: none; }
+.rc-hint { font-size: 13.5px; color: var(--text-2); margin: 0 0 12px; line-height: 1.5; }
+.rc-what { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14.5px; line-height: 1.55; color: var(--text-2); }
+.rc-what b { color: var(--text); }
+.rc-ledger { margin: 0; max-width: 620px; }
+.rc-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; padding: 9px 0; border-top: 1px solid var(--rule); font-size: 14px; }
+.rc-row:first-child { border-top: 0; }
+.rc-row dt .s { display: block; font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.rc-row dd { margin: 0; font-weight: 650; text-align: right; }
+.rc-row.total { border-top: 1.5px solid var(--navy); font-weight: 700; }
+.rc-row.total dt { font-weight: 700; }
+.rc-row.total.neg dd { color: var(--alert-ink); }
+.rc-row.gap { background: var(--alert-wash); border-radius: var(--r-small); border-top: 0; padding: 10px 12px; margin-top: 6px; font-weight: 700; }
+.rc-levers { display: grid; gap: 10px; }
+.rc-lever { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px 14px; align-items: start; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--r-inner); background: var(--surface); cursor: pointer; transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease); }
+.rc-lever:hover { border-color: var(--control); }
+.rc-lever.on { border-color: var(--accent); background: var(--accent-wash); box-shadow: inset 0 0 0 1px var(--accent); }
+.rc-lever.off { cursor: default; background: var(--gray-50); }
+.rc-lever.off .t { color: var(--text-3); }
+.rc-lever input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--navy); }
+.rc-lever input:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 4px; }
+.rc-lever-body { display: grid; gap: 3px; }
+.rc-lever-body .t { font-weight: 650; font-size: 14.5px; }
+.rc-lever-body .d { font-size: 13px; color: var(--text-2); line-height: 1.45; }
+.rc-lever-body .trade { font-size: 12.5px; color: var(--text-3); line-height: 1.45; }
+.rc-lever-amt { font-weight: 700; font-size: 15px; white-space: nowrap; }
+.rc-catch { margin: -2px 0 2px 46px; font-size: 13.5px; }
+.rc-protect { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--text-2); margin: 6px 0 0; line-height: 1.5; }
+.rc-protect svg { flex: none; color: var(--data); margin-top: 1px; }
+.rc-rev th, .rc-rev td, .rc-goals th, .rc-goals td { font-size: 13.5px; }
+.rc-rev .rc-sub th, .rc-rev .rc-sub td { border-top: 1.5px solid var(--rule); }
+.rc-after { font-size: 14px; color: var(--text-2); margin: 14px 0 0; line-height: 1.55; }
+.rc-after b { color: var(--text); }
+.rc-delay { display: inline-block; font-size: 12px; font-weight: 650; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.rc-delay.same { background: var(--sunken); color: var(--text-2); }
+.rc-delay.late { background: var(--alert-wash); color: var(--alert-ink); }
+.rc-delay.early { background: var(--peri-100); color: var(--pos); }
+.rc-none, .rc-cover { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.5; padding: 12px 14px; border-radius: var(--r-inner); background: var(--accent-tint); color: var(--text); margin: 0; }
+.rc-none svg, .rc-cover svg { flex: none; color: var(--data); margin-top: 2px; }
+.rc-cover { margin-top: 20px; }
+.rc-cover.short { background: var(--alert-wash); }
+.rc-cover.short svg { color: var(--alert-ink); }
+.rc-goals s, .rc-rev s, .pd-goals s { text-decoration-thickness: 1px; margin-right: 4px; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1180px) {
   .money-keys.five { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 20px; }
