@@ -99,8 +99,8 @@ SW.pages = SW.pages || {};
   function notesHTML(notes) {
     const shown = notesAll ? notes : notes.slice(0, NOTES_SHOWN);
     return `<div class="sa-notes">
-      <h3 class="sa-sub-title">Worth a look</h3>
-      <ul class="sa-notelist">${shown.map(p => `<li class="${p.tone || ''}"><div class="k">${p.k}</div><div class="t">${F.esc(p.t)}</div><div class="d">${p.d}</div></li>`).join('')}</ul>
+      <h3 class="sa-sub-title">Patterns in your spending</h3>
+      <ul class="sa-notelist">${shown.map(p => `<li class="${p.tone || ''}"><div class="k">${p.k}</div><div class="t">${F.esc(p.t)}</div><div class="d">${p.d}</div>${p.tip ? `<div class="tip">${I('sparkle', 14)}<span>${p.tip}</span></div>` : ''}</li>`).join('')}</ul>
       ${notes.length > NOTES_SHOWN ? `<button type="button" class="link sa-more" data-notes-more aria-expanded="${notesAll}">${notesAll ? 'Show fewer' : `Show ${notes.length - NOTES_SHOWN} more`}</button>` : ''}
     </div>`;
   }
@@ -111,8 +111,7 @@ SW.pages = SW.pages || {};
       return `${ui.pageHeader({ title: 'Spending Analysis', sub: 'See where your money goes and how it changes month to month.' })}
         <section class="panel">${ui.empty({ icon: 'spending', title: 'No spending recorded yet', text: 'Add a few expenses and this page will break them down by category and month.', action: `<a class="btn btn-primary btn-sm" href="#/transactions">${I('plus', 15)}Add transactions</a>` })}</section>`;
     }
-    const full = S.fullMonths(6);
-    if (!month || !months.includes(month)) month = full.length ? full[full.length - 1] : months[months.length - 1];
+    if (!month || !months.includes(month)) month = months.includes(S.CUR_MONTH) ? S.CUR_MONTH : months[months.length - 1];
     const idx = months.indexOf(month);
     const prev = idx > 0 ? months[idx - 1] : null;
     const cur = S.byCategory(month), was = prev ? S.byCategory(prev) : {};
@@ -122,12 +121,22 @@ SW.pages = SW.pages || {};
     const split = S.essentialSplit(month);
     const partial = month === S.CUR_MONTH;
 
-    // What to look at: the biggest rise first (complete months only), then the patterns in the transactions
-    const notes = patterns(month);
+    // What to look at: behaviour insights first (each with a suggestion), then the biggest rise and other patterns
+    const notes = S.behaviour(month).filter(x => x.type !== 'savings').map(x => ({ k: x.figureNote ? `${x.figure} ${x.figureNote}` : 'Pattern', tone: x.tone === 'attention' ? 'attention' : '', t: x.title, d: `${x.text} ${x.why}`, tip: x.tip }));
+    patterns(month).forEach(p => { if (!(p.k === 'Weekends' && notes.some(n => /weekend/i.test(n.t)))) notes.push(p); });
     if (prev && !partial && prevTotal && mover && mover.v - mover.p > 500) {
       notes.unshift({ k: 'Biggest rise', tone: 'attention', t: `${mover.c}, +${F.inr(mover.v - mover.p)}`, d: `${F.inr(mover.v)} in ${S.monthName(month, true)}, up from ${F.inr(mover.p)} in ${S.monthName(prev, true)}.` });
     }
     const segMonths = months.slice(-5);
+    const rowsAll = S.monthBudget(month);
+    const bva = {
+      flex: rowsAll.filter(r => r.kind !== 'bill' && (r.budget || r.spent)),
+      bills: rowsAll.filter(r => r.kind === 'bill'),
+      over: rowsAll.filter(r => r.kind !== 'bill' && r.over > 0),
+      emergency: rowsAll.reduce((a, r) => a + r.emergency, 0),
+      planned: Object.values(S.budgetFor(month)).reduce((a, v) => a + v, 0)
+    };
+    bva.overTotal = bva.over.reduce((a, r) => a + r.over, 0);
 
     return `
       ${ui.pageHeader({ title: 'Spending Analysis', sub: `Where your money went in ${monthLabel(month)}${prev ? ` and what changed since ${S.monthName(prev, true)}` : ''}.` })}
@@ -137,7 +146,23 @@ SW.pages = SW.pages || {};
         <span class="sa-vs">${prev ? `Compared with ${S.monthName(prev, true)}` : 'First month on record'}</span>
       </div>
 
+      ${partial ? SW.flows.alertHTML('spending') : ''}
       ${leadHTML({ month, prev, total, prevTotal, partial, split, mover })}
+
+      <section class="fi-band sa-plan" aria-labelledby="bva-h">
+        <div class="sa-sec-row"><div><h2 class="fi-sec-title" id="bva-h">Budget against actual</h2>
+          <p class="fi-sec-desc">${partial ? `Day ${F.d(S.TODAY).getDate()} of ${S.daysInMonth(month)}. ` : ''}${bva.over.length ? `${bva.over.length} categor${bva.over.length === 1 ? 'y is' : 'ies are'} over plan, by ${F.inr(bva.overTotal)} in total.` : 'Every category is within its plan.'}${bva.emergency ? ` ${F.inr(bva.emergency)} of emergencies came from the buffer and isn’t counted against categories.` : ''}</p></div>
+          <div class="sa-plan-btns">${partial ? `<button type="button" class="btn btn-secondary btn-sm" data-adapt>${I('sparkle', 14)}Suggest a budget</button><button type="button" class="btn btn-secondary btn-sm" data-edit-budget>${I('sliders', 14)}Edit budget</button>` : ''}</div></div>
+        <div class="sa-bva">
+          <div>${ui.budgetRows(bva.flex, { scheduled: partial })}
+            <div class="legend bva-legend"><span><i class="lg-bar"></i>Spent</span>${partial ? '<span><i class="lg-sch"></i>Still due</span>' : ''}<span><i class="lg-tick"></i>Budget</span><span><i class="lg-over"></i>Over budget</span></div></div>
+          <div class="sa-bva-side">
+            <h3 class="sa-sub-title">Commitments</h3>
+            <dl class="sa-commit">${bva.bills.map(r => `<div><dt>${F.esc(r.cat)}</dt><dd class="num">${F.inr(r.spent)}${partial && r.scheduled ? `<span class="s">+ ${F.inr(r.scheduled)} due</span>` : ''}<span class="s">of ${F.inr(r.budget)}</span></dd></div>`).join('')}</dl>
+            <dl class="sa-commit tot"><div><dt>Planned for ${S.monthName(month, true)}</dt><dd class="num">${F.inr(bva.planned)}</dd></div><div><dt>Spent${partial ? ' so far' : ''}</dt><dd class="num">${F.inr(total)}</dd></div></dl>
+          </div>
+        </div>
+      </section>
 
       <div class="fi-board sa-board">
         <section class="fi-band" aria-labelledby="cat-h">
