@@ -180,14 +180,47 @@ SW.pages = SW.pages || {};
       </table></div>`;
   }
 
+  /* ---------- Emergency Expense Manager: the buffer, the fund, and this month's surprises ---------- */
+  function emergencyHTML() {
+    const e = S.emergencySummary();
+    const is = S.issues();
+    const usedPct = e.bufferPlan ? Math.min(1, e.bufferUsed / e.bufferPlan) : 0;
+    const g = e.goal;
+    const gs = g ? S.goalStatus(g) : null;
+    return `<div class="cal-sec-head"><div><h2 class="cal-sec-title" id="em-h">Emergencies and your safety net</h2>
+        <p class="cal-sec-desc">Genuine emergencies are paid from the monthly buffer first, and kept apart from lifestyle spending.</p></div>
+        <button type="button" class="btn btn-primary btn-sm" data-emergency>${I('plus', 14)}Record unexpected expense</button></div>
+      <div class="em-board">
+        <div class="em-cell">
+          <h3 class="em-cell-h">Monthly buffer</h3>
+          <p class="em-big num">${F.inr(e.bufferLeft)}<span> left of ${F.inr(e.bufferPlan)}</span></p>
+          ${ui.progress(usedPct, usedPct >= 1 ? 'warn' : '')}
+          <p class="em-cell-s">${e.bufferUsed ? `${F.inr(e.bufferUsed)} used this month.` : 'Untouched this month.'}${e.beyond ? ` <b class="warn">${F.inr(e.beyond)} went beyond it.</b>` : ''} It resets on payday, ${F.short(S.nextPayday())}.</p>
+        </div>
+        <div class="em-cell">
+          <h3 class="em-cell-h">Emergency fund</h3>
+          ${g ? `<p class="em-big num">${F.inr(e.saved)}<span> of ${F.inr(g.target)}</span></p>
+          ${ui.progress(gs.pct)}
+          <p class="em-cell-s">Covers about <b>${e.monthsCovered.toFixed(1)} months</b> of essentials (${F.inr(e.essentials)} a month). ${gs.projected ? `At ${F.inr(S.goalMonthlyFor(g))} a month it’s full by ${S.monthName(gs.projected)} ${gs.projected.slice(0, 4)}.` : ''} <a class="link" href="#/goals">Goal</a></p>`
+          : `<p class="em-cell-s">No emergency fund yet. <a class="link" href="#/goals">Create one</a> so a bigger surprise doesn’t land on your spending money.</p>`}
+        </div>
+        <div class="em-cell em-list">
+          <h3 class="em-cell-h">Unexpected this month</h3>
+          ${e.list.length ? `<ul class="list">${e.list.map(t => `<li class="list-item"><div class="grow"><div class="li-title">${F.esc(t.desc)}</div><div class="li-sub">${F.short(t.date)} · ${F.esc(t.category)} · ${t.emergency ? 'Emergency, from the buffer' : 'Unplanned, counts against its category'}</div></div><div class="li-amt">${F.inr(t.amount)}</div></li>`).join('')}</ul>`
+            : `<p class="em-cell-s">Nothing unexpected so far. If something comes up, record it here to see how the rest of the month still works.</p>`}
+          ${is.needsRecovery && is.context === 'emergency' ? `<button type="button" class="btn btn-secondary btn-sm em-recover" data-recover>Plan the rest of the month</button>` : ''}
+        </div>
+      </div>`;
+  }
+
   function headline() {
     const list = S.upcomingSorted();
     const late = list.filter(u => S.isOverdue(u));
     const week = list.filter(u => u.due >= S.TODAY && u.due <= F.addDays(S.TODAY, 7));
     const sum = a => a.reduce((s, u) => s + u.amount, 0);
     if (late.length) return `<b class="warn">${F.inr(sum(late))} is overdue</b>: ${late.map(u => `${F.esc(shortName(u.name))} was due ${F.short(u.due)}`).join(', ')}. ${week.length ? `Another ${F.inr(sum(week))} is due in the next 7 days.` : ''}`;
-    if (week.length) return `<b>${F.inr(sum(week))} is due in the next 7 days</b> across ${week.length} payment${week.length > 1 ? 's' : ''}. Money for these isn’t counted as free to spend.`;
-    return 'Nothing is due in the next 7 days. Money for scheduled payments isn’t counted as free to spend.';
+    if (week.length) return `<b>${F.inr(sum(week))} is due in the next 7 days</b> across ${week.length} payment${week.length > 1 ? 's' : ''}. Money for these is already kept out of your Safe-to-Spend.`;
+    return 'Nothing is due in the next 7 days. Money for scheduled payments is kept out of your Safe-to-Spend.';
   }
 
   function render() {
@@ -195,7 +228,7 @@ SW.pages = SW.pages || {};
     const sum = S.scheduleSummary(view);
     const [y] = view.split('-');
     return `
-      ${ui.pageHeader({ title: 'Upcoming Expenses', sub: headline(), actions: `<button class="btn btn-primary" data-action="new">${I('plus', 16)}Add expense</button>` })}
+      ${ui.pageHeader({ title: 'Upcoming Expenses', sub: headline(), actions: `<button class="btn btn-secondary" data-emergency>${I('alert', 16)}Unexpected expense</button><button class="btn btn-primary" data-action="new">${I('plus', 16)}Add expense</button>` })}
       <section class="cal-panel" aria-labelledby="cal-h">
         <div class="cal-bar">
           <h2 class="cal-month" id="cal-h" aria-live="polite">${S.monthName(view, true)} <span>${y}</span></h2>
@@ -209,6 +242,7 @@ SW.pages = SW.pages || {};
         <div data-grid>${gridHTML(list)}</div>
         <p class="sr-only" aria-live="polite" data-announce></p>
       </section>
+      <section class="cal-emergency" aria-labelledby="em-h">${emergencyHTML()}</section>
       <section class="cal-upnext" aria-labelledby="next-h">${nextHTML()}</section>
       <section class="cal-recurring" aria-labelledby="rec-h">${recurringHTML()}</section>
       <p class="hero-note">${I('info', 15)}<span>Recurring expenses are projected into future months from their next due date. Marking one paid records it in Transactions and rolls it to the next month or year.</span></p>`;
@@ -219,7 +253,7 @@ SW.pages = SW.pages || {};
     const u = Object.assign({ name: '', amount: '', due: presetDue || F.addDays(S.TODAY, 7), category: 'Utilities & bills', repeat: 'monthly', estimate: false, remind: S.state.settings.remindDays, method: 'UPI' }, existing || {});
     ui.open({
       title: existing ? 'Edit expense' : 'Add expense',
-      desc: existing ? (u.repeat !== 'none' ? 'Changes apply to this and every future repeat.' : '') : 'Money for it is kept aside from what’s free to spend.',
+      desc: existing ? (u.repeat !== 'none' ? 'Changes apply to this and every future repeat.' : '') : 'Money for it is kept out of your Safe-to-Spend until it’s paid.',
       body: `<form class="form-grid" data-form autocomplete="off" novalidate>
         <label class="field span-2"><span class="field-label">Title</span><input class="input" name="name" value="${F.esc(u.name)}" placeholder="e.g. Semester fees, Rent, Netflix" aria-describedby="e-name" /><span class="field-error" id="e-name" hidden>Add a title.</span></label>
         <label class="field"><span class="field-label">Amount</span>${ui.moneyInput('amount', u.amount, 'placeholder="0" aria-describedby="e-amt"')}<span class="field-error" id="e-amt" hidden>Enter an amount above zero.</span></label>
@@ -274,8 +308,12 @@ SW.pages = SW.pages || {};
     if (focus) root.querySelector(`[data-day="${iso}"]`)?.focus();
   }
 
-  function mount(r) {
+  function mount(r, params) {
     root = r;
+    if (params && params[0] === 'emergency') {
+      history.replaceState(null, '', '#/upcoming');
+      setTimeout(() => SW.flows.openEmergency(), 60);
+    }
     ui.on(root, 'click', '[data-action="new"]', () => openForm(null, sel >= S.TODAY ? sel : undefined));
     ui.on(root, 'click', '[data-action="new-day"]', () => openForm(null, sel));
     ui.on(root, 'click', '[data-day]', (e, b) => select(b.dataset.day));
