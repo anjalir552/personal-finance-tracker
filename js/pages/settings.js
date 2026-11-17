@@ -9,7 +9,7 @@ SW.pages = SW.pages || {};
     const nth = d => ['th', 'st', 'nd', 'rd'][(d % 10 > 3 || [11, 12, 13].includes(d)) ? 0 : d % 10];
     return `
       <div class="set-wrap">
-      ${ui.pageHeader({ title: 'Settings', sub: 'The few numbers Scopewise needs to answer “can I afford this?”, and your data.' })}
+      ${ui.pageHeader({ title: 'Settings', sub: 'The few numbers Scopewise needs to work out what’s safe to spend, and your data.' })}
 
       
         <div class="set-main">
@@ -30,13 +30,14 @@ SW.pages = SW.pages || {};
 
           <section class="set-sec" id="set-finance" aria-labelledby="h-finance">
             <header class="set-head"><h2 class="set-title" id="h-finance">Financial setup</h2>
-              <p class="set-desc">These drive free to spend and every purchase check. Right now that is <b class="num">${F.inr(m.free)}</b> until ${F.date(m.payday, false)}.</p></header>
+              <p class="set-desc">These drive Safe-to-Spend and every purchase check. Right now that is <b class="num">${F.inr(m.free)}</b> until ${F.date(m.payday, false)}.</p></header>
             <div class="set-body"><form data-form="money" onsubmit="return false" novalidate>
               <div class="set-fields">
                 <label class="field"><span class="field-label">Bank balance today</span>${ui.moneyInput('balance', Math.max(0, S.balance()))}<span class="field-hint">Updates your starting point; past transactions stay as they are.</span></label>
                 <label class="field"><span class="field-label">Monthly income</span>${ui.moneyInput('monthlyIncome', s.monthlyIncome)}<span class="field-hint">Salary, stipend or pocket money, after tax.</span></label>
                 <label class="field"><span class="field-label">Income usually arrives on</span><select class="select" name="payday">${Array.from({ length: 28 }, (_, i) => i + 1).map(d => `<option value="${d}" ${d === s.payday ? 'selected' : ''}>The ${d}${nth(d)} of each month</option>`).join('')}</select></label>
-                <label class="field"><span class="field-label">Safety cushion</span>${ui.moneyInput('cushion', s.cushion)}<span class="field-hint">The least you want left before payday. Purchase checks protect it.</span></label>
+                <label class="field"><span class="field-label">Monthly buffer</span>${ui.moneyInput('buffer', S.bufferFor())}<span class="field-hint">Kept out of Safe-to-Spend for surprises. Emergencies use it first.</span></label>
+                <div class="field span-2"><span class="field-label">Monthly budget</span><span class="set-static">${F.inr(S.plan().lines)} across categories, ${F.inr(S.goalsMonthly())} to savings, ${F.inr(S.bufferFor())} buffer. <button type="button" class="link" data-edit-budget>Edit budget</button></span></div>
               </div>
               <div class="set-actions"><button class="btn btn-primary btn-sm" data-save="money">Save financial setup</button></div>
             </form></div>
@@ -59,9 +60,10 @@ SW.pages = SW.pages || {};
             <div class="set-list">
               <div class="set-item"><div><div class="t">Export everything</div><div class="d">Transactions, goals, upcoming expenses and settings as a JSON file.</div></div>
                 <button class="btn btn-secondary btn-sm" data-action="export">${I('download', 15)}Export JSON</button></div>
-              <div class="set-item"><div><div class="t">Restore the example</div><div class="d">Bring back the sample profile (Aarav, a first-job designer in Pune).</div></div>
+
+              <div class="set-item"><div><div class="t">Restore the example</div><div class="d">Bring back Aditi’s fictional example data, as it was before any changes.</div></div>
                 <button class="btn btn-secondary btn-sm" data-action="reset">${I('reset', 15)}Restore example</button></div>
-              <div class="set-item set-item-danger"><div><div class="t">Clear all data</div><div class="d">Clear the example data and set up with your own numbers. This deletes everything stored in this browser.</div></div>
+              <div class="set-item set-item-danger"><div><div class="t">Clear all data</div><div class="d">Remove the example data and start with your own numbers. This deletes everything stored in this browser.</div></div>
                 <button class="btn btn-danger btn-sm" data-action="clear">${I('trash', 15)}Clear all data</button></div>
             </div></div>
           </section>
@@ -78,7 +80,8 @@ SW.pages = SW.pages || {};
         S.setBalance(ui.money(d.balance));
         s.monthlyIncome = ui.money(d.monthlyIncome);
         s.payday = +d.payday || 1;
-        s.cushion = ui.money(d.cushion);
+        const nb = ui.money(d.buffer);
+        if (nb !== S.bufferFor()) S.applyBudgetEdit(S.ongoingBudget(), nb);
         S.state.isNew = false;
       } else if (b.dataset.save === 'prefs') {
         s.remindDays = +d.remindDays;
@@ -102,7 +105,7 @@ SW.pages = SW.pages || {};
       S.clear(); SW.go('#/overview'); ui.toast('All clear. Let’s set up your own numbers.');
     });
     ui.on(root, 'click', '[data-action="reset"]', async () => {
-      const ok = await ui.confirm({ title: 'Restore the example?', text: 'Your current data will be replaced by the sample profile.', confirmLabel: 'Restore example' });
+      const ok = await ui.confirm({ title: 'Restore the example?', text: 'Everything you’ve added or changed will be replaced with Aditi’s original example data.', confirmLabel: 'Restore example' });
       if (!ok) return;
       S.reset(); SW.refresh(); ui.toast('Example data restored');
     });

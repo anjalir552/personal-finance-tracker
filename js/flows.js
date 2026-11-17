@@ -30,7 +30,6 @@
         <td class="r">${delayText(r)}</td></tr>`).join('')}</tbody></table></div>`;
   }
 
-
   /* ==========================================================================
      Smart Financial Recovery
      ========================================================================== */
@@ -159,7 +158,6 @@
     });
   }
 
-
   /* ==========================================================================
      Emergency Expense Manager
      ========================================================================== */
@@ -247,6 +245,118 @@
     });
   }
 
+  /* ==========================================================================
+     Adaptive Budgeting
+     ========================================================================== */
+  function openAdaptive() {
+    let fund = 'flex';
+    let p = S.adaptiveProposal(fund);
+    if (!p.enough) { ui.toast('Adaptive budgeting needs three complete months of history', 'info'); return; }
+    if (!p.changed.length && !p.unfunded) { ui.toast('Your budget already matches how you spend', 'checkCircle'); return; }
+    const body = () => {
+      const months = p.keys.map(k => S.monthName(k)).join(', ');
+      const planBefore = S.plan();
+      const delta = p.inc - p.dec;
+      return `<p class="rc-intro">Based on ${months}. Essentials are kept fully covered; the plan still adds up to your ${F.inr(planBefore.income)} income. Nothing changes until you approve.</p>
+        <div class="table-wrap"><table class="table ad-table">
+          <caption class="sr-only">Current and proposed monthly budget</caption>
+          <thead><tr><th scope="col">Category</th><th scope="col" class="r hide-sm">${p.keys.map(k => S.monthName(k)).join(' · ')}</th><th scope="col" class="r">Now</th><th scope="col" class="r">Suggested</th><th scope="col">Why</th></tr></thead>
+          <tbody>${p.rows.filter(r => r.current).map(r => `<tr class="${r.proposed !== r.current ? 'chg' : ''}">
+            <th scope="row" class="cell-title">${F.esc(r.cat)}<span class="cell-sub">${r.essential ? 'Essential' : 'Flexible'}</span></th>
+            <td class="r num subtle hide-sm">${r.vals.map(v => F.inrc(v, 1)).join(' · ')}</td>
+            <td class="r num">${F.inr(r.current)}</td>
+            <td class="r num"><b>${F.inr(r.proposed)}</b>${r.proposed !== r.current ? `<span class="cell-sub ${r.proposed > r.current ? '' : 'pos'}">${r.proposed > r.current ? '+' : '−'}${F.inr(Math.abs(r.proposed - r.current))}</span>` : ''}</td>
+            <td class="ad-why">${r.reason || '<span class="subtle">Matches your spending</span>'}</td></tr>`).join('')}</tbody>
+        </table></div>
+        ${delta > 0 ? `<div class="ad-fund"><p class="rc-hint">The increases need <b>${F.inr(delta)}</b> more than the decreases free up. Where should it come from?</p>
+          ${ui.segmented('adfund', [{ value: 'flex', label: 'Flexible spending' }, { value: 'savings', label: 'Savings' }, { value: 'buffer', label: 'Monthly buffer' }], fund, 'Fund the difference from')}</div>` : ''}
+        ${p.notes.length ? `<ul class="ad-notes">${p.notes.map(n => `<li>${I('info', 15)}<span>${n}</span></li>`).join('')}</ul>` : ''}
+        <h3 class="rc-step-h ad-h">Effect on savings</h3>
+        ${p.goalImpact.length ? goalTable(p.goalImpact, { showTransfer: false }) : `<p class="rc-none">${I('checkCircle', 16)}<span>Your savings stay at ${F.inr(S.goalsMonthly())} a month. No goal moves.</span></p>`}
+        ${p.unfunded ? `<p class="rc-cover short">${I('alert', 16)}<span>${F.inr(p.unfunded)} can’t be funded this way. Try another source.</span></p>` : ''}`;
+    };
+    ui.open({
+      title: 'A budget that fits how you spend', wide: true,
+      desc: 'Adaptive Budgeting · suggested from your last three months',
+      body: `<div data-ad>${body()}</div>`,
+      foot: `<button class="btn btn-ghost" data-reject>Keep my budget</button><button class="btn btn-primary" data-approve ${p.unfunded ? 'disabled' : ''}>Approve changes</button>`,
+      onMount: (panel, close) => {
+        const box = panel.querySelector('[data-ad]');
+        ui.on(box, 'click', '[data-seg="adfund"] button', (e, b) => {
+          fund = b.dataset.value; p = S.adaptiveProposal(fund);
+          box.innerHTML = body();
+          panel.querySelector('[data-approve]').disabled = !!p.unfunded;
+          box.querySelector(`[data-seg="adfund"] [data-value="${fund}"]`)?.focus();
+        });
+        panel.querySelector('[data-approve]').addEventListener('click', () => {
+          S.applyAdaptive(p); close();
+          ui.toast(`Budget updated for ${p.changed.length} categor${p.changed.length === 1 ? 'y' : 'ies'}, from ${S.monthName(S.CUR_MONTH, true)}`);
+        });
+        panel.querySelector('[data-reject]').addEventListener('click', () => {
+          S.rejectPlan('adaptive', 'Budget suggestion'); close();
+          ui.toast('Kept your current budget', 'info');
+        });
+      },
+      onClose: () => SW.refresh()
+    });
+  }
+
+  /* ==========================================================================
+     Budget editor
+     ========================================================================== */
+  function openBudget() {
+    const b = S.ongoingBudget();
+    const cats = SEED.CATEGORIES.filter(c => b[c.id] || Object.prototype.hasOwnProperty.call(S.state.budget, c.id));
+    const extra = SEED.CATEGORIES.filter(c => !cats.includes(c));
+    const totals = form => {
+      const d = ui.formData(form);
+      const lines = cats.concat(extra).reduce((a, c) => a + ui.money(d['b-' + c.id]), 0);
+      const buffer = ui.money(d.buffer);
+      const savings = S.goalsMonthly();
+      const income = S.state.settings.monthlyIncome || 0;
+      const left = income - lines - buffer - savings;
+      return { lines, buffer, savings, income, left };
+    };
+    const row = c => `<label class="be-row"><span class="be-name">${F.esc(c.id)}<span class="cell-sub">${c.essential ? 'Essential' : 'Flexible'} · ${F.esc(c.note || '')}</span></span>${ui.moneyInput('b-' + c.id, b[c.id] || 0, `aria-label="${F.esc(c.id)} budget"`)}</label>`;
+    ui.open({
+      title: 'Monthly budget', wide: true,
+      desc: `Changes apply from ${S.monthName(S.CUR_MONTH, true)}. Earlier months keep the plan they had.`,
+      body: `<form data-form class="be" autocomplete="off" novalidate>
+        <div class="be-list">${cats.map(row).join('')}</div>
+        ${extra.length ? `<details class="disclosure be-more"><summary><span>More categories<span class="sum-sub">${extra.map(c => c.id).join(', ')}</span></span>${I('chevronDown', 18)}</summary><div class="disc-body be-list">${extra.map(row).join('')}</div></details>` : ''}
+        <div class="be-list be-fixed">
+          <label class="be-row"><span class="be-name">Monthly buffer<span class="cell-sub">Kept for surprises; emergencies use it first</span></span>${ui.moneyInput('buffer', S.bufferFor(), 'aria-label="Monthly buffer"')}</label>
+          <div class="be-row"><span class="be-name">Savings<span class="cell-sub">The sum of your goals’ monthly amounts. Change it on Savings Goals.</span></span><span class="be-static num">${F.inr(S.goalsMonthly())}</span></div>
+        </div>
+        <p class="be-total" data-total aria-live="polite"></p>
+      </form>`,
+      foot: `<button class="btn btn-secondary" data-close>Cancel</button><button class="btn btn-primary" data-ok>Save budget</button>`,
+      onMount: (panel, close) => {
+        const form = panel.querySelector('[data-form]');
+        const out = panel.querySelector('[data-total]');
+        const ok = panel.querySelector('[data-ok]');
+        ui.bindMoney(form);
+        const show = () => {
+          const t = totals(form);
+          out.className = 'be-total' + (t.left < 0 ? ' over' : '');
+          out.innerHTML = `<span>Allocated <b class="num">${F.inr(t.lines + t.buffer + t.savings)}</b> of <b class="num">${F.inr(t.income)}</b> income</span>
+            <span>${t.left < 0 ? `${I('alert', 15)}${F.inr(-t.left)} more than your income. Lower a category to save.` : t.left > 0 ? `${F.inr(t.left)} not allocated. It will stay in your account.` : 'Every rupee has a job.'}</span>`;
+          ok.disabled = t.left < 0;
+        };
+        form.addEventListener('input', show);
+        show();
+        ok.addEventListener('click', () => {
+          const d = ui.formData(form);
+          const nb = {};
+          cats.concat(extra).forEach(c => { const v = ui.money(d['b-' + c.id]); if (v || b[c.id]) nb[c.id] = v; });
+          const id = S.applyBudgetEdit(nb, ui.money(d.buffer));
+          close();
+          ui.toast(id ? 'Budget saved. Safe-to-Spend is updated.' : 'No changes to save', id ? 'checkCircle' : 'info');
+        });
+      },
+      onClose: () => SW.refresh()
+    });
+  }
 
   /* ---------- The alert shown on Overview, Transactions and Spending ---------- */
   function alertHTML(where) {
@@ -266,13 +376,12 @@
       <button type="button" class="btn btn-primary btn-sm" data-recover>${declined ? 'Review again' : 'Review a recovery plan'}</button></div>`;
   }
   // One delegated listener for every page
-
-  // One delegated listener for every page
   document.addEventListener('click', e => {
     if (e.target.closest('[data-recover]')) openRecovery();
     else if (e.target.closest('[data-emergency]')) openEmergency();
+    else if (e.target.closest('[data-adapt]')) openAdaptive();
+    else if (e.target.closest('[data-edit-budget]')) openBudget();
   });
 
-
-  SW.flows = { openRecovery, openEmergency, alertHTML, goalTable, delayText };
+  SW.flows = { openRecovery, openEmergency, openAdaptive, openBudget, alertHTML, goalTable, delayText };
 })();
