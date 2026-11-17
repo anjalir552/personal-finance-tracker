@@ -1,4 +1,4 @@
-/* Financial Insights: "How did this month go, and what changed?"
+/* Personal Insights: "How did this month go, what are my habits, and what should I change?"
    A monthly report. A strip of months picks the report; under it the statement (income,
    spending, savings, what was left) and where the money went, four charts that each answer
    one question (spending by month, its pace, the savings rate, essentials against the rest),
@@ -113,47 +113,66 @@ SW.pages = SW.pages || {};
     </section>`;
   }
 
-  const obsFor = () => S.insights(isCur(month) ? undefined : month);
+  const obsFor = () => S.insights(month);
   function obsHTML(all) {
     const list = all.filter(x => type === 'all' || x.type === type);
-    const latest = S.fullMonths(1)[0];
-    const desc = isCur(month) ? `${mLong(month)} isn’t over yet. These are from ${mLong(latest)}, your latest complete month`
-      : month === latest ? `${mLong(month)} against the months before it, plus your goals and what’s due now`
+    const desc = isCur(month) ? `${mLong(month)} so far, compared with the same point in earlier months, plus your goals and what’s due`
       : `${mLong(month)} against the three months before it`;
     return `<div class="fi-sec-head fi-obs-head">
         <div><h2 class="fi-sec-title" id="obs-h">What stands out</h2><p class="fi-sec-desc">${desc}</p></div>
         ${ui.segmented('itype', [
           { value: 'all', label: 'All', count: all.length },
-          { value: 'spending', label: 'Spending', count: all.filter(x => x.type === 'spending').length },
+          { value: 'spending', label: 'Behaviour', count: all.filter(x => x.type === 'spending').length },
+          { value: 'budget', label: 'Budget', count: all.filter(x => x.type === 'budget').length },
           { value: 'savings', label: 'Savings', count: all.filter(x => x.type === 'savings').length },
           { value: 'upcoming', label: 'Upcoming', count: all.filter(x => x.type === 'upcoming').length }
         ], type, 'Observation type')}
       </div>
       <div class="fi-obs" data-obs>${list.length ? (obsAll ? list : list.slice(0, OBS_SHOWN)).map(x => `<article class="fi-ob ${x.tone}">
           <div class="fi-ob-fig"><span class="num">${x.figure || ''}</span><span class="n">${x.figureNote || ''}</span></div>
-          <div class="fi-ob-body"><h3>${x.title}</h3><p>${x.text}</p>${x.detail ? `<p class="d">${x.detail}</p>` : ''}</div>
+          <div class="fi-ob-body"><h3>${x.title}</h3><p>${x.text}</p>
+            ${x.why ? `<p class="fi-ob-why"><b>Why it matters</b> ${x.why}</p>` : ''}
+            ${x.tip ? `<p class="fi-ob-tip">${I('sparkle', 14)}<span><b>Try this</b> ${x.tip}</span></p>` : ''}</div>
           <a class="link" href="${x.link[0]}">${x.link[1]}${I('arrowRight', 14)}</a>
         </article>`).join('') : ui.empty({ icon: 'insights', title: 'Nothing to flag here', text: 'No observations of this kind right now. That’s usually a good sign.' })}</div>
       ${list.length > OBS_SHOWN ? `<button type="button" class="link fi-more-btn fi-obs-more" data-obs-more aria-expanded="${obsAll}">${obsAll ? 'Show fewer' : `Show ${list.length - OBS_SHOWN} more`}</button>` : ''}`;
   }
 
+  /* ---------- Adaptive Budgeting: the suggestion, summarised; the comparison opens in a dialog ---------- */
+  function adaptHTML() {
+    const p = S.adaptiveProposal();
+    const done = (S.state.planLog || []).filter(x => x.kind === 'adaptive' && x.status === 'approved').slice(-1)[0];
+    const head = `<div class="fi-sec-head"><div><h2 class="fi-sec-title" id="ad-h">Adaptive budgeting</h2>
+      <p class="fi-sec-desc">When your spending pattern changes, Scopewise suggests a plan that fits it, keeping essentials covered and the total within your income.</p></div></div>`;
+    if (!p.enough) return head + `<p class="muted">Needs three complete months of history.</p>`;
+    if (!p.changed.length) return head + `<p class="fi-adapt-ok">${I('checkCircle', 16)}<span>${done ? `Your budget was adjusted on ${F.date(done.date)}. ` : ''}Your plan matches how you’ve been spending. Nothing to change.</span></p>`;
+    const up = p.changed.filter(r => r.proposed > r.current), down = p.changed.filter(r => r.proposed < r.current);
+    return head + `<div class="fi-adapt-body">
+      <ul class="fi-adapt-list">${p.changed.map(r => `<li><span class="n">${F.esc(r.cat)}</span><span class="num">${F.inr(r.current)} → <b>${F.inr(r.proposed)}</b></span><span class="d ${r.proposed > r.current ? '' : 'pos'}">${r.proposed > r.current ? '+' : '−'}${F.inr(Math.abs(r.proposed - r.current))}</span></li>`).join('')}</ul>
+      <div class="fi-adapt-side">
+        <p>${up.length ? `${up.map(r => r.cat).join(' and ')} ${up.length > 1 ? 'have' : 'has'} kept running over.` : ''} ${down.length ? `${down.map(r => r.cat).join(' and ')} can give a little back.` : ''} Your savings ${Object.keys(p.goalChanges).length ? 'change, as shown in the review' : `stay at ${F.inr(S.goalsMonthly())} a month`}.</p>
+        <button type="button" class="btn btn-primary btn-sm" data-adapt>Review and approve</button>
+        ${done ? `<p class="fi-cap">Last adjusted ${F.date(done.date)}.</p>` : ''}
+      </div></div>`;
+  }
+
   function render() {
     const list = months();
     if (S.fullMonths(4).length < 1 || !list.length) {
-      return `${ui.pageHeader({ title: 'Financial Insights', sub: 'Your month in figures: income, spending, savings and what changed.' })}
+      return `${ui.pageHeader({ title: 'Personal Insights', sub: 'Your month in figures: income, spending, savings and what changed.' })}
         <section class="panel">${ui.empty({ icon: 'insights', title: 'Insights need a little history', text: 'Once you’ve recorded about a month of transactions, this page will report on it and compare it with the next.', action: `<a class="btn btn-primary btn-sm" href="#/transactions">${I('plus', 15)}Add transactions</a>` })}</section>`;
     }
-    if (!month || !list.includes(month)) month = S.fullMonths(1)[0] || list[list.length - 1];
+    if (!month || !list.includes(month)) month = list.includes(S.CUR_MONTH) ? S.CUR_MONTH : list[list.length - 1];
     const idx = list.indexOf(month);
     const prevKey = S.addMonths(month, -1);
     const hasPrev = list.includes(prevKey);
     const cur = S.monthSummary(month);
     const prev = hasPrev ? S.monthSummary(prevKey) : null;
     const top = obsFor().find(x => x.tone === 'attention');
-    const sub = `${mLong(month)} ${month.slice(0, 4)}${isCur(month) ? ', so far' : ''}: you saved <b>${F.pct(cur.rate)} of income</b>${cur.left < 0 ? ` and spent <b class="warn">${F.inr(-cur.left)} more than came in</b>` : ''}.${top && !isCur(month) ? ` ${top.title}.` : ''}`;
+    const sub = `${mLong(month)} ${month.slice(0, 4)}${isCur(month) ? ', so far' : ''}: you saved <b>${F.pct(cur.rate)} of income</b>${cur.left < 0 ? ` and spent <b class="warn">${F.inr(-cur.left)} more than came in</b>` : ''}.${top ? ` ${top.title}.` : ''}`;
 
     return `
-      ${ui.pageHeader({ title: 'Financial Insights', sub })}
+      ${ui.pageHeader({ title: 'Personal Insights', sub })}
       ${monthsHTML(list)}
       ${statementHTML(cur, prev, prevKey)}
       <div class="fi-board">
@@ -194,7 +213,8 @@ SW.pages = SW.pages || {};
       </div>
       ${hasPrev ? categoriesHTML(month, prevKey) : ''}
       <section class="fi-section fi-obs-wrap" aria-labelledby="obs-h">${obsHTML(obsFor())}</section>
-      <p class="hero-note">${I('shield', 15)}<span>Every figure comes from your own transactions, goals and upcoming expenses. It describes your numbers and isn’t financial advice.</span></p>`;
+      <section class="fi-section fi-adapt" aria-labelledby="ad-h" id="adapt">${adaptHTML()}</section>
+      <p class="hero-note">${I('shield', 15)}<span>Every insight is computed from the transactions, budget, goals and upcoming expenses in this prototype. Aditi’s data is fictional. It describes the numbers and isn’t financial advice.</span></p>`;
   }
 
   function drawCharts(root) {
@@ -277,7 +297,11 @@ SW.pages = SW.pages || {};
     } else desc.textContent = `Running total through ${mLong(month)}`;
   }
 
-  function mount(r) {
+  function mount(r, params) {
+    if (params && params[0] === 'adapt') {
+      history.replaceState(null, '', '#/insights');
+      setTimeout(() => { r.querySelector('#adapt')?.scrollIntoView({ block: 'start' }); SW.flows.openAdaptive(); }, 60);
+    }
     if (!r.querySelector('[data-trend]')) return;
     drawCharts(r);
     const go = (k, focusSel) => {
