@@ -11,7 +11,7 @@
     { id: 'decisions', label: 'Purchase Decisions', icon: 'decisions' },
     { id: 'goals', label: 'Savings Goals', icon: 'goals' },
     { id: 'upcoming', label: 'Upcoming Expenses', icon: 'upcoming' },
-    { id: 'insights', label: 'Financial Insights', icon: 'insights' },
+    { id: 'insights', label: 'Personal Insights', icon: 'insights' },
     { id: 'settings', label: 'Settings', icon: 'settings' }
   ];
   const STAGE = { student: 'College student', 'first-job': 'First job', working: 'Working' };
